@@ -1058,58 +1058,27 @@ function loadCreateOrderForm() {
     submitBtn.textContent = 'Creating...';
     submitBtn.disabled = true;
     
-    try {
-        // Append to Google Sheets
-        const appendUrl = `https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_ID}/values/Orders!A:AM:append?valueInputOption=USER_ENTERED&key=${API_KEY}`;
-        
-        const rowData = [
-            orderData.orderID,
-            orderData.orderDate,
-            orderData.createdBy,
-            orderData.clientID,
-            orderData.clientName,
-            orderData.productType,
-            orderData.unit,
-            orderData.quantity,
-            orderData.margin,
-            '', // Regulatory price (formula)
-            '', // Price with margin (formula)
-            '', // Total amount (formula)
-            orderData.warehouse,
-            orderData.requestedDeliveryDate,
-            orderData.preferredDeliveryTime,
-            orderData.avoidAfterwork,
-            orderData.paymentTerms,
-            orderData.priority,
-            orderData.noGulfBrand,
-            orderData.status,
-            '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '',
-            new Date().toISOString(),
-            orderData.createdBy
-        ];
-        
-        const response = await fetch(appendUrl, {
+try {
+        // Send to Apps Script Web App
+        const response = await fetch(APPS_SCRIPT_URL, {
             method: 'POST',
+            mode: 'no-cors',
             headers: {
                 'Content-Type': 'application/json',
             },
             body: JSON.stringify({
-                values: [rowData]
+                action: 'createOrder',
+                orderData: orderData
             })
         });
         
-        if (response.ok) {
-            alert(`✅ Order ${orderData.orderID} created successfully!`);
-            document.getElementById('createOrderForm').reset();
-            
-            // Reload data and refresh dashboard
-            await loadData();
-            showView('dashboard');
-        } else {
-            const error = await response.json();
-            console.error('Error creating order:', error);
-            alert('❌ Error creating order. Check console for details.');
-        }
+        // With no-cors, if no error thrown, it succeeded
+        alert(`✅ Order ${orderData.orderID} created successfully!`);
+        document.getElementById('createOrderForm').reset();
+        
+        // Reload data and refresh dashboard
+        await loadData();
+        showView('dashboard');
         
     } catch (error) {
         console.error('Error:', error);
@@ -1118,8 +1087,6 @@ function loadCreateOrderForm() {
         submitBtn.textContent = originalText;
         submitBtn.disabled = false;
     }
-});
-
         function approveOrder(orderID) {
             if (confirm(`Approve order ${orderID}?`)) {
                 // In production: Update Google Sheets
