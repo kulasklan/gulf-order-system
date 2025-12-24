@@ -1,0 +1,1088 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gulf Order Management System</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #FF6B35;
+            --secondary: #004E89;
+            --success: #06A77D;
+            --warning: #F77F00;
+            --danger: #D62828;
+            --light: #F8F9FA;
+            --dark: #212529;
+            --border: #DEE2E6;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: var(--light);
+            color: var(--dark);
+            line-height: 1.6;
+        }
+
+        /* Header */
+        .header {
+            background: var(--secondary);
+            color: white;
+            padding: 1rem;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .header-content {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        .logo {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: var(--primary);
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .user-badge {
+            background: var(--primary);
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            font-size: 0.9rem;
+        }
+
+        /* Login Screen */
+        .login-screen {
+            max-width: 400px;
+            margin: 5rem auto;
+            padding: 2rem;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .login-screen h2 {
+            margin-bottom: 1.5rem;
+            color: var(--secondary);
+        }
+
+        /* Navigation Tabs */
+        .nav-tabs {
+            background: white;
+            padding: 0;
+            border-bottom: 2px solid var(--border);
+            overflow-x: auto;
+            white-space: nowrap;
+        }
+
+        .nav-tabs-inner {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: flex;
+        }
+
+        .nav-tab {
+            padding: 1rem 1.5rem;
+            cursor: pointer;
+            border-bottom: 3px solid transparent;
+            transition: all 0.3s;
+            font-weight: 500;
+        }
+
+        .nav-tab:hover {
+            background: var(--light);
+        }
+
+        .nav-tab.active {
+            color: var(--primary);
+            border-bottom-color: var(--primary);
+        }
+
+        /* Main Container */
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 1.5rem;
+        }
+
+        /* Cards */
+        .card {
+            background: white;
+            border-radius: 8px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .card-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: var(--secondary);
+        }
+
+        /* Forms */
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        label {
+            font-weight: 500;
+            margin-bottom: 0.5rem;
+            font-size: 0.9rem;
+            color: var(--dark);
+        }
+
+        input, select, textarea {
+            padding: 0.75rem;
+            border: 1px solid var(--border);
+            border-radius: 4px;
+            font-size: 1rem;
+            transition: border-color 0.3s;
+        }
+
+        input:focus, select:focus, textarea:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+
+        textarea {
+            min-height: 100px;
+            resize: vertical;
+        }
+
+        /* Buttons */
+        .btn {
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 4px;
+            font-size: 1rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .btn-primary {
+            background: var(--primary);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #E55A2B;
+        }
+
+        .btn-success {
+            background: var(--success);
+            color: white;
+        }
+
+        .btn-success:hover {
+            background: #059669;
+        }
+
+        .btn-danger {
+            background: var(--danger);
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background: #B91C1C;
+        }
+
+        .btn-secondary {
+            background: var(--secondary);
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background: #003D6D;
+        }
+
+        /* Table */
+        .table-container {
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.9rem;
+        }
+
+        th {
+            background: var(--light);
+            padding: 0.75rem;
+            text-align: left;
+            font-weight: 600;
+            border-bottom: 2px solid var(--border);
+            white-space: nowrap;
+        }
+
+        td {
+            padding: 0.75rem;
+            border-bottom: 1px solid var(--border);
+        }
+
+        tr:hover {
+            background: var(--light);
+        }
+
+        /* Status Badges */
+        .status-badge {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            border-radius: 12px;
+            font-size: 0.85rem;
+            font-weight: 500;
+        }
+
+        .status-pending { background: #FEF3C7; color: #92400E; }
+        .status-approved { background: #D1FAE5; color: #065F46; }
+        .status-rejected { background: #FEE2E2; color: #991B1B; }
+        .status-delivered { background: #DBEAFE; color: #1E40AF; }
+        .status-disputed { background: #FED7AA; color: #9A3412; }
+
+        .priority-critical { color: var(--danger); font-weight: bold; }
+        .priority-urgent { color: var(--warning); font-weight: bold; }
+        .priority-high { color: var(--warning); }
+
+        /* Progress Bar */
+        .progress-bar {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin: 1rem 0;
+            padding: 1rem;
+            background: var(--light);
+            border-radius: 4px;
+            overflow-x: auto;
+        }
+
+        .progress-step {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.25rem;
+            min-width: 80px;
+        }
+
+        .progress-dot {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            background: #CCC;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+        }
+
+        .progress-dot.active {
+            background: var(--success);
+        }
+
+        .progress-dot.current {
+            background: var(--primary);
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+
+        .progress-line {
+            height: 2px;
+            flex: 1;
+            background: #CCC;
+            margin: 0 -0.5rem;
+        }
+
+        .progress-line.active {
+            background: var(--success);
+        }
+
+        /* Checkbox */
+        .checkbox-group {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        input[type="checkbox"] {
+            width: 20px;
+            height: 20px;
+            cursor: pointer;
+        }
+
+        /* Stats */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .stat-card {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 8px;
+            border-left: 4px solid var(--primary);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+
+        .stat-value {
+            font-size: 2rem;
+            font-weight: bold;
+            color: var(--secondary);
+        }
+
+        .stat-label {
+            color: #6B7280;
+            font-size: 0.9rem;
+        }
+
+        /* Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 1000;
+            overflow-y: auto;
+        }
+
+        .modal.active {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 1rem;
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: 8px;
+            padding: 2rem;
+            max-width: 600px;
+            width: 100%;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .close-btn {
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: #6B7280;
+        }
+
+        .close-btn:hover {
+            color: var(--dark);
+        }
+
+        /* Hidden class */
+        .hidden {
+            display: none !important;
+        }
+
+        /* Loading Spinner */
+        .spinner {
+            border: 3px solid var(--light);
+            border-top: 3px solid var(--primary);
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 2rem auto;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Mobile Responsive */
+        @media (max-width: 768px) {
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .header-content {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .nav-tab {
+                padding: 0.75rem 1rem;
+                font-size: 0.9rem;
+            }
+
+            .container {
+                padding: 1rem;
+            }
+
+            table {
+                font-size: 0.8rem;
+            }
+
+            th, td {
+                padding: 0.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <div class="header">
+        <div class="header-content">
+            <div class="logo">⛽ GULF Order Management</div>
+            <div class="user-info">
+                <div class="user-badge" id="userBadge">Not Logged In</div>
+                <button class="btn btn-danger" id="logoutBtn" style="display:none;">Logout</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Login Screen -->
+    <div id="loginScreen" class="login-screen">
+        <h2>🔐 Login to System</h2>
+        <p style="color: #6B7280; margin-bottom: 1.5rem;">Select your role to continue</p>
+        <div class="form-group">
+            <label>Select User</label>
+            <select id="userSelect" style="margin-bottom: 1rem;">
+                <option value="">-- Select User --</option>
+                <option value="GoranSM1">Goran (Sales Manager)</option>
+                <option value="MarkoSM2">Marko (Sales Manager)</option>
+                <option value="AnaManager1">Ana (Management)</option>
+                <option value="PetarWarehouse1">Petar (Warehouse)</option>
+                <option value="IvanTransport1">Ivan (Transport)</option>
+                <option value="MilenaFinance1">Milena (Finance)</option>
+                <option value="Admin">Admin</option>
+            </select>
+            <button class="btn btn-primary" id="loginBtn" style="width: 100%;">Login</button>
+        </div>
+    </div>
+
+    <!-- Main Application (Hidden until login) -->
+    <div id="mainApp" class="hidden">
+        <!-- Navigation Tabs -->
+        <div class="nav-tabs">
+            <div class="nav-tabs-inner" id="navTabs">
+                <!-- Tabs will be generated based on user role -->
+            </div>
+        </div>
+
+        <!-- Container -->
+        <div class="container">
+            <!-- Dashboard View (All Users) -->
+            <div id="dashboardView" class="view-content hidden">
+                <div class="stats-grid" id="statsGrid">
+                    <!-- Stats cards will be generated here -->
+                </div>
+                <div class="card">
+                    <div class="card-header">
+                        <h2 class="card-title">📊 My Orders</h2>
+                        <button class="btn btn-primary" id="refreshOrdersBtn">Refresh</button>
+                    </div>
+                    <div class="table-container">
+                        <table id="ordersTable">
+                            <thead>
+                                <tr>
+                                    <th>Order ID</th>
+                                    <th>Date</th>
+                                    <th>Client</th>
+                                    <th>Product</th>
+                                    <th>Quantity</th>
+                                    <th>Status</th>
+                                    <th>Priority</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="ordersTableBody">
+                                <!-- Orders will be loaded here -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Create Order View (Sales Managers) -->
+            <div id="createOrderView" class="view-content hidden">
+                <div class="card">
+                    <div class="card-header">
+                        <h2 class="card-title">➕ Create New Order</h2>
+                    </div>
+                    <form id="createOrderForm">
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label>Client *</label>
+                                <select id="clientSelect" required>
+                                    <option value="">-- Select Client --</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label>Product Type *</label>
+                                <select id="productTypeSelect" required>
+                                    <option value="">-- Select Product --</option>
+                                    <option value="Eurodiesel">Eurodiesel</option>
+                                    <option value="Eurosuper 95 BS">Eurosuper 95 BS</option>
+                                    <option value="GeForce 95 Plus">GeForce 95 Plus</option>
+                                    <option value="Extreme Diesel">Extreme Diesel</option>
+                                    <option value="Ekstra Lesno">Ekstra Lesno</option>
+                                    <option value="Mazut">Mazut</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label>Unit *</label>
+                                <select id="unitSelect" required>
+                                    <option value="L">Liters (L)</option>
+                                    <option value="Kg">Kilograms (Kg)</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label>Quantity *</label>
+                                <input type="number" id="quantityInput" required min="1">
+                            </div>
+                            <div class="form-group">
+                                <label>Margin (MKD) *</label>
+                                <input type="number" id="marginInput" required min="0" step="0.1">
+                            </div>
+                            <div class="form-group">
+                                <label>Warehouse *</label>
+                                <select id="warehouseSelect" required>
+                                    <option value="">-- Select Warehouse --</option>
+                                    <option value="Skopje Ohis">Skopje Ohis</option>
+                                    <option value="Tetovo">Tetovo</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label>Requested Delivery Date *</label>
+                                <input type="date" id="deliveryDateInput" required>
+                            </div>
+                            <div class="form-group">
+                                <label>Preferred Delivery Time *</label>
+                                <input type="text" id="deliveryTimeInput" placeholder="e.g., 09:00 or Whole day" required>
+                            </div>
+                            <div class="form-group">
+                                <label>Payment Terms *</label>
+                                <select id="paymentTermsSelect" required>
+                                    <option value="">-- Select Payment Terms --</option>
+                                    <option value="Advanced payment">Advanced payment</option>
+                                    <option value="Credit payment">Credit payment</option>
+                                    <option value="Paid Advance">Paid Advance</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label>Priority *</label>
+                                <select id="prioritySelect" required>
+                                    <option value="Normal">Normal</option>
+                                    <option value="Low">Low</option>
+                                    <option value="High">High</option>
+                                    <option value="Urgent">Urgent</option>
+                                    <option value="Critical">Critical</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="form-grid" style="grid-template-columns: 1fr 1fr;">
+                            <div class="checkbox-group">
+                                <input type="checkbox" id="avoidAfterworkCheck">
+                                <label for="avoidAfterworkCheck" style="margin: 0;">Avoid Afterwork Delivery</label>
+                            </div>
+                            <div class="checkbox-group">
+                                <input type="checkbox" id="noGulfBrandCheck">
+                                <label for="noGulfBrandCheck" style="margin: 0;">Client Requested No Gulf Brand</label>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label>Notes</label>
+                            <textarea id="orderNotesInput" placeholder="Any special instructions or notes..."></textarea>
+                        </div>
+                        <button type="submit" class="btn btn-primary">Create Order</button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Approval View (Management) -->
+            <div id="approvalView" class="view-content hidden">
+                <div class="card">
+                    <div class="card-header">
+                        <h2 class="card-title">✅ Pending Approvals</h2>
+                        <button class="btn btn-secondary" id="refreshApprovalsBtn">Refresh</button>
+                    </div>
+                    <div id="pendingApprovalsList">
+                        <!-- Pending orders will be shown here -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Order Details Modal -->
+            <div id="orderDetailsModal" class="modal">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h2 class="card-title">📋 Order Details</h2>
+                        <span class="close-btn" onclick="closeModal()">&times;</span>
+                    </div>
+                    <div id="orderDetailsContent">
+                        <!-- Order details will be loaded here -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ===== CONFIGURATION =====
+        const SPREADSHEET_ID = 'YOUR_SPREADSHEET_ID_HERE'; // Replace with your actual Spreadsheet ID
+        const API_KEY = 'YOUR_API_KEY_HERE'; // Replace with your Google API Key
+
+        // ===== STATE =====
+        let currentUser = null;
+        let currentView = 'dashboard';
+        let ordersData = [];
+        let clientsData = [];
+        let logsData = [];
+
+        // ===== SAMPLE DATA (for testing without Google Sheets) =====
+        const SAMPLE_USERS = {
+            'GoranSM1': { name: 'Goran', department: 'Sales', role: 'SM' },
+            'MarkoSM2': { name: 'Marko', department: 'Sales', role: 'SM' },
+            'AnaManager1': { name: 'Ana', department: 'Management', role: 'Manager' },
+            'PetarWarehouse1': { name: 'Petar', department: 'Warehouse', role: 'Warehouse Staff' },
+            'IvanTransport1': { name: 'Ivan', department: 'Transport', role: 'Coordinator' },
+            'MilenaFinance1': { name: 'Milena', department: 'Finance', role: 'Finance Staff' },
+            'Admin': { name: 'Admin', department: 'Management', role: 'Admin' }
+        };
+
+        const SAMPLE_ORDERS = [
+            {
+                orderID: 'ORD00001-20241224',
+                orderDate: '2024-12-24',
+                createdBy: 'GoranSM1',
+                clientName: 'Makpetrol AD',
+                productType: 'Eurodiesel',
+                quantity: 5000,
+                unit: 'L',
+                status: 'Pending Approval',
+                priority: 'High',
+                warehouse: 'Skopje Ohis',
+                requestedDeliveryDate: '2024-12-25'
+            },
+            {
+                orderID: 'ORD00002-20241224',
+                orderDate: '2024-12-24',
+                createdBy: 'MarkoSM2',
+                clientName: 'Shell Macedonia',
+                productType: 'Eurosuper 95 BS',
+                quantity: 3000,
+                unit: 'L',
+                status: 'Approved',
+                priority: 'Normal',
+                warehouse: 'Skopje Ohis',
+                requestedDeliveryDate: '2024-12-26'
+            },
+            {
+                orderID: 'ORD00003-20241223',
+                orderDate: '2024-12-23',
+                createdBy: 'GoranSM1',
+                clientName: 'Lukoil Macedonia',
+                productType: 'Extreme Diesel',
+                quantity: 4500,
+                unit: 'L',
+                status: 'Truck in Warehouse',
+                priority: 'Urgent',
+                warehouse: 'Tetovo',
+                requestedDeliveryDate: '2024-12-24'
+            }
+        ];
+
+        // ===== LOGIN FUNCTIONS =====
+        document.getElementById('loginBtn').addEventListener('click', () => {
+            const userSelect = document.getElementById('userSelect');
+            const userId = userSelect.value;
+            
+            if (!userId) {
+                alert('Please select a user');
+                return;
+            }
+
+            currentUser = {
+                id: userId,
+                ...SAMPLE_USERS[userId]
+            };
+
+            // Hide login, show app
+            document.getElementById('loginScreen').classList.add('hidden');
+            document.getElementById('mainApp').classList.remove('hidden');
+            document.getElementById('logoutBtn').style.display = 'block';
+            document.getElementById('userBadge').textContent = `${currentUser.name} (${currentUser.department})`;
+
+            // Initialize app
+            initializeApp();
+        });
+
+        document.getElementById('logoutBtn').addEventListener('click', () => {
+            currentUser = null;
+            document.getElementById('loginScreen').classList.remove('hidden');
+            document.getElementById('mainApp').classList.add('hidden');
+            document.getElementById('logoutBtn').style.display = 'none';
+            document.getElementById('userBadge').textContent = 'Not Logged In';
+        });
+
+        // ===== APP INITIALIZATION =====
+        function initializeApp() {
+            generateNavigationTabs();
+            loadData();
+            showView('dashboard');
+        }
+
+        function generateNavigationTabs() {
+            const navTabs = document.getElementById('navTabs');
+            let tabs = '<div class="nav-tab active" onclick="showView(\'dashboard\')">📊 Dashboard</div>';
+
+            if (currentUser.department === 'Sales') {
+                tabs += '<div class="nav-tab" onclick="showView(\'createOrder\')">➕ Create Order</div>';
+            }
+
+            if (currentUser.department === 'Management') {
+                tabs += '<div class="nav-tab" onclick="showView(\'approval\')">✅ Approvals</div>';
+            }
+
+            navTabs.innerHTML = tabs;
+        }
+
+        function showView(viewName) {
+            // Hide all views
+            document.querySelectorAll('.view-content').forEach(v => v.classList.add('hidden'));
+            
+            // Remove active class from all tabs
+            document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+
+            // Show selected view
+            currentView = viewName;
+            
+            if (viewName === 'dashboard') {
+                document.getElementById('dashboardView').classList.remove('hidden');
+                loadDashboard();
+            } else if (viewName === 'createOrder') {
+                document.getElementById('createOrderView').classList.remove('hidden');
+                loadCreateOrderForm();
+            } else if (viewName === 'approval') {
+                document.getElementById('approvalView').classList.remove('hidden');
+                loadApprovals();
+            }
+        }
+
+        // ===== DATA LOADING =====
+        function loadData() {
+            // In production, this would load from Google Sheets
+            // For now, use sample data
+            ordersData = SAMPLE_ORDERS;
+        }
+
+        function loadDashboard() {
+            // Load stats
+            const myOrders = ordersData.filter(o => 
+                currentUser.department === 'Sales' ? o.createdBy === currentUser.id : true
+            );
+
+            const statsHTML = `
+                <div class="stat-card">
+                    <div class="stat-value">${myOrders.length}</div>
+                    <div class="stat-label">Total Orders</div>
+                </div>
+                <div class="stat-card" style="border-left-color: var(--warning);">
+                    <div class="stat-value">${myOrders.filter(o => o.status === 'Pending Approval').length}</div>
+                    <div class="stat-label">Pending Approval</div>
+                </div>
+                <div class="stat-card" style="border-left-color: var(--success);">
+                    <div class="stat-value">${myOrders.filter(o => o.status === 'Delivered').length}</div>
+                    <div class="stat-label">Delivered</div>
+                </div>
+                <div class="stat-card" style="border-left-color: var(--danger);">
+                    <div class="stat-value">${myOrders.filter(o => o.status === 'Disputed').length}</div>
+                    <div class="stat-label">Disputed</div>
+                </div>
+            `;
+            document.getElementById('statsGrid').innerHTML = statsHTML;
+
+            // Load orders table
+            loadOrdersTable(myOrders);
+        }
+
+        function loadOrdersTable(orders) {
+            const tbody = document.getElementById('ordersTableBody');
+            
+            if (orders.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="8" style="text-align:center; padding: 2rem;">No orders found</td></tr>';
+                return;
+            }
+
+            let html = '';
+            orders.forEach(order => {
+                const statusClass = getStatusClass(order.status);
+                const priorityClass = getPriorityClass(order.priority);
+                
+                html += `
+                    <tr>
+                        <td><strong>${order.orderID}</strong></td>
+                        <td>${order.orderDate}</td>
+                        <td>${order.clientName}</td>
+                        <td>${order.productType}</td>
+                        <td>${order.quantity} ${order.unit}</td>
+                        <td><span class="status-badge ${statusClass}">${order.status}</span></td>
+                        <td><span class="${priorityClass}">${order.priority}</span></td>
+                        <td>
+                            <button class="btn btn-secondary" onclick="viewOrderDetails('${order.orderID}')" style="padding: 0.5rem 1rem; font-size: 0.85rem;">View</button>
+                        </td>
+                    </tr>
+                `;
+            });
+
+            tbody.innerHTML = html;
+        }
+
+        function getStatusClass(status) {
+            if (status.includes('Pending')) return 'status-pending';
+            if (status === 'Approved' || status === 'Delivered') return 'status-approved';
+            if (status === 'Rejected') return 'status-rejected';
+            if (status === 'Disputed') return 'status-disputed';
+            return '';
+        }
+
+        function getPriorityClass(priority) {
+            if (priority === 'Critical') return 'priority-critical';
+            if (priority === 'Urgent') return 'priority-urgent';
+            if (priority === 'High') return 'priority-high';
+            return '';
+        }
+
+        function loadCreateOrderForm() {
+            // Load clients for this SM
+            const clientSelect = document.getElementById('clientSelect');
+            clientSelect.innerHTML = '<option value="">-- Select Client --</option>';
+            
+            // In production, load from Google Sheets filtered by currentUser.id
+            // For now, show all clients
+            const sampleClients = [
+                { id: 'CLI001', name: 'Makpetrol AD' },
+                { id: 'CLI002', name: 'Lukoil Macedonia' },
+                { id: 'CLI003', name: 'OMV Petrol' }
+            ];
+
+            sampleClients.forEach(client => {
+                clientSelect.innerHTML += `<option value="${client.id}">${client.name}</option>`;
+            });
+
+            // Set minimum date to today
+            const today = new Date().toISOString().split('T')[0];
+            document.getElementById('deliveryDateInput').setAttribute('min', today);
+        }
+
+        function loadApprovals() {
+            const pendingOrders = ordersData.filter(o => o.status === 'Pending Approval');
+            const container = document.getElementById('pendingApprovalsList');
+
+            if (pendingOrders.length === 0) {
+                container.innerHTML = '<p style="text-align:center; padding: 2rem; color: #6B7280;">No pending approvals</p>';
+                return;
+            }
+
+            let html = '';
+            pendingOrders.forEach(order => {
+                html += `
+                    <div class="card">
+                        <div style="display: flex; justify-content: space-between; align-items: start; gap: 1rem;">
+                            <div style="flex: 1;">
+                                <h3 style="margin-bottom: 0.5rem;">${order.orderID} - ${order.clientName}</h3>
+                                <p style="color: #6B7280; margin-bottom: 1rem;">
+                                    ${order.quantity} ${order.unit} of ${order.productType} | 
+                                    Delivery: ${order.requestedDeliveryDate} | 
+                                    <span class="${getPriorityClass(order.priority)}">${order.priority}</span>
+                                </p>
+                                <div style="display: flex; gap: 1rem;">
+                                    <button class="btn btn-success" onclick="approveOrder('${order.orderID}')">✓ Approve</button>
+                                    <button class="btn btn-danger" onclick="rejectOrder('${order.orderID}')">✗ Reject</button>
+                                    <button class="btn btn-secondary" onclick="viewOrderDetails('${order.orderID}')">View Details</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+
+            container.innerHTML = html;
+        }
+
+        // ===== ORDER ACTIONS =====
+        document.getElementById('createOrderForm').addEventListener('submit', (e) => {
+            e.preventDefault();
+            
+            const orderData = {
+                orderID: `ORD${String(ordersData.length + 1).padStart(5, '0')}-${new Date().toISOString().split('T')[0].replace(/-/g, '')}`,
+                orderDate: new Date().toISOString().split('T')[0],
+                createdBy: currentUser.id,
+                clientID: document.getElementById('clientSelect').value,
+                clientName: document.getElementById('clientSelect').selectedOptions[0].text,
+                productType: document.getElementById('productTypeSelect').value,
+                unit: document.getElementById('unitSelect').value,
+                quantity: document.getElementById('quantityInput').value,
+                margin: document.getElementById('marginInput').value,
+                warehouse: document.getElementById('warehouseSelect').value,
+                requestedDeliveryDate: document.getElementById('deliveryDateInput').value,
+                preferredDeliveryTime: document.getElementById('deliveryTimeInput').value,
+                paymentTerms: document.getElementById('paymentTermsSelect').value,
+                priority: document.getElementById('prioritySelect').value,
+                avoidAfterwork: document.getElementById('avoidAfterworkCheck').checked,
+                noGulfBrand: document.getElementById('noGulfBrandCheck').checked,
+                notes: document.getElementById('orderNotesInput').value,
+                status: 'Pending Approval'
+            };
+
+            // In production: Write to Google Sheets
+            console.log('Creating order:', orderData);
+            
+            alert(`Order ${orderData.orderID} created successfully!`);
+            document.getElementById('createOrderForm').reset();
+            showView('dashboard');
+        });
+
+        function approveOrder(orderID) {
+            if (confirm(`Approve order ${orderID}?`)) {
+                // In production: Update Google Sheets
+                console.log('Approving order:', orderID);
+                alert(`Order ${orderID} approved!`);
+                loadApprovals();
+            }
+        }
+
+        function rejectOrder(orderID) {
+            const reason = prompt('Enter rejection reason:');
+            if (reason) {
+                // In production: Update Google Sheets
+                console.log('Rejecting order:', orderID, 'Reason:', reason);
+                alert(`Order ${orderID} rejected.`);
+                loadApprovals();
+            }
+        }
+
+        function viewOrderDetails(orderID) {
+            const order = ordersData.find(o => o.orderID === orderID);
+            if (!order) return;
+
+            const modal = document.getElementById('orderDetailsModal');
+            const content = document.getElementById('orderDetailsContent');
+
+            content.innerHTML = `
+                <div style="display: grid; gap: 1rem;">
+                    <div><strong>Order ID:</strong> ${order.orderID}</div>
+                    <div><strong>Date:</strong> ${order.orderDate}</div>
+                    <div><strong>Client:</strong> ${order.clientName}</div>
+                    <div><strong>Product:</strong> ${order.productType}</div>
+                    <div><strong>Quantity:</strong> ${order.quantity} ${order.unit}</div>
+                    <div><strong>Warehouse:</strong> ${order.warehouse}</div>
+                    <div><strong>Requested Delivery:</strong> ${order.requestedDeliveryDate}</div>
+                    <div><strong>Priority:</strong> <span class="${getPriorityClass(order.priority)}">${order.priority}</span></div>
+                    <div><strong>Status:</strong> <span class="status-badge ${getStatusClass(order.status)}">${order.status}</span></div>
+                </div>
+                
+                <div class="progress-bar" style="margin-top: 2rem;">
+                    <div class="progress-step">
+                        <div class="progress-dot active">1</div>
+                        <small>Created</small>
+                    </div>
+                    <div class="progress-line ${order.status !== 'Pending Approval' ? 'active' : ''}"></div>
+                    <div class="progress-step">
+                        <div class="progress-dot ${order.status !== 'Pending Approval' ? 'active' : ''}">2</div>
+                        <small>Approved</small>
+                    </div>
+                    <div class="progress-line"></div>
+                    <div class="progress-step">
+                        <div class="progress-dot">3</div>
+                        <small>In Transit</small>
+                    </div>
+                    <div class="progress-line"></div>
+                    <div class="progress-step">
+                        <div class="progress-dot">4</div>
+                        <small>Delivered</small>
+                    </div>
+                </div>
+            `;
+
+            modal.classList.add('active');
+        }
+
+        function closeModal() {
+            document.getElementById('orderDetailsModal').classList.remove('active');
+        }
+
+        // Refresh buttons
+        document.getElementById('refreshOrdersBtn').addEventListener('click', () => {
+            loadData();
+            loadDashboard();
+        });
+
+        document.getElementById('refreshApprovalsBtn').addEventListener('click', () => {
+            loadApprovals();
+        });
+
+        // Close modal on outside click
+        window.onclick = function(event) {
+            const modal = document.getElementById('orderDetailsModal');
+            if (event.target === modal) {
+                closeModal();
+            }
+        }
+    </script>
+</body>
+</html>
