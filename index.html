@@ -6,7 +6,7 @@
     <title>Gulf Order Management System</title>
     <style>
         * {
-            margin: 0; 
+            margin: 0;
             padding: 0;
             box-sizing: border-box;
         }
@@ -206,6 +206,11 @@
 
         .btn-primary:hover {
             background: #E55A2B;
+        }
+
+        .btn-primary:disabled {
+            background: #CCC;
+            cursor: not-allowed;
         }
 
         .btn-success {
@@ -683,9 +688,9 @@
 
     <script>
         // ===== CONFIGURATION =====
-const SPREADSHEET_ID = '1z_SLqYvVJ2f0k6i3dK8DMC-CkI5jFOXH2Rfnx2jkNEk'; // Replace with your actual Spreadsheet ID
-const API_KEY = 'AIzaSyBNuosQWLH2aOxGIuXtZd-jl-Pu5ReVgFw'; // Replace with your Google API Key
-const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzLh-Z6trPUdNIqkE-gYqhb74voXIuQkHbv9hhWV0fTUYLUkeFWrQdWHZfTckpv4L-k/exec'; // Add this!
+        const SPREADSHEET_ID = '1z_SLqYvVJ2f0k6i3dK8DMC-CkI5jFOXH2Rfnx2jkNEk';
+        const API_KEY = 'AIzaSyBNuosQWLH2aOxGIuXtZd-jl-Pu5ReVgFw';
+        const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzLh-Z6trPUdNIqkE-gYqhb74voXIuQkHbv9hhWV0fTUYLUkeFWrQdWHZfTckpv4L-k/exec'; // REPLACE THIS!
 
         // ===== STATE =====
         let currentUser = null;
@@ -694,7 +699,7 @@ const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzLh-Z6trPUdNIq
         let clientsData = [];
         let logsData = [];
 
-        // ===== SAMPLE DATA (for testing without Google Sheets) =====
+        // ===== SAMPLE DATA (for fallback) =====
         const SAMPLE_USERS = {
             'GoranSM1': { name: 'Goran', department: 'Sales', role: 'SM' },
             'MarkoSM2': { name: 'Marko', department: 'Sales', role: 'SM' },
@@ -704,48 +709,6 @@ const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzLh-Z6trPUdNIq
             'MilenaFinance1': { name: 'Milena', department: 'Finance', role: 'Finance Staff' },
             'Admin': { name: 'Admin', department: 'Management', role: 'Admin' }
         };
-
-        const SAMPLE_ORDERS = [
-            {
-                orderID: 'ORD00001-20241224',
-                orderDate: '2024-12-24',
-                createdBy: 'GoranSM1',
-                clientName: 'Makpetrol AD',
-                productType: 'Eurodiesel',
-                quantity: 5000,
-                unit: 'L',
-                status: 'Pending Approval',
-                priority: 'High',
-                warehouse: 'Skopje Ohis',
-                requestedDeliveryDate: '2024-12-25'
-            },
-            {
-                orderID: 'ORD00002-20241224',
-                orderDate: '2024-12-24',
-                createdBy: 'MarkoSM2',
-                clientName: 'Shell Macedonia',
-                productType: 'Eurosuper 95 BS',
-                quantity: 3000,
-                unit: 'L',
-                status: 'Approved',
-                priority: 'Normal',
-                warehouse: 'Skopje Ohis',
-                requestedDeliveryDate: '2024-12-26'
-            },
-            {
-                orderID: 'ORD00003-20241223',
-                orderDate: '2024-12-23',
-                createdBy: 'GoranSM1',
-                clientName: 'Lukoil Macedonia',
-                productType: 'Extreme Diesel',
-                quantity: 4500,
-                unit: 'L',
-                status: 'Truck in Warehouse',
-                priority: 'Urgent',
-                warehouse: 'Tetovo',
-                requestedDeliveryDate: '2024-12-24'
-            }
-        ];
 
         // ===== LOGIN FUNCTIONS =====
         document.getElementById('loginBtn').addEventListener('click', () => {
@@ -824,75 +787,75 @@ const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzLh-Z6trPUdNIq
             }
         }
 
-// ===== DATA LOADING =====
-async function loadData() {
-    console.log('Loading data from Google Sheets...');
-    
-    try {
-        // Load Orders from Google Sheets
-        const ordersUrl = `https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_ID}/values/Orders!A2:AM1000?key=${API_KEY}`;
-        const ordersResponse = await fetch(ordersUrl);
-        const ordersJson = await ordersResponse.json();
-        
-        if (ordersJson.values) {
-            ordersData = ordersJson.values.map(row => ({
-                orderID: row[0] || '',
-                orderDate: row[1] || '',
-                createdBy: row[2] || '',
-                clientID: row[3] || '',
-                clientName: row[4] || '',
-                productType: row[5] || '',
-                unit: row[6] || '',
-                quantity: row[7] || '',
-                margin: row[8] || '',
-                regulatoryPrice: row[9] || '',
-                priceWithMargin: row[10] || '',
-                totalAmount: row[11] || '',
-                warehouse: row[12] || '',
-                requestedDeliveryDate: row[13] || '',
-                preferredDeliveryTime: row[14] || '',
-                avoidAfterwork: row[15] || '',
-                paymentTerms: row[16] || '',
-                priority: row[17] || '',
-                noGulfBrand: row[18] || '',
-                status: row[19] || '',
-                approvedBy: row[20] || '',
-                approvalDate: row[21] || '',
-                rejectionReason: row[22] || ''
-            }));
-            console.log('✅ Loaded', ordersData.length, 'orders from Google Sheets');
-        } else {
-            console.log('No orders found, using empty array');
-            ordersData = [];
+        // ===== DATA LOADING =====
+        async function loadData() {
+            console.log('Loading data from Google Sheets...');
+            
+            try {
+                // Load Orders from Google Sheets
+                const ordersUrl = `https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_ID}/values/Orders!A2:AM1000?key=${API_KEY}`;
+                const ordersResponse = await fetch(ordersUrl);
+                const ordersJson = await ordersResponse.json();
+                
+                if (ordersJson.values) {
+                    ordersData = ordersJson.values.map(row => ({
+                        orderID: row[0] || '',
+                        orderDate: row[1] || '',
+                        createdBy: row[2] || '',
+                        clientID: row[3] || '',
+                        clientName: row[4] || '',
+                        productType: row[5] || '',
+                        unit: row[6] || '',
+                        quantity: row[7] || '',
+                        margin: row[8] || '',
+                        regulatoryPrice: row[9] || '',
+                        priceWithMargin: row[10] || '',
+                        totalAmount: row[11] || '',
+                        warehouse: row[12] || '',
+                        requestedDeliveryDate: row[13] || '',
+                        preferredDeliveryTime: row[14] || '',
+                        avoidAfterwork: row[15] || '',
+                        paymentTerms: row[16] || '',
+                        priority: row[17] || '',
+                        noGulfBrand: row[18] || '',
+                        status: row[19] || '',
+                        approvedBy: row[20] || '',
+                        approvalDate: row[21] || '',
+                        rejectionReason: row[22] || ''
+                    }));
+                    console.log('✅ Loaded', ordersData.length, 'orders from Google Sheets');
+                } else {
+                    console.log('No orders found, using empty array');
+                    ordersData = [];
+                }
+                
+                // Load Clients from Google Sheets
+                const clientsUrl = `https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_ID}/values/Clients!A2:I100?key=${API_KEY}`;
+                const clientsResponse = await fetch(clientsUrl);
+                const clientsJson = await clientsResponse.json();
+                
+                if (clientsJson.values) {
+                    clientsData = clientsJson.values.map(row => ({
+                        clientID: row[0] || '',
+                        clientName: row[1] || '',
+                        address: row[2] || '',
+                        assignedSM: row[3] || ''
+                    }));
+                    console.log('✅ Loaded', clientsData.length, 'clients from Google Sheets');
+                }
+                
+            } catch (error) {
+                console.error('❌ Error connecting to Google Sheets:', error);
+                alert('Cannot connect to Google Sheets. Check console for details.');
+                ordersData = [];
+            }
         }
-        
-        // Load Clients from Google Sheets
-        const clientsUrl = `https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_ID}/values/Clients!A2:I100?key=${API_KEY}`;
-        const clientsResponse = await fetch(clientsUrl);
-        const clientsJson = await clientsResponse.json();
-        
-        if (clientsJson.values) {
-            clientsData = clientsJson.values.map(row => ({
-                clientID: row[0] || '',
-                clientName: row[1] || '',
-                address: row[2] || '',
-                assignedSM: row[3] || ''
-            }));
-            console.log('✅ Loaded', clientsData.length, 'clients from Google Sheets');
-        }
-        
-    } catch (error) {
-        console.error('❌ Error connecting to Google Sheets:', error);
-        alert('Cannot connect to Google Sheets. Check console for details.');
-        ordersData = SAMPLE_ORDERS; // Fallback to sample data
-    }
-}
 
         function loadDashboard() {
             // Load stats
-            const myOrders = ordersData.filter(o => 
-                currentUser.department === 'Sales' ? o.createdBy === currentUser.id : true
-            );
+            const myOrders = currentUser.department === 'Sales' 
+                ? ordersData.filter(o => o.createdBy === currentUser.id)
+                : ordersData;
 
             const statsHTML = `
                 <div class="stat-card">
@@ -965,24 +928,24 @@ async function loadData() {
             return '';
         }
 
-function loadCreateOrderForm() {
-    // Load clients for this SM
-    const clientSelect = document.getElementById('clientSelect');
-    clientSelect.innerHTML = '<option value="">-- Select Client --</option>';
-    
-    // Filter clients by current SM (if Sales role)
-    const myClients = currentUser.department === 'Sales' 
-        ? clientsData.filter(c => c.assignedSM === currentUser.id)
-        : clientsData;
-    
-    myClients.forEach(client => {
-        clientSelect.innerHTML += `<option value="${client.clientID}">${client.clientName}</option>`;
-    });
+        function loadCreateOrderForm() {
+            // Load clients for this SM
+            const clientSelect = document.getElementById('clientSelect');
+            clientSelect.innerHTML = '<option value="">-- Select Client --</option>';
+            
+            // Filter clients by current SM (if Sales role)
+            const myClients = currentUser.department === 'Sales' 
+                ? clientsData.filter(c => c.assignedSM === currentUser.id)
+                : clientsData;
+            
+            myClients.forEach(client => {
+                clientSelect.innerHTML += `<option value="${client.clientID}">${client.clientName}</option>`;
+            });
 
-    // Set minimum date to today
-    const today = new Date().toISOString().split('T')[0];
-    document.getElementById('deliveryDateInput').setAttribute('min', today);
-}
+            // Set minimum date to today
+            const today = new Date().toISOString().split('T')[0];
+            document.getElementById('deliveryDateInput').setAttribute('min', today);
+        }
 
         function loadApprovals() {
             const pendingOrders = ordersData.filter(o => o.status === 'Pending Approval');
@@ -1019,77 +982,80 @@ function loadCreateOrderForm() {
             container.innerHTML = html;
         }
 
+        // ===== ORDER ACTIONS =====
         document.getElementById('createOrderForm').addEventListener('submit', async (e) => {
-    e.preventDefault();
-    
-    // Generate Order ID
-    const orderNumber = String(ordersData.length + 1).padStart(5, '0');
-    const dateString = new Date().toISOString().split('T')[0].replace(/-/g, '');
-    const orderID = `ORD${orderNumber}-${dateString}`;
-    
-    // Get form data
-    const clientID = document.getElementById('clientSelect').value;
-    const client = clientsData.find(c => c.clientID === clientID);
-    
-    const orderData = {
-        orderID: orderID,
-        orderDate: new Date().toISOString().split('T')[0],
-        createdBy: currentUser.id,
-        clientID: clientID,
-        clientName: client ? client.clientName : '',
-        productType: document.getElementById('productTypeSelect').value,
-        unit: document.getElementById('unitSelect').value,
-        quantity: document.getElementById('quantityInput').value,
-        margin: document.getElementById('marginInput').value,
-        warehouse: document.getElementById('warehouseSelect').value,
-        requestedDeliveryDate: document.getElementById('deliveryDateInput').value,
-        preferredDeliveryTime: document.getElementById('deliveryTimeInput').value,
-        paymentTerms: document.getElementById('paymentTermsSelect').value,
-        priority: document.getElementById('prioritySelect').value,
-        avoidAfterwork: document.getElementById('avoidAfterworkCheck').checked,
-        noGulfBrand: document.getElementById('noGulfBrandCheck').checked,
-        notes: document.getElementById('orderNotesInput').value,
-        status: 'Pending Approval'
-    };
-    
-    // Show loading
-    const submitBtn = e.target.querySelector('button[type="submit"]');
-    const originalText = submitBtn.textContent;
-    submitBtn.textContent = 'Creating...';
-    submitBtn.disabled = true;
-    
-try {
-        // Send to Apps Script Web App
-        const response = await fetch(APPS_SCRIPT_URL, {
-            method: 'POST',
-            mode: 'no-cors',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-                action: 'createOrder',
-                orderData: orderData
-            })
+            e.preventDefault();
+            
+            // Generate Order ID
+            const orderNumber = String(ordersData.length + 1).padStart(5, '0');
+            const dateString = new Date().toISOString().split('T')[0].replace(/-/g, '');
+            const orderID = `ORD${orderNumber}-${dateString}`;
+            
+            // Get form data
+            const clientID = document.getElementById('clientSelect').value;
+            const client = clientsData.find(c => c.clientID === clientID);
+            
+            const orderData = {
+                orderID: orderID,
+                orderDate: new Date().toISOString().split('T')[0],
+                createdBy: currentUser.id,
+                clientID: clientID,
+                clientName: client ? client.clientName : '',
+                productType: document.getElementById('productTypeSelect').value,
+                unit: document.getElementById('unitSelect').value,
+                quantity: document.getElementById('quantityInput').value,
+                margin: document.getElementById('marginInput').value,
+                warehouse: document.getElementById('warehouseSelect').value,
+                requestedDeliveryDate: document.getElementById('deliveryDateInput').value,
+                preferredDeliveryTime: document.getElementById('deliveryTimeInput').value,
+                paymentTerms: document.getElementById('paymentTermsSelect').value,
+                priority: document.getElementById('prioritySelect').value,
+                avoidAfterwork: document.getElementById('avoidAfterworkCheck').checked,
+                noGulfBrand: document.getElementById('noGulfBrandCheck').checked,
+                notes: document.getElementById('orderNotesInput').value,
+                status: 'Pending Approval'
+            };
+            
+            // Show loading
+            const submitBtn = e.target.querySelector('button[type="submit"]');
+            const originalText = submitBtn.textContent;
+            submitBtn.textContent = 'Creating...';
+            submitBtn.disabled = true;
+            
+            try {
+                // Send to Apps Script Web App
+                const response = await fetch(APPS_SCRIPT_URL, {
+                    method: 'POST',
+                    mode: 'no-cors',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        action: 'createOrder',
+                        orderData: orderData
+                    })
+                });
+                
+                // With no-cors, if no error thrown, it succeeded
+                alert(`✅ Order ${orderData.orderID} created successfully!`);
+                document.getElementById('createOrderForm').reset();
+                
+                // Reload data and refresh dashboard
+                await loadData();
+                showView('dashboard');
+                
+            } catch (error) {
+                console.error('Error:', error);
+                alert('❌ Error creating order: ' + error.message);
+            } finally {
+                submitBtn.textContent = originalText;
+                submitBtn.disabled = false;
+            }
         });
-        
-        // With no-cors, if no error thrown, it succeeded
-        alert(`✅ Order ${orderData.orderID} created successfully!`);
-        document.getElementById('createOrderForm').reset();
-        
-        // Reload data and refresh dashboard
-        await loadData();
-        showView('dashboard');
-        
-    } catch (error) {
-        console.error('Error:', error);
-        alert('❌ Error creating order: ' + error.message);
-    } finally {
-        submitBtn.textContent = originalText;
-        submitBtn.disabled = false;
-    }
+
         function approveOrder(orderID) {
             if (confirm(`Approve order ${orderID}?`)) {
-                // In production: Update Google Sheets
+                // In production: Update Google Sheets via Apps Script
                 console.log('Approving order:', orderID);
                 alert(`Order ${orderID} approved!`);
                 loadApprovals();
@@ -1099,7 +1065,7 @@ try {
         function rejectOrder(orderID) {
             const reason = prompt('Enter rejection reason:');
             if (reason) {
-                // In production: Update Google Sheets
+                // In production: Update Google Sheets via Apps Script
                 console.log('Rejecting order:', orderID, 'Reason:', reason);
                 alert(`Order ${orderID} rejected.`);
                 loadApprovals();
