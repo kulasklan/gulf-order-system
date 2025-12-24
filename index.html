@@ -1053,24 +1053,68 @@
             }
         });
 
-        function approveOrder(orderID) {
-            if (confirm(`Approve order ${orderID}?`)) {
-                // In production: Update Google Sheets via Apps Script
-                console.log('Approving order:', orderID);
-                alert(`Order ${orderID} approved!`);
-                loadApprovals();
-            }
-        }
+async function approveOrder(orderID) {
+    if (!confirm(`Approve order ${orderID}?`)) return;
+    
+    const note = prompt('Add approval note (optional):') || 'Approved';
+    
+    try {
+        const response = await fetch(APPS_SCRIPT_URL, {
+            method: 'POST',
+            mode: 'no-cors',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                action: 'approveOrder',
+                orderID: orderID,
+                approverID: currentUser.id,
+                note: note
+            })
+        });
+        
+        alert(`✅ Order ${orderID} approved!`);
+        
+        // Reload data and refresh view
+        await loadData();
+        loadApprovals();
+        
+    } catch (error) {
+        console.error('Error:', error);
+        alert('❌ Error approving order: ' + error.message);
+    }
+}
 
-        function rejectOrder(orderID) {
-            const reason = prompt('Enter rejection reason:');
-            if (reason) {
-                // In production: Update Google Sheets via Apps Script
-                console.log('Rejecting order:', orderID, 'Reason:', reason);
-                alert(`Order ${orderID} rejected.`);
-                loadApprovals();
-            }
-        }
+async function rejectOrder(orderID) {
+    const reason = prompt('Enter rejection reason:');
+    if (!reason) return;
+    
+    try {
+        const response = await fetch(APPS_SCRIPT_URL, {
+            method: 'POST',
+            mode: 'no-cors',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                action: 'rejectOrder',
+                orderID: orderID,
+                rejecterID: currentUser.id,
+                reason: reason
+            })
+        });
+        
+        alert(`❌ Order ${orderID} rejected.`);
+        
+        // Reload data and refresh view
+        await loadData();
+        loadApprovals();
+        
+    } catch (error) {
+        console.error('Error:', error);
+        alert('❌ Error rejecting order: ' + error.message);
+    }
+}
 
         function viewOrderDetails(orderID) {
             const order = ordersData.find(o => o.orderID === orderID);
