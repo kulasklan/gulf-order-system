@@ -823,12 +823,69 @@ const API_KEY = 'AIzaSyBNuosQWLH2aOxGIuXtZd-jl-Pu5ReVgFw'; // Replace with your 
             }
         }
 
-        // ===== DATA LOADING =====
-        function loadData() {
-            // In production, this would load from Google Sheets
-            // For now, use sample data
-            ordersData = SAMPLE_ORDERS;
+// ===== DATA LOADING =====
+async function loadData() {
+    console.log('Loading data from Google Sheets...');
+    
+    try {
+        // Load Orders from Google Sheets
+        const ordersUrl = `https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_ID}/values/Orders!A2:AM1000?key=${API_KEY}`;
+        const ordersResponse = await fetch(ordersUrl);
+        const ordersJson = await ordersResponse.json();
+        
+        if (ordersJson.values) {
+            ordersData = ordersJson.values.map(row => ({
+                orderID: row[0] || '',
+                orderDate: row[1] || '',
+                createdBy: row[2] || '',
+                clientID: row[3] || '',
+                clientName: row[4] || '',
+                productType: row[5] || '',
+                unit: row[6] || '',
+                quantity: row[7] || '',
+                margin: row[8] || '',
+                regulatoryPrice: row[9] || '',
+                priceWithMargin: row[10] || '',
+                totalAmount: row[11] || '',
+                warehouse: row[12] || '',
+                requestedDeliveryDate: row[13] || '',
+                preferredDeliveryTime: row[14] || '',
+                avoidAfterwork: row[15] || '',
+                paymentTerms: row[16] || '',
+                priority: row[17] || '',
+                noGulfBrand: row[18] || '',
+                status: row[19] || '',
+                approvedBy: row[20] || '',
+                approvalDate: row[21] || '',
+                rejectionReason: row[22] || ''
+            }));
+            console.log('✅ Loaded', ordersData.length, 'orders from Google Sheets');
+        } else {
+            console.log('No orders found, using empty array');
+            ordersData = [];
         }
+        
+        // Load Clients from Google Sheets
+        const clientsUrl = `https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_ID}/values/Clients!A2:I100?key=${API_KEY}`;
+        const clientsResponse = await fetch(clientsUrl);
+        const clientsJson = await clientsResponse.json();
+        
+        if (clientsJson.values) {
+            clientsData = clientsJson.values.map(row => ({
+                clientID: row[0] || '',
+                clientName: row[1] || '',
+                address: row[2] || '',
+                assignedSM: row[3] || ''
+            }));
+            console.log('✅ Loaded', clientsData.length, 'clients from Google Sheets');
+        }
+        
+    } catch (error) {
+        console.error('❌ Error connecting to Google Sheets:', error);
+        alert('Cannot connect to Google Sheets. Check console for details.');
+        ordersData = SAMPLE_ORDERS; // Fallback to sample data
+    }
+}
 
         function loadDashboard() {
             // Load stats
@@ -907,27 +964,24 @@ const API_KEY = 'AIzaSyBNuosQWLH2aOxGIuXtZd-jl-Pu5ReVgFw'; // Replace with your 
             return '';
         }
 
-        function loadCreateOrderForm() {
-            // Load clients for this SM
-            const clientSelect = document.getElementById('clientSelect');
-            clientSelect.innerHTML = '<option value="">-- Select Client --</option>';
-            
-            // In production, load from Google Sheets filtered by currentUser.id
-            // For now, show all clients
-            const sampleClients = [
-                { id: 'CLI001', name: 'Makpetrol AD' },
-                { id: 'CLI002', name: 'Lukoil Macedonia' },
-                { id: 'CLI003', name: 'OMV Petrol' }
-            ];
+function loadCreateOrderForm() {
+    // Load clients for this SM
+    const clientSelect = document.getElementById('clientSelect');
+    clientSelect.innerHTML = '<option value="">-- Select Client --</option>';
+    
+    // Filter clients by current SM (if Sales role)
+    const myClients = currentUser.department === 'Sales' 
+        ? clientsData.filter(c => c.assignedSM === currentUser.id)
+        : clientsData;
+    
+    myClients.forEach(client => {
+        clientSelect.innerHTML += `<option value="${client.clientID}">${client.clientName}</option>`;
+    });
 
-            sampleClients.forEach(client => {
-                clientSelect.innerHTML += `<option value="${client.id}">${client.name}</option>`;
-            });
-
-            // Set minimum date to today
-            const today = new Date().toISOString().split('T')[0];
-            document.getElementById('deliveryDateInput').setAttribute('min', today);
-        }
+    // Set minimum date to today
+    const today = new Date().toISOString().split('T')[0];
+    document.getElementById('deliveryDateInput').setAttribute('min', today);
+}
 
         function loadApprovals() {
             const pendingOrders = ordersData.filter(o => o.status === 'Pending Approval');
