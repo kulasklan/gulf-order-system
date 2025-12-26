@@ -797,7 +797,7 @@
                 const ordersResponse = await fetch(ordersUrl);
                 const ordersJson = await ordersResponse.json();
                 
-                if (ordersJson.values) {
+if (ordersJson.values) {
                     ordersData = ordersJson.values.map(row => ({
                         orderID: row[0] || '',
                         orderDate: row[1] || '',
@@ -821,7 +821,10 @@
                         status: row[19] || '',
                         approvedBy: row[20] || '',
                         approvalDate: row[21] || '',
-                        rejectionReason: row[22] || ''
+                        rejectionReason: row[22] || '',
+                        proformaNumber: row[33] || '', // Column AH
+                        invoiceNumber: row[34] || ''   // Column AI
+                    }));
                     }));
                     console.log('✅ Loaded', ordersData.length, 'orders from Google Sheets');
                 } else {
