@@ -671,6 +671,19 @@
                 </div>
             </div>
 
+            <!-- Finance View -->
+            <div id="financeView" class="view-content hidden">
+                <div class="card">
+                    <div class="card-header">
+                        <h2 class="card-title">💰 Finance Dashboard</h2>
+                        <button class="btn btn-secondary" id="refreshFinanceBtn">Refresh</button>
+                    </div>
+                    <div id="financeOrdersList">
+                        <!-- Finance orders will be shown here -->
+                    </div>
+                </div>
+            </div>
+
             <!-- Order Details Modal -->
             <div id="orderDetailsModal" class="modal">
                 <div class="modal-content">
@@ -690,7 +703,7 @@
         // ===== CONFIGURATION =====
         const SPREADSHEET_ID = '1z_SLqYvVJ2f0k6i3dK8DMC-CkI5jFOXH2Rfnx2jkNEk';
         const API_KEY = 'AIzaSyBNuosQWLH2aOxGIuXtZd-jl-Pu5ReVgFw';
-        const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzLh-Z6trPUdNIqkE-gYqhb74voXIuQkHbv9hhWV0fTUYLUkeFWrQdWHZfTckpv4L-k/exec'; // REPLACE THIS!
+        const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzLh-Z6trPUdNIqkE-gYqhb74voXIuQkHbv9hhWV0fTUYLUkeFWrQdWHZfTckpv4L-k/exec';
 
         // ===== STATE =====
         let currentUser = null;
@@ -762,6 +775,10 @@
                 tabs += '<div class="nav-tab" onclick="showView(\'approval\')">✅ Approvals</div>';
             }
 
+            if (currentUser.department === 'Finance') {
+                tabs += '<div class="nav-tab" onclick="showView(\'finance\')">💰 Finance</div>';
+            }
+
             navTabs.innerHTML = tabs;
         }
 
@@ -784,6 +801,9 @@
             } else if (viewName === 'approval') {
                 document.getElementById('approvalView').classList.remove('hidden');
                 loadApprovals();
+            } else if (viewName === 'finance') {
+                document.getElementById('financeView').classList.remove('hidden');
+                loadFinanceDashboard();
             }
         }
 
@@ -797,7 +817,7 @@
                 const ordersResponse = await fetch(ordersUrl);
                 const ordersJson = await ordersResponse.json();
                 
-if (ordersJson.values) {
+                if (ordersJson.values) {
                     ordersData = ordersJson.values.map(row => ({
                         orderID: row[0] || '',
                         orderDate: row[1] || '',
@@ -822,9 +842,8 @@ if (ordersJson.values) {
                         approvedBy: row[20] || '',
                         approvalDate: row[21] || '',
                         rejectionReason: row[22] || '',
-                        proformaNumber: row[33] || '', // Column AH
-                        invoiceNumber: row[34] || ''   // Column AI
-                    }));
+                        proformaNumber: row[33] || '',
+                        invoiceNumber: row[34] || ''
                     }));
                     console.log('✅ Loaded', ordersData.length, 'orders from Google Sheets');
                 } else {
@@ -897,6 +916,15 @@ if (ordersJson.values) {
                 const statusClass = getStatusClass(order.status);
                 const priorityClass = getPriorityClass(order.priority);
                 
+                // Financial badges
+                let financialBadges = '';
+                if (order.proformaNumber) {
+                    financialBadges += `<span class="status-badge" style="background: #DBEAFE; color: #1E40AF; margin-right: 0.25rem;">🧾 ${order.proformaNumber}</span>`;
+                }
+                if (order.invoiceNumber) {
+                    financialBadges += `<span class="status-badge" style="background: #D1FAE5; color: #065F46;">📄 ${order.invoiceNumber}</span>`;
+                }
+                
                 html += `
                     <tr>
                         <td><strong>${order.orderID}</strong></td>
@@ -904,7 +932,10 @@ if (ordersJson.values) {
                         <td>${order.clientName}</td>
                         <td>${order.productType}</td>
                         <td>${order.quantity} ${order.unit}</td>
-                        <td><span class="status-badge ${statusClass}">${order.status}</span></td>
+                        <td>
+                            <span class="status-badge ${statusClass}">${order.status}</span>
+                            ${financialBadges ? '<br>' + financialBadges : ''}
+                        </td>
                         <td><span class="${priorityClass}">${order.priority}</span></td>
                         <td>
                             <button class="btn btn-secondary" onclick="viewOrderDetails('${order.orderID}')" style="padding: 0.5rem 1rem; font-size: 0.85rem;">View</button>
@@ -985,6 +1016,51 @@ if (ordersJson.values) {
             container.innerHTML = html;
         }
 
+        function loadFinanceDashboard() {
+            const financeOrders = ordersData.filter(o => 
+                o.status === 'Approved' || o.status === 'Delivered'
+            );
+            
+            const container = document.getElementById('financeOrdersList');
+
+            if (financeOrders.length === 0) {
+                container.innerHTML = '<p style="text-align:center; padding: 2rem; color: #6B7280;">No approved orders ready for invoicing</p>';
+                return;
+            }
+
+            let html = '';
+            financeOrders.forEach(order => {
+                const hasProforma = order.proformaNumber ? true : false;
+                const hasInvoice = order.invoiceNumber ? true : false;
+                
+                html += `
+                    <div class="card">
+                        <div style="display: grid; gap: 1rem;">
+                            <div style="display: flex; justify-content: space-between; align-items: start;">
+                                <div>
+                                    <h3 style="margin-bottom: 0.5rem;">${order.orderID} - ${order.clientName}</h3>
+                                    <p style="color: #6B7280; margin-bottom: 0.5rem;">
+                                        ${order.quantity} ${order.unit} of ${order.productType} | 
+                                        Delivery: ${order.requestedDeliveryDate}
+                                    </p>
+                                    ${hasProforma ? `<p style="color: #065F46; margin-bottom: 0.5rem;">🧾 Proforma: <strong>${order.proformaNumber}</strong></p>` : ''}
+                                    ${hasInvoice ? `<p style="color: #059669; margin-bottom: 0.5rem;">📄 Invoice: <strong>${order.invoiceNumber}</strong></p>` : ''}
+                                </div>
+                                <span class="status-badge ${getStatusClass(order.status)}">${order.status}</span>
+                            </div>
+                            <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
+                                ${!hasProforma ? `<button class="btn btn-primary" onclick="createProformaForOrder('${order.orderID}')">🧾 Create Proforma</button>` : ''}
+                                ${hasProforma && !hasInvoice ? `<button class="btn btn-success" onclick="createInvoiceForOrder('${order.orderID}')">📄 Create Invoice</button>` : ''}
+                                <button class="btn btn-secondary" onclick="viewOrderDetails('${order.orderID}')">View Details</button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+
+            container.innerHTML = html;
+        }
+
         // ===== ORDER ACTIONS =====
         document.getElementById('createOrderForm').addEventListener('submit', async (e) => {
             e.preventDefault();
@@ -1056,68 +1132,128 @@ if (ordersJson.values) {
             }
         });
 
-async function approveOrder(orderID) {
-    if (!confirm(`Approve order ${orderID}?`)) return;
-    
-    const note = prompt('Add approval note (optional):') || 'Approved';
-    
-    try {
-        const response = await fetch(APPS_SCRIPT_URL, {
-            method: 'POST',
-            mode: 'no-cors',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-                action: 'approveOrder',
-                orderID: orderID,
-                approverID: currentUser.id,
-                note: note
-            })
-        });
-        
-        alert(`✅ Order ${orderID} approved!`);
-        
-        // Reload data and refresh view
-        await loadData();
-        loadApprovals();
-        
-    } catch (error) {
-        console.error('Error:', error);
-        alert('❌ Error approving order: ' + error.message);
-    }
-}
+        async function approveOrder(orderID) {
+            if (!confirm(`Approve order ${orderID}?`)) return;
+            
+            const note = prompt('Add approval note (optional):') || 'Approved';
+            
+            try {
+                const response = await fetch(APPS_SCRIPT_URL, {
+                    method: 'POST',
+                    mode: 'no-cors',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        action: 'approveOrder',
+                        orderID: orderID,
+                        approverID: currentUser.id,
+                        note: note
+                    })
+                });
+                
+                alert(`✅ Order ${orderID} approved!`);
+                
+                // Reload data and refresh view
+                await loadData();
+                loadApprovals();
+                
+            } catch (error) {
+                console.error('Error:', error);
+                alert('❌ Error approving order: ' + error.message);
+            }
+        }
 
-async function rejectOrder(orderID) {
-    const reason = prompt('Enter rejection reason:');
-    if (!reason) return;
-    
-    try {
-        const response = await fetch(APPS_SCRIPT_URL, {
-            method: 'POST',
-            mode: 'no-cors',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-                action: 'rejectOrder',
-                orderID: orderID,
-                rejecterID: currentUser.id,
-                reason: reason
-            })
-        });
-        
-        alert(`❌ Order ${orderID} rejected.`);
-        
-        // Reload data and refresh view
-        await loadData();
-        loadApprovals();
-        
-    } catch (error) {
-        console.error('Error:', error);
-        alert('❌ Error rejecting order: ' + error.message);
-    }
-}
+        async function rejectOrder(orderID) {
+            const reason = prompt('Enter rejection reason:');
+            if (!reason) return;
+            
+            try {
+                const response = await fetch(APPS_SCRIPT_URL, {
+                    method: 'POST',
+                    mode: 'no-cors',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        action: 'rejectOrder',
+                        orderID: orderID,
+                        rejecterID: currentUser.id,
+                        reason: reason
+                    })
+                });
+                
+                alert(`❌ Order ${orderID} rejected.`);
+                
+                // Reload data and refresh view
+                await loadData();
+                loadApprovals();
+                
+            } catch (error) {
+                console.error('Error:', error);
+                alert('❌ Error rejecting order: ' + error.message);
+            }
+        }
+
+        async function createProformaForOrder(orderID) {
+            const note = prompt('Add note for proforma creation (optional):') || '';
+            
+            try {
+                const response = await fetch(APPS_SCRIPT_URL, {
+                    method: 'POST',
+                    mode: 'no-cors',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        action: 'createProforma',
+                        orderID: orderID,
+                        financeUserID: currentUser.id,
+                        note: note
+                    })
+                });
+                
+                alert(`✅ Proforma created for order ${orderID}!`);
+                
+                // Reload data
+                await loadData();
+                loadFinanceDashboard();
+                
+            } catch (error) {
+                console.error('Error:', error);
+                alert('❌ Error creating proforma: ' + error.message);
+            }
+        }
+
+        async function createInvoiceForOrder(orderID) {
+            const note = prompt('Add note for invoice creation (optional):') || '';
+            
+            try {
+                const response = await fetch(APPS_SCRIPT_URL, {
+                    method: 'POST',
+                    mode: 'no-cors',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        action: 'createInvoice',
+                        orderID: orderID,
+                        financeUserID: currentUser.id,
+                        note: note
+                    })
+                });
+                
+                alert(`✅ Invoice created for order ${orderID}!`);
+                
+                // Reload data
+                await loadData();
+                loadFinanceDashboard();
+                
+            } catch (error) {
+                console.error('Error:', error);
+                alert('❌ Error creating invoice: ' + error.message);
+            }
+        }
 
         function viewOrderDetails(orderID) {
             const order = ordersData.find(o => o.orderID === orderID);
@@ -1137,6 +1273,8 @@ async function rejectOrder(orderID) {
                     <div><strong>Requested Delivery:</strong> ${order.requestedDeliveryDate}</div>
                     <div><strong>Priority:</strong> <span class="${getPriorityClass(order.priority)}">${order.priority}</span></div>
                     <div><strong>Status:</strong> <span class="status-badge ${getStatusClass(order.status)}">${order.status}</span></div>
+                    ${order.proformaNumber ? `<div><strong>Proforma:</strong> ${order.proformaNumber}</div>` : ''}
+                    ${order.invoiceNumber ? `<div><strong>Invoice:</strong> ${order.invoiceNumber}</div>` : ''}
                 </div>
                 
                 <div class="progress-bar" style="margin-top: 2rem;">
@@ -1176,7 +1314,13 @@ async function rejectOrder(orderID) {
         });
 
         document.getElementById('refreshApprovalsBtn').addEventListener('click', () => {
+            loadData();
             loadApprovals();
+        });
+
+        document.getElementById('refreshFinanceBtn').addEventListener('click', () => {
+            loadData();
+            loadFinanceDashboard();
         });
 
         // Close modal on outside click
