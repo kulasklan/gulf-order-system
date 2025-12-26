@@ -1255,12 +1255,16 @@
             }
         }
 
-        function viewOrderDetails(orderID) {
+        async function viewOrderDetails(orderID) {
             const order = ordersData.find(o => o.orderID === orderID);
             if (!order) return;
 
             const modal = document.getElementById('orderDetailsModal');
             const content = document.getElementById('orderDetailsContent');
+
+            // Show upload button for Warehouse and Transport if order is approved
+            const canUpload = (currentUser.department === 'Warehouse' || currentUser.department === 'Transport') && 
+                              (order.status === 'Approved' || order.status === 'Delivered');
 
             content.innerHTML = `
                 <div style="display: grid; gap: 1rem;">
@@ -1298,9 +1302,41 @@
                         <small>Delivered</small>
                     </div>
                 </div>
+                
+                <div style="margin-top: 2rem;">
+                    <h3 style="margin-bottom: 1rem; color: var(--secondary);">📎 Documents</h3>
+                    ${canUpload ? `
+                        <div style="margin-bottom: 1rem; padding: 1rem; background: var(--light); border-radius: 4px;">
+                            <div class="form-group" style="margin-bottom: 0.5rem;">
+                                <label>Document Type</label>
+                                <select id="documentTypeSelect" style="width: 100%;">
+                                    <option value="Ispratnica">Ispratnica</option>
+                                    <option value="Kantarna beleshka">Kantarna beleshka</option>
+                                    <option value="CMR">CMR</option>
+                                    <option value="POD">POD (Proof of Delivery)</option>
+                                    <option value="Photo">Photo</option>
+                                    <option value="Other">Other</option>
+                                </select>
+                            </div>
+                            <div class="form-group" style="margin-bottom: 0.5rem;">
+                                <label>Select File</label>
+                                <input type="file" id="documentFileInput" style="width: 100%;">
+                            </div>
+                            <button class="btn btn-primary" onclick="uploadDocumentForOrder('${orderID}')" style="width: 100%;">
+                                📤 Upload Document
+                            </button>
+                        </div>
+                    ` : ''}
+                    <div id="documentsListContainer">
+                        <div class="spinner"></div>
+                    </div>
+                </div>
             `;
 
             modal.classList.add('active');
+            
+            // Load documents list
+            loadDocumentsList(orderID);
         }
 
         function closeModal() {
@@ -1322,6 +1358,185 @@
             loadData();
             loadFinanceDashboard();
         });
+
+        // ===== DOCUMENT MANAGEMENT FUNCTIONS =====
+        
+        async function loadDocumentsList(orderID) {
+            const container = document.getElementById('documentsListContainer');
+            
+            try {
+                const response = await fetch(APPS_SCRIPT_URL, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        action: 'listDocuments',
+                        orderID: orderID
+                    })
+                });
+                
+                const result = await response.json();
+                
+                if (result.success && result.documents && result.documents.length > 0) {
+                    let html = '<div style="display: grid; gap: 0.5rem;">';
+                    
+                    result.documents.forEach(doc => {
+                        const canDelete = currentUser.department === 'Warehouse' || 
+                                        currentUser.department === 'Transport' ||
+                                        currentUser.department === 'Management';
+                        
+                        html += `
+                            <div style="display: flex; justify-content: space-between; align-items: center; padding: 0.75rem; background: white; border: 1px solid var(--border); border-radius: 4px;">
+                                <div style="flex: 1;">
+                                    <div style="font-weight: 500;">${doc.name}</div>
+                                    <div style="font-size: 0.85rem; color: #6B7280;">${doc.size}</div>
+                                </div>
+                                <div style="display: flex; gap: 0.5rem;">
+                                    <a href="${doc.url}" target="_blank" class="btn btn-secondary" style="padding: 0.5rem 1rem; font-size: 0.85rem; text-decoration: none;">
+                                        View
+                                    </a>
+                                    ${canDelete ? `
+                                        <button class="btn btn-danger" onclick="deleteDocumentFromOrder('${orderID}', '${doc.id}', '${doc.name}')" style="padding: 0.5rem 1rem; font-size: 0.85rem;">
+                                            Delete
+                                        </button>
+                                    ` : ''}
+                                </div>
+                            </div>
+                        `;
+                    });
+                    
+                    html += '</div>';
+                    container.innerHTML = html;
+                } else {
+                    container.innerHTML = '<p style="text-align: center; color: #6B7280; padding: 1rem;">No documents uploaded yet</p>';
+                }
+                
+            } catch (error) {
+                console.error('Error loading documents:', error);
+                container.innerHTML = '<p style="text-align: center; color: var(--danger); padding: 1rem;">Error loading documents</p>';
+            }
+        }
+        
+        async function uploadDocumentForOrder(orderID) {
+            const fileInput = document.getElementById('documentFileInput');
+            const documentType = document.getElementById('documentTypeSelect').value;
+            
+            if (!fileInput.files || fileInput.files.length === 0) {
+                alert('Please select a file to upload');
+                return;
+            }
+            
+            const file = fileInput.files[0];
+            const maxSize = 10 * 1024 * 1024; // 10MB
+            
+            if (file.size > maxSize) {
+                alert('File is too large. Maximum size is 10MB.');
+                return;
+            }
+            
+            const note = prompt('Add note for this document (optional):') || '';
+            
+            try {
+                // Show loading
+                const container = document.getElementById('documentsListContainer');
+                container.innerHTML = '<div class="spinner"></div><p style="text-align: center; margin-top: 1rem;">Uploading document...</p>';
+                
+                // Convert file to base64
+                const base64Data = await fileToBase64(file);
+                
+                const response = await fetch(APPS_SCRIPT_URL, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        action: 'uploadDocument',
+                        orderID: orderID,
+                        fileData: base64Data,
+                        fileName: file.name,
+                        fileType: file.type,
+                        uploadedBy: currentUser.id,
+                        department: currentUser.department,
+                        documentType: documentType,
+                        note: note
+                    })
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    alert(`✅ Document "${file.name}" uploaded successfully!`);
+                    
+                    // Clear file input
+                    fileInput.value = '';
+                    
+                    // Reload documents list
+                    loadDocumentsList(orderID);
+                } else {
+                    alert('❌ Error uploading document: ' + result.message);
+                    loadDocumentsList(orderID);
+                }
+                
+            } catch (error) {
+                console.error('Error uploading document:', error);
+                alert('❌ Error uploading document: ' + error.message);
+                loadDocumentsList(orderID);
+            }
+        }
+        
+        async function deleteDocumentFromOrder(orderID, fileId, fileName) {
+            const reason = prompt(`Delete "${fileName}"?\n\nEnter reason for deletion:`);
+            
+            if (!reason) return;
+            
+            try {
+                const response = await fetch(APPS_SCRIPT_URL, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        action: 'deleteDocument',
+                        orderID: orderID,
+                        fileId: fileId,
+                        fileName: fileName,
+                        deletedBy: currentUser.id,
+                        department: currentUser.department,
+                        reason: reason
+                    })
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    alert(`✅ Document "${fileName}" deleted.`);
+                    loadDocumentsList(orderID);
+                } else {
+                    alert('❌ Error deleting document: ' + result.message);
+                }
+                
+            } catch (error) {
+                console.error('Error deleting document:', error);
+                alert('❌ Error deleting document: ' + error.message);
+            }
+        }
+        
+        /**
+         * Convert file to base64 string
+         */
+        function fileToBase64(file) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onload = () => {
+                    // Remove the data URL prefix (e.g., "data:image/png;base64,")
+                    const base64 = reader.result.split(',')[1];
+                    resolve(base64);
+                };
+                reader.onerror = reject;
+                reader.readAsDataURL(file);
+            });
+        }
 
         // Close modal on outside click
         window.onclick = function(event) {
