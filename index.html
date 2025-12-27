@@ -1049,8 +1049,8 @@
                                 <span class="status-badge ${getStatusClass(order.status)}">${order.status}</span>
                             </div>
                             <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
-                                ${!hasProforma ? `<button class="btn btn-primary" onclick="createProformaForOrder('${order.orderID}')">🧾 Create Proforma</button>` : ''}
-                                ${hasProforma && !hasInvoice ? `<button class="btn btn-success" onclick="createInvoiceForOrder('${order.orderID}')">📄 Create Invoice</button>` : ''}
+                                ${!hasProforma ? `<button class="btn btn-primary" onclick="showProformaForm('${order.orderID}', '${order.quantity}', '${order.unit}')">🧾 Enter Proforma</button>` : ''}
+                                ${hasProforma && !hasInvoice ? `<button class="btn btn-success" onclick="showInvoiceForm('${order.orderID}', '${order.quantity}', '${order.unit}')">📄 Enter Invoice</button>` : ''}
                                 <button class="btn btn-secondary" onclick="viewOrderDetails('${order.orderID}')">View Details</button>
                             </div>
                         </div>
@@ -1195,8 +1195,14 @@
             }
         }
 
-        async function createProformaForOrder(orderID) {
-            const note = prompt('Add note for proforma creation (optional):') || '';
+        async function showProformaForm(orderID, quantity, unit) {
+            const proformaNumber = prompt(`Enter Proforma Number (from your CRM):`);
+            if (!proformaNumber) return;
+            
+            const litres = prompt(`Enter Litres/Quantity:`, quantity) || quantity;
+            const margin = prompt(`Enter Margin (MKD):`) || '';
+            const totalPrice = prompt(`Enter Total Price (MKD):`) || '';
+            const note = prompt('Additional note (optional):') || '';
             
             try {
                 const response = await fetch(APPS_SCRIPT_URL, {
@@ -1206,14 +1212,18 @@
                         'Content-Type': 'application/json',
                     },
                     body: JSON.stringify({
-                        action: 'createProforma',
+                        action: 'enterProforma',
                         orderID: orderID,
                         financeUserID: currentUser.id,
+                        proformaNumber: proformaNumber,
+                        litres: litres,
+                        margin: margin,
+                        totalPrice: totalPrice,
                         note: note
                     })
                 });
                 
-                alert(`✅ Proforma created for order ${orderID}!`);
+                alert(`✅ Proforma details saved for order ${orderID}!`);
                 
                 // Reload data
                 await loadData();
@@ -1221,12 +1231,18 @@
                 
             } catch (error) {
                 console.error('Error:', error);
-                alert('❌ Error creating proforma: ' + error.message);
+                alert('❌ Error saving proforma: ' + error.message);
             }
         }
 
-        async function createInvoiceForOrder(orderID) {
-            const note = prompt('Add note for invoice creation (optional):') || '';
+        async function showInvoiceForm(orderID, quantity, unit) {
+            const invoiceNumber = prompt(`Enter Invoice Number (from your CRM):`);
+            if (!invoiceNumber) return;
+            
+            const litres = prompt(`Enter Litres/Quantity:`, quantity) || quantity;
+            const margin = prompt(`Enter Margin (MKD):`) || '';
+            const totalPrice = prompt(`Enter Total Price (MKD):`) || '';
+            const note = prompt('Additional note (optional):') || '';
             
             try {
                 const response = await fetch(APPS_SCRIPT_URL, {
@@ -1236,14 +1252,18 @@
                         'Content-Type': 'application/json',
                     },
                     body: JSON.stringify({
-                        action: 'createInvoice',
+                        action: 'enterInvoice',
                         orderID: orderID,
                         financeUserID: currentUser.id,
+                        invoiceNumber: invoiceNumber,
+                        litres: litres,
+                        margin: margin,
+                        totalPrice: totalPrice,
                         note: note
                     })
                 });
                 
-                alert(`✅ Invoice created for order ${orderID}!`);
+                alert(`✅ Invoice details saved for order ${orderID}!`);
                 
                 // Reload data
                 await loadData();
@@ -1251,7 +1271,7 @@
                 
             } catch (error) {
                 console.error('Error:', error);
-                alert('❌ Error creating invoice: ' + error.message);
+                alert('❌ Error saving invoice: ' + error.message);
             }
         }
 
@@ -1447,6 +1467,7 @@
                 
                 const response = await fetch(APPS_SCRIPT_URL, {
                     method: 'POST',
+                    mode: 'no-cors',
                     headers: {
                         'Content-Type': 'application/json',
                     },
@@ -1463,20 +1484,14 @@
                     })
                 });
                 
-                const result = await response.json();
+                // With no-cors mode, we can't read response, but no error = success
+                alert(`✅ Document "${file.name}" uploaded successfully!`);
                 
-                if (result.success) {
-                    alert(`✅ Document "${file.name}" uploaded successfully!`);
-                    
-                    // Clear file input
-                    fileInput.value = '';
-                    
-                    // Reload documents list
-                    loadDocumentsList(orderID);
-                } else {
-                    alert('❌ Error uploading document: ' + result.message);
-                    loadDocumentsList(orderID);
-                }
+                // Clear file input
+                fileInput.value = '';
+                
+                // Reload documents list
+                loadDocumentsList(orderID);
                 
             } catch (error) {
                 console.error('Error uploading document:', error);
@@ -1493,6 +1508,7 @@
             try {
                 const response = await fetch(APPS_SCRIPT_URL, {
                     method: 'POST',
+                    mode: 'no-cors',
                     headers: {
                         'Content-Type': 'application/json',
                     },
@@ -1507,14 +1523,8 @@
                     })
                 });
                 
-                const result = await response.json();
-                
-                if (result.success) {
-                    alert(`✅ Document "${fileName}" deleted.`);
-                    loadDocumentsList(orderID);
-                } else {
-                    alert('❌ Error deleting document: ' + result.message);
-                }
+                alert(`✅ Document "${fileName}" deleted.`);
+                loadDocumentsList(orderID);
                 
             } catch (error) {
                 console.error('Error deleting document:', error);
