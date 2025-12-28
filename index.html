@@ -4,6 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Gulf Order Management System</title>
+    
+    <!-- SheetJS for Excel Export -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    
     <style>
         * {
             margin: 0;
@@ -535,6 +539,28 @@
                 <div class="stats-grid" id="statsGrid">
                     <!-- Stats cards will be generated here -->
                 </div>
+                
+                <!-- Date Range Filter -->
+                <div style="background: white; padding: 1rem; border-radius: 8px; margin-bottom: 1rem; box-shadow: 0 2px 4px rgba(0,0,0,0.05);">
+                    <div style="display: flex; flex-wrap: wrap; gap: 1rem; align-items: center;">
+                        <div style="flex: 1; min-width: 200px;">
+                            <label style="display: block; font-size: 0.8rem; color: #6B7280; margin-bottom: 0.25rem;">📅 From Date</label>
+                            <input type="date" id="dateFilterStart" style="width: 100%; padding: 0.5rem; border: 1px solid #D1D5DB; border-radius: 4px;">
+                        </div>
+                        <div style="flex: 1; min-width: 200px;">
+                            <label style="display: block; font-size: 0.8rem; color: #6B7280; margin-bottom: 0.25rem;">📅 To Date</label>
+                            <input type="date" id="dateFilterEnd" style="width: 100%; padding: 0.5rem; border: 1px solid #D1D5DB; border-radius: 4px;">
+                        </div>
+                        <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+                            <button class="btn btn-secondary" onclick="setDateRange(0)" style="padding: 0.5rem 0.75rem; font-size: 0.85rem;">Today</button>
+                            <button class="btn btn-secondary" onclick="setDateRange(7)" style="padding: 0.5rem 0.75rem; font-size: 0.85rem;">Last 7 Days</button>
+                            <button class="btn btn-secondary" onclick="setDateRange(30)" style="padding: 0.5rem 0.75rem; font-size: 0.85rem;">Last 30 Days</button>
+                            <button class="btn btn-secondary" onclick="setDateRange(365)" style="padding: 0.5rem 0.75rem; font-size: 0.85rem;">All Time</button>
+                            <button class="btn btn-primary" onclick="applyDateFilter()" style="padding: 0.5rem 1rem; font-size: 0.85rem;">Apply Filter</button>
+                        </div>
+                    </div>
+                </div>
+                
                 <div class="card">
                     <div class="card-header">
                         <h2 class="card-title">📊 My Orders</h2>
@@ -710,6 +736,41 @@
                 </div>
             </div>
 
+            <!-- Analytics View (Management Only) -->
+            <div id="analyticsView" class="view-content hidden">
+                <div class="card">
+                    <div class="card-header">
+                        <h2 class="card-title">📊 Analytics & Reports</h2>
+                        <button class="btn btn-success" onclick="exportToExcel()" style="display: flex; align-items: center; gap: 0.5rem;">
+                            📥 Export to Excel
+                        </button>
+                    </div>
+                    
+                    <div style="padding: 1.5rem;">
+                        <!-- Date Range for Analytics -->
+                        <div style="background: var(--light); padding: 1rem; border-radius: 8px; margin-bottom: 1.5rem;">
+                            <h3 style="margin-bottom: 1rem; color: var(--secondary);">📅 Report Period</h3>
+                            <div style="display: flex; flex-wrap: wrap; gap: 1rem; align-items: end;">
+                                <div style="flex: 1; min-width: 200px;">
+                                    <label style="display: block; font-size: 0.85rem; color: #6B7280; margin-bottom: 0.25rem;">From Date</label>
+                                    <input type="date" id="analyticsDateStart" style="width: 100%; padding: 0.5rem; border: 1px solid #D1D5DB; border-radius: 4px;">
+                                </div>
+                                <div style="flex: 1; min-width: 200px;">
+                                    <label style="display: block; font-size: 0.85rem; color: #6B7280; margin-bottom: 0.25rem;">To Date</label>
+                                    <input type="date" id="analyticsDateEnd" style="width: 100%; padding: 0.5rem; border: 1px solid #D1D5DB; border-radius: 4px;">
+                                </div>
+                                <button class="btn btn-primary" onclick="loadAnalytics()" style="padding: 0.5rem 1.5rem;">Generate Report</button>
+                            </div>
+                        </div>
+                        
+                        <!-- Analytics Summary -->
+                        <div id="analyticsSummary">
+                            <p style="text-align: center; color: #6B7280; padding: 2rem;">Select date range and click "Generate Report" to view analytics</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             <!-- Order Details Modal -->
             <div id="orderDetailsModal" class="modal">
                 <div class="modal-content">
@@ -739,6 +800,11 @@
         let logsData = [];
         let driversData = [];
         let transportCompaniesData = [];
+        
+        // Date range filter - default to last 7 days
+        let dateFilterStart = new Date();
+        dateFilterStart.setDate(dateFilterStart.getDate() - 7);
+        let dateFilterEnd = new Date();
 
         // ===== SAMPLE DATA (for fallback) =====
         const SAMPLE_USERS = {
@@ -801,6 +867,7 @@
 
             if (currentUser.department === 'Management') {
                 tabs += '<div class="nav-tab" onclick="showView(\'approval\')">✅ Approvals</div>';
+                tabs += '<div class="nav-tab" onclick="showView(\'analytics\')">📊 Analytics</div>';
             }
 
             if (currentUser.department === 'Finance') {
@@ -846,6 +913,14 @@
             } else if (viewName === 'warehouse') {
                 document.getElementById('warehouseView').classList.remove('hidden');
                 loadWarehouseDashboard();
+            } else if (viewName === 'analytics') {
+                document.getElementById('analyticsView').classList.remove('hidden');
+                // Set default dates
+                const startInput = document.getElementById('analyticsDateStart');
+                const endInput = document.getElementById('analyticsDateEnd');
+                if (startInput && !startInput.value) startInput.valueAsDate = dateFilterStart;
+                if (endInput && !endInput.value) endInput.valueAsDate = dateFilterEnd;
+                loadAnalytics();
             }
         }
 
@@ -951,9 +1026,12 @@
 
         function loadDashboard() {
             // Load stats
-            const myOrders = currentUser.department === 'Sales' 
+            let myOrders = currentUser.department === 'Sales' 
                 ? ordersData.filter(o => o.createdBy === currentUser.id)
                 : ordersData;
+            
+            // Apply date filter
+            myOrders = filterOrdersByDate(myOrders);
 
             // Calculate stats
             const stats = {
@@ -1106,7 +1184,8 @@
         }
 
         function loadApprovals() {
-            const pendingOrders = ordersData.filter(o => o.status === 'Pending Approval');
+            let pendingOrders = ordersData.filter(o => o.status === 'Pending Approval');
+            pendingOrders = filterOrdersByDate(pendingOrders);
             const container = document.getElementById('pendingApprovalsList');
 
             if (pendingOrders.length === 0) {
@@ -1141,9 +1220,10 @@
         }
 
         function loadFinanceDashboard() {
-            const financeOrders = ordersData.filter(o => 
+            let financeOrders = ordersData.filter(o => 
                 o.status === 'Approved' || o.status === 'Delivered'
             );
+            financeOrders = filterOrdersByDate(financeOrders);
             
             const container = document.getElementById('financeOrdersList');
 
@@ -1187,9 +1267,10 @@
         
         function loadTransportDashboard() {
             // Only show Approved orders that don't have transport assigned yet
-            const transportOrders = ordersData.filter(o => 
+            let transportOrders = ordersData.filter(o => 
                 o.status === 'Approved' && !o.driverName
             );
+            transportOrders = filterOrdersByDate(transportOrders);
             
             const container = document.getElementById('transportOrdersList');
 
@@ -1234,11 +1315,12 @@
             console.log('Total orders:', ordersData.length);
             
             // Show orders that have truck assigned or are in warehouse stages
-            const warehouseOrders = ordersData.filter(o => 
+            let warehouseOrders = ordersData.filter(o => 
                 o.status === 'Truck Assigned' || 
                 o.status === 'In Warehouse' ||
                 o.status === 'Loading'
             );
+            warehouseOrders = filterOrdersByDate(warehouseOrders);
             
             console.log('Warehouse orders found:', warehouseOrders.length);
             console.log('Warehouse orders:', warehouseOrders.map(o => ({
@@ -1764,6 +1846,548 @@
             loadData();
             loadWarehouseDashboard();
         });
+        
+        // ===== WAREHOUSE STATUS UPDATE =====
+        
+        // ===== DATE RANGE FILTER =====
+        
+        function setDateRange(days) {
+            const end = new Date();
+            const start = new Date();
+            
+            if (days === 0) {
+                // Today only
+                start.setHours(0, 0, 0, 0);
+            } else if (days === 365) {
+                // All time - set to very old date
+                start.setFullYear(2020, 0, 1);
+            } else {
+                // Last N days
+                start.setDate(start.getDate() - days);
+            }
+            
+            dateFilterStart = start;
+            dateFilterEnd = end;
+            
+            // Update input fields
+            document.getElementById('dateFilterStart').valueAsDate = start;
+            document.getElementById('dateFilterEnd').valueAsDate = end;
+            
+            // Apply filter
+            applyDateFilter();
+        }
+        
+        function applyDateFilter() {
+            // Get dates from inputs
+            const startInput = document.getElementById('dateFilterStart');
+            const endInput = document.getElementById('dateFilterEnd');
+            
+            if (startInput && startInput.value) {
+                dateFilterStart = new Date(startInput.value);
+            }
+            if (endInput && endInput.value) {
+                dateFilterEnd = new Date(endInput.value);
+                dateFilterEnd.setHours(23, 59, 59, 999); // End of day
+            }
+            
+            // Reload current view
+            if (currentView === 'dashboard') {
+                loadDashboard();
+            } else if (currentView === 'approval') {
+                loadApprovals();
+            } else if (currentView === 'finance') {
+                loadFinanceDashboard();
+            } else if (currentView === 'transport') {
+                loadTransportDashboard();
+            } else if (currentView === 'warehouse') {
+                loadWarehouseDashboard();
+            }
+        }
+        
+        function filterOrdersByDate(orders) {
+            return orders.filter(order => {
+                const orderDate = new Date(order.orderDate);
+                return orderDate >= dateFilterStart && orderDate <= dateFilterEnd;
+            });
+        }
+        
+        // Initialize date inputs on load
+        window.addEventListener('DOMContentLoaded', () => {
+            const startInput = document.getElementById('dateFilterStart');
+            const endInput = document.getElementById('dateFilterEnd');
+            
+            if (startInput) startInput.valueAsDate = dateFilterStart;
+            if (endInput) endInput.valueAsDate = dateFilterEnd;
+        });
+        
+        // ===== ANALYTICS & EXCEL EXPORT =====
+        
+        function loadAnalytics() {
+            const startInput = document.getElementById('analyticsDateStart');
+            const endInput = document.getElementById('analyticsDateEnd');
+            
+            let analyticsStart = dateFilterStart;
+            let analyticsEnd = dateFilterEnd;
+            
+            if (startInput && startInput.value) {
+                analyticsStart = new Date(startInput.value);
+            }
+            if (endInput && endInput.value) {
+                analyticsEnd = new Date(endInput.value);
+                analyticsEnd.setHours(23, 59, 59, 999);
+            }
+            
+            // Filter orders
+            const filteredOrders = ordersData.filter(order => {
+                const orderDate = new Date(order.orderDate);
+                return orderDate >= analyticsStart && orderDate <= analyticsEnd;
+            });
+            
+            if (filteredOrders.length === 0) {
+                document.getElementById('analyticsSummary').innerHTML = `
+                    <p style="text-align: center; color: #6B7280; padding: 2rem;">No orders found in selected date range</p>
+                `;
+                return;
+            }
+            
+            // Calculate analytics
+            const analytics = calculateAnalytics(filteredOrders);
+            
+            // Display summary
+            displayAnalyticsSummary(analytics, filteredOrders.length);
+        }
+        
+        function calculateAnalytics(orders) {
+            const analytics = {
+                // Sales Performance
+                ordersBySM: {},
+                totalOrders: orders.length,
+                
+                // Product Analytics
+                productCounts: {},
+                
+                // Transport Performance
+                transportCounts: {},
+                
+                // Status Distribution
+                statusCounts: {},
+                
+                // Time Metrics
+                timeMetrics: {
+                    orderToApproval: [],
+                    approvalToTransport: [],
+                    transportToWarehouse: [],
+                    warehouseToLoading: [],
+                    loadingToLeft: [],
+                    leftToDelivered: [],
+                    totalCycleTime: [],
+                    deliveryVariance: []
+                }
+            };
+            
+            orders.forEach(order => {
+                // Sales Manager stats
+                if (order.createdBy) {
+                    if (!analytics.ordersBySM[order.createdBy]) {
+                        analytics.ordersBySM[order.createdBy] = {
+                            count: 0,
+                            delivered: 0,
+                            rejected: 0,
+                            disputed: 0
+                        };
+                    }
+                    analytics.ordersBySM[order.createdBy].count++;
+                    if (order.status === 'Delivered') analytics.ordersBySM[order.createdBy].delivered++;
+                    if (order.status === 'Rejected') analytics.ordersBySM[order.createdBy].rejected++;
+                    if (order.status === 'Disputed') analytics.ordersBySM[order.createdBy].disputed++;
+                }
+                
+                // Product stats
+                if (order.productType) {
+                    analytics.productCounts[order.productType] = (analytics.productCounts[order.productType] || 0) + 1;
+                }
+                
+                // Transport stats
+                if (order.transportCompany) {
+                    analytics.transportCounts[order.transportCompany] = (analytics.transportCounts[order.transportCompany] || 0) + 1;
+                }
+                
+                // Status stats
+                if (order.status) {
+                    analytics.statusCounts[order.status] = (analytics.statusCounts[order.status] || 0) + 1;
+                }
+            });
+            
+            // Calculate time metrics from OrderLogs
+            orders.forEach(order => {
+                const orderLogs = logsData.filter(log => log.orderID === order.orderID);
+                
+                if (orderLogs.length === 0) return;
+                
+                // Sort by timestamp
+                orderLogs.sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
+                
+                const timestamps = {};
+                orderLogs.forEach(log => {
+                    if (log.newValue && !timestamps[log.newValue]) {
+                        timestamps[log.newValue] = new Date(log.timestamp);
+                    }
+                });
+                
+                // Calculate durations
+                if (timestamps['Pending Approval'] && timestamps['Approved']) {
+                    const diff = timestamps['Approved'] - timestamps['Pending Approval'];
+                    analytics.timeMetrics.orderToApproval.push(diff);
+                }
+                
+                if (timestamps['Approved'] && timestamps['Truck Assigned']) {
+                    const diff = timestamps['Truck Assigned'] - timestamps['Approved'];
+                    analytics.timeMetrics.approvalToTransport.push(diff);
+                }
+                
+                if (timestamps['Truck Assigned'] && timestamps['In Warehouse']) {
+                    const diff = timestamps['In Warehouse'] - timestamps['Truck Assigned'];
+                    analytics.timeMetrics.transportToWarehouse.push(diff);
+                }
+                
+                if (timestamps['In Warehouse'] && timestamps['Loading']) {
+                    const diff = timestamps['Loading'] - timestamps['In Warehouse'];
+                    analytics.timeMetrics.warehouseToLoading.push(diff);
+                }
+                
+                if (timestamps['Loading'] && timestamps['Left Warehouse']) {
+                    const diff = timestamps['Left Warehouse'] - timestamps['Loading'];
+                    analytics.timeMetrics.loadingToLeft.push(diff);
+                }
+                
+                if (timestamps['Left Warehouse'] && timestamps['Delivered']) {
+                    const diff = timestamps['Delivered'] - timestamps['Left Warehouse'];
+                    analytics.timeMetrics.leftToDelivered.push(diff);
+                }
+                
+                // Total cycle time
+                if (timestamps['Pending Approval'] && timestamps['Delivered']) {
+                    const diff = timestamps['Delivered'] - timestamps['Pending Approval'];
+                    analytics.timeMetrics.totalCycleTime.push(diff);
+                }
+                
+                // Delivery variance (requested vs actual)
+                if (order.requestedDeliveryDate && timestamps['Delivered']) {
+                    const requested = new Date(order.requestedDeliveryDate);
+                    const actual = timestamps['Delivered'];
+                    const variance = actual - requested;
+                    analytics.timeMetrics.deliveryVariance.push({
+                        orderID: order.orderID,
+                        variance: variance,
+                        early: variance < 0,
+                        onTime: Math.abs(variance) < 86400000 // Within 24 hours
+                    });
+                }
+            });
+            
+            return analytics;
+        }
+        
+        function formatDuration(milliseconds) {
+            if (!milliseconds || milliseconds === 0) return '0d 0h';
+            
+            const days = Math.floor(milliseconds / (1000 * 60 * 60 * 24));
+            const hours = Math.floor((milliseconds % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+            const minutes = Math.floor((milliseconds % (1000 * 60 * 60)) / (1000 * 60));
+            
+            // Always show days + hours (and minutes if less than 1 day)
+            if (days > 0) {
+                return `${days}d ${hours}h`;
+            } else if (hours > 0) {
+                return `0d ${hours}h`;
+            } else {
+                return `0d 0h ${minutes}m`;
+            }
+        }
+        
+        function calculateAverage(arr) {
+            if (arr.length === 0) return 0;
+            return arr.reduce((a, b) => a + b, 0) / arr.length;
+        }
+        
+        function displayAnalyticsSummary(analytics, totalOrders) {
+            const container = document.getElementById('analyticsSummary');
+            
+            // Top products
+            const topProducts = Object.entries(analytics.productCounts)
+                .sort((a, b) => b[1] - a[1])
+                .slice(0, 5);
+            
+            // Top transport companies
+            const topTransport = Object.entries(analytics.transportCounts)
+                .sort((a, b) => b[1] - a[1])
+                .slice(0, 5);
+            
+            // Average time metrics
+            const avgOrderToApproval = calculateAverage(analytics.timeMetrics.orderToApproval);
+            const avgApprovalToTransport = calculateAverage(analytics.timeMetrics.approvalToTransport);
+            const avgTransportToWarehouse = calculateAverage(analytics.timeMetrics.transportToWarehouse);
+            const avgWarehouseToLoading = calculateAverage(analytics.timeMetrics.warehouseToLoading);
+            const avgLoadingToLeft = calculateAverage(analytics.timeMetrics.loadingToLeft);
+            const avgLeftToDelivered = calculateAverage(analytics.timeMetrics.leftToDelivered);
+            const avgTotalCycle = calculateAverage(analytics.timeMetrics.totalCycleTime);
+            
+            // Delivery performance
+            const deliveryStats = analytics.timeMetrics.deliveryVariance;
+            const onTimeDeliveries = deliveryStats.filter(d => d.onTime).length;
+            const earlyDeliveries = deliveryStats.filter(d => d.early && !d.onTime).length;
+            const lateDeliveries = deliveryStats.filter(d => !d.early && !d.onTime).length;
+            
+            container.innerHTML = `
+                <div style="display: grid; gap: 1.5rem;">
+                    <!-- Overview Stats -->
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 1rem;">
+                        <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 1rem; border-radius: 8px; text-align: center; color: white;">
+                            <div style="font-size: 2rem; font-weight: bold;">${totalOrders}</div>
+                            <div style="font-size: 0.85rem; opacity: 0.9;">Total Orders</div>
+                        </div>
+                        <div style="background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%); padding: 1rem; border-radius: 8px; text-align: center; color: white;">
+                            <div style="font-size: 2rem; font-weight: bold;">${analytics.statusCounts['Delivered'] || 0}</div>
+                            <div style="font-size: 0.85rem; opacity: 0.9;">Delivered</div>
+                        </div>
+                        <div style="background: linear-gradient(135deg, #fa709a 0%, #fee140 100%); padding: 1rem; border-radius: 8px; text-align: center; color: white;">
+                            <div style="font-size: 2rem; font-weight: bold;">${analytics.statusCounts['Disputed'] || 0}</div>
+                            <div style="font-size: 0.85rem; opacity: 0.9;">Disputed</div>
+                        </div>
+                        <div style="background: linear-gradient(135deg, #868f96 0%, #596164 100%); padding: 1rem; border-radius: 8px; text-align: center; color: white;">
+                            <div style="font-size: 2rem; font-weight: bold;">${analytics.statusCounts['Rejected'] || 0}</div>
+                            <div style="font-size: 0.85rem; opacity: 0.9;">Rejected</div>
+                        </div>
+                    </div>
+                    
+                    <!-- Time Metrics -->
+                    <div style="background: white; padding: 1.5rem; border-radius: 8px; border: 1px solid #E5E7EB;">
+                        <h3 style="margin-bottom: 1rem; color: var(--secondary);">⏱️ Average Processing Times</h3>
+                        <div style="display: grid; gap: 0.75rem;">
+                            <div style="display: flex; justify-content: space-between; padding: 0.5rem; background: var(--light); border-radius: 4px;">
+                                <span>📝 Order → Approval:</span>
+                                <strong>${formatDuration(avgOrderToApproval)}</strong>
+                            </div>
+                            <div style="display: flex; justify-content: space-between; padding: 0.5rem; background: var(--light); border-radius: 4px;">
+                                <span>✅ Approval → Transport Assigned:</span>
+                                <strong>${formatDuration(avgApprovalToTransport)}</strong>
+                            </div>
+                            <div style="display: flex; justify-content: space-between; padding: 0.5rem; background: var(--light); border-radius: 4px;">
+                                <span>🚛 Transport Assigned → In Warehouse:</span>
+                                <strong>${formatDuration(avgTransportToWarehouse)}</strong>
+                            </div>
+                            <div style="display: flex; justify-content: space-between; padding: 0.5rem; background: var(--light); border-radius: 4px;">
+                                <span>📦 In Warehouse → Loading:</span>
+                                <strong>${formatDuration(avgWarehouseToLoading)}</strong>
+                            </div>
+                            <div style="display: flex; justify-content: space-between; padding: 0.5rem; background: var(--light); border-radius: 4px;">
+                                <span>⏳ Loading → Left Warehouse:</span>
+                                <strong>${formatDuration(avgLoadingToLeft)}</strong>
+                            </div>
+                            <div style="display: flex; justify-content: space-between; padding: 0.5rem; background: var(--light); border-radius: 4px;">
+                                <span>🚚 Left Warehouse → Delivered:</span>
+                                <strong>${formatDuration(avgLeftToDelivered)}</strong>
+                            </div>
+                            <div style="display: flex; justify-content: space-between; padding: 0.75rem; background: #EFF6FF; border-radius: 4px; border: 2px solid #2563EB;">
+                                <span style="font-weight: 600;">🏁 Total Cycle Time (Order → Delivered):</span>
+                                <strong style="color: #2563EB;">${formatDuration(avgTotalCycle)}</strong>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Top Products & Transport -->
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1.5rem;">
+                        <div style="background: white; padding: 1.5rem; border-radius: 8px; border: 1px solid #E5E7EB;">
+                            <h3 style="margin-bottom: 1rem; color: var(--secondary);">🛢️ Top Products</h3>
+                            ${topProducts.map(([product, count]) => `
+                                <div style="display: flex; justify-content: space-between; padding: 0.5rem; margin-bottom: 0.5rem; background: var(--light); border-radius: 4px;">
+                                    <span>${product}</span>
+                                    <strong>${count} orders</strong>
+                                </div>
+                            `).join('')}
+                        </div>
+                        
+                        <div style="background: white; padding: 1.5rem; border-radius: 8px; border: 1px solid #E5E7EB;">
+                            <h3 style="margin-bottom: 1rem; color: var(--secondary);">🚛 Top Transport Companies</h3>
+                            ${topTransport.length > 0 ? topTransport.map(([company, count]) => `
+                                <div style="display: flex; justify-content: space-between; padding: 0.5rem; margin-bottom: 0.5rem; background: var(--light); border-radius: 4px;">
+                                    <span>${company}</span>
+                                    <strong>${count} orders</strong>
+                                </div>
+                            `).join('') : '<p style="color: #6B7280;">No transport data yet</p>'}
+                        </div>
+                    </div>
+                    
+                    <!-- Delivery Performance -->
+                    ${deliveryStats.length > 0 ? `
+                        <div style="background: white; padding: 1.5rem; border-radius: 8px; border: 1px solid #E5E7EB;">
+                            <h3 style="margin-bottom: 1rem; color: var(--secondary);">🎯 Delivery Performance</h3>
+                            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 1rem;">
+                                <div style="text-align: center; padding: 1rem; background: #D1FAE5; border-radius: 8px;">
+                                    <div style="font-size: 1.75rem; font-weight: bold; color: #065F46;">${onTimeDeliveries}</div>
+                                    <div style="font-size: 0.85rem; color: #065F46;">On-Time</div>
+                                </div>
+                                <div style="text-align: center; padding: 1rem; background: #DBEAFE; border-radius: 8px;">
+                                    <div style="font-size: 1.75rem; font-weight: bold; color: #1E40AF;">${earlyDeliveries}</div>
+                                    <div style="font-size: 0.85rem; color: #1E40AF;">Early</div>
+                                </div>
+                                <div style="text-align: center; padding: 1rem; background: #FEE2E2; border-radius: 8px;">
+                                    <div style="font-size: 1.75rem; font-weight: bold; color: #991B1B;">${lateDeliveries}</div>
+                                    <div style="font-size: 0.85rem; color: #991B1B;">Late</div>
+                                </div>
+                            </div>
+                        </div>
+                    ` : ''}
+                    
+                    <div style="text-align: center; padding: 1rem; background: #EFF6FF; border-radius: 8px;">
+                        <p style="color: #2563EB; font-weight: 500;">📥 Click "Export to Excel" button above to download detailed report</p>
+                    </div>
+                </div>
+            `;
+        }
+        
+        async function exportToExcel() {
+            // Get date range from analytics inputs
+            const startInput = document.getElementById('analyticsDateStart');
+            const endInput = document.getElementById('analyticsDateEnd');
+            
+            let exportStart = dateFilterStart;
+            let exportEnd = dateFilterEnd;
+            
+            if (startInput && startInput.value) {
+                exportStart = new Date(startInput.value);
+            }
+            if (endInput && endInput.value) {
+                exportEnd = new Date(endInput.value);
+                exportEnd.setHours(23, 59, 59, 999);
+            }
+            
+            // Filter orders
+            const exportOrders = ordersData.filter(order => {
+                const orderDate = new Date(order.orderDate);
+                return orderDate >= exportStart && orderDate <= exportEnd;
+            });
+            
+            if (exportOrders.length === 0) {
+                alert('No orders in selected date range to export');
+                return;
+            }
+            
+            // Show loading
+            alert('Generating Excel file... This may take a moment.');
+            
+            try {
+                // Use SheetJS to create workbook
+                const workbook = XLSX.utils.book_new();
+                
+                // Sheet 1: Raw Data
+                const rawData = exportOrders.map(order => ({
+                    'Order ID': order.orderID,
+                    'Order Date': order.orderDate,
+                    'Created By': order.createdBy,
+                    'Client ID': order.clientID,
+                    'Client Name': order.clientName,
+                    'Product Type': order.productType,
+                    'Unit': order.unit,
+                    'Quantity': order.quantity,
+                    'Margin (MKD)': order.margin,
+                    'Warehouse': order.warehouse,
+                    'Requested Delivery Date': order.requestedDeliveryDate,
+                    'Preferred Delivery Time': order.preferredDeliveryTime,
+                    'Avoid Afterwork': order.avoidAfterwork,
+                    'Payment Terms': order.paymentTerms,
+                    'Priority': order.priority,
+                    'No Gulf Brand': order.noGulfBrand,
+                    'Status': order.status,
+                    'Approved By': order.approvedBy,
+                    'Approval Date': order.approvalDate,
+                    'Rejection Reason': order.rejectionReason,
+                    'Proforma Number': order.proformaNumber,
+                    'Invoice Number': order.invoiceNumber,
+                    'Driver Name': order.driverName,
+                    'Truck Plate': order.truckPlate,
+                    'Transport Company': order.transportCompany,
+                    'Estimated Delivery': order.estimatedDelivery
+                }));
+                
+                const rawSheet = XLSX.utils.json_to_sheet(rawData);
+                XLSX.utils.book_append_sheet(workbook, rawSheet, 'Raw Data');
+                
+                // Sheet 2: Summary
+                const analytics = calculateAnalytics(exportOrders);
+                
+                const summaryData = [
+                    ['ANALYTICS SUMMARY'],
+                    ['Report Period:', `${exportStart.toLocaleDateString()} - ${exportEnd.toLocaleDateString()}`],
+                    [''],
+                    ['OVERVIEW'],
+                    ['Total Orders', exportOrders.length],
+                    ['Delivered', analytics.statusCounts['Delivered'] || 0],
+                    ['Disputed', analytics.statusCounts['Disputed'] || 0],
+                    ['Rejected', analytics.statusCounts['Rejected'] || 0],
+                    [''],
+                    ['AVERAGE PROCESSING TIMES'],
+                    ['Order → Approval', formatDuration(calculateAverage(analytics.timeMetrics.orderToApproval))],
+                    ['Approval → Transport Assigned', formatDuration(calculateAverage(analytics.timeMetrics.approvalToTransport))],
+                    ['Transport Assigned → In Warehouse', formatDuration(calculateAverage(analytics.timeMetrics.transportToWarehouse))],
+                    ['In Warehouse → Loading', formatDuration(calculateAverage(analytics.timeMetrics.warehouseToLoading))],
+                    ['Loading → Left Warehouse', formatDuration(calculateAverage(analytics.timeMetrics.loadingToLeft))],
+                    ['Left Warehouse → Delivered', formatDuration(calculateAverage(analytics.timeMetrics.leftToDelivered))],
+                    ['TOTAL CYCLE TIME', formatDuration(calculateAverage(analytics.timeMetrics.totalCycleTime))],
+                    [''],
+                    ['TOP PRODUCTS'],
+                    ...Object.entries(analytics.productCounts).sort((a, b) => b[1] - a[1]).map(([product, count]) => [product, count]),
+                    [''],
+                    ['TOP TRANSPORT COMPANIES'],
+                    ...Object.entries(analytics.transportCounts).sort((a, b) => b[1] - a[1]).map(([company, count]) => [company, count])
+                ];
+                
+                const summarySheet = XLSX.utils.aoa_to_sheet(summaryData);
+                XLSX.utils.book_append_sheet(workbook, summarySheet, 'Summary');
+                
+                // Sheet 3: Time Analysis (detailed)
+                const timeAnalysisData = exportOrders.map(order => {
+                    const orderLogs = logsData.filter(log => log.orderID === order.orderID);
+                    orderLogs.sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
+                    
+                    const timestamps = {};
+                    orderLogs.forEach(log => {
+                        if (log.newValue && !timestamps[log.newValue]) {
+                            timestamps[log.newValue] = new Date(log.timestamp);
+                        }
+                    });
+                    
+                    const calcDiff = (start, end) => {
+                        if (!timestamps[start] || !timestamps[end]) return '';
+                        return formatDuration(timestamps[end] - timestamps[start]);
+                    };
+                    
+                    return {
+                        'Order ID': order.orderID,
+                        'Order → Approval': calcDiff('Pending Approval', 'Approved'),
+                        'Approval → Transport': calcDiff('Approved', 'Truck Assigned'),
+                        'Transport → Warehouse': calcDiff('Truck Assigned', 'In Warehouse'),
+                        'Warehouse → Loading': calcDiff('In Warehouse', 'Loading'),
+                        'Loading → Left': calcDiff('Loading', 'Left Warehouse'),
+                        'Left → Delivered': calcDiff('Left Warehouse', 'Delivered'),
+                        'Total Cycle Time': calcDiff('Pending Approval', 'Delivered')
+                    };
+                });
+                
+                const timeSheet = XLSX.utils.json_to_sheet(timeAnalysisData);
+                XLSX.utils.book_append_sheet(workbook, timeSheet, 'Time Analysis');
+                
+                // Generate Excel file
+                const fileName = `Gulf_Analytics_${exportStart.toISOString().split('T')[0]}_to_${exportEnd.toISOString().split('T')[0]}.xlsx`;
+                XLSX.writeFile(workbook, fileName);
+                
+                alert('✅ Excel file downloaded successfully!');
+                
+            } catch (error) {
+                console.error('Error generating Excel:', error);
+                alert('❌ Error generating Excel file: ' + error.message);
+            }
+        }
         
         // ===== WAREHOUSE STATUS UPDATE =====
         
