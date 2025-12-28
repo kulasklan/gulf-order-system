@@ -697,6 +697,19 @@
                 </div>
             </div>
 
+            <!-- Warehouse View -->
+            <div id="warehouseView" class="view-content hidden">
+                <div class="card">
+                    <div class="card-header">
+                        <h2 class="card-title">📦 Warehouse Dashboard</h2>
+                        <button class="btn btn-secondary" id="refreshWarehouseBtn">Refresh</button>
+                    </div>
+                    <div id="warehouseOrdersList">
+                        <!-- Warehouse orders will be shown here -->
+                    </div>
+                </div>
+            </div>
+
             <!-- Order Details Modal -->
             <div id="orderDetailsModal" class="modal">
                 <div class="modal-content">
@@ -797,6 +810,10 @@
             if (currentUser.department === 'Transport') {
                 tabs += '<div class="nav-tab" onclick="showView(\'transport\')">🚛 Transport</div>';
             }
+            
+            if (currentUser.department === 'Warehouse') {
+                tabs += '<div class="nav-tab" onclick="showView(\'warehouse\')">📦 Warehouse</div>';
+            }
 
             navTabs.innerHTML = tabs;
         }
@@ -826,6 +843,9 @@
             } else if (viewName === 'transport') {
                 document.getElementById('transportView').classList.remove('hidden');
                 loadTransportDashboard();
+            } else if (viewName === 'warehouse') {
+                document.getElementById('warehouseView').classList.remove('hidden');
+                loadWarehouseDashboard();
             }
         }
 
@@ -866,10 +886,10 @@
                         rejectionReason: row[22] || '',
                         proformaNumber: row[33] || '',
                         invoiceNumber: row[34] || '',
-                        driverName: row[39] || '',
-                        truckPlate: row[40] || '',
-                        transportCompany: row[41] || '',
-                        estimatedDelivery: row[42] || ''
+                        driverName: row[39] || '',      // Column AN (40th column, index 39)
+                        truckPlate: row[40] || '',      // Column AO (41st column, index 40)
+                        transportCompany: row[41] || '', // Column AP (42nd column, index 41)
+                        estimatedDelivery: row[42] || '' // Column AQ (43rd column, index 42)
                     }));
                     console.log('✅ Loaded', ordersData.length, 'orders from Google Sheets');
                 } else {
@@ -877,7 +897,7 @@
                     ordersData = [];
                 }
                 
-// Load Clients from Google Sheets
+                // Load Clients from Google Sheets
                 const clientsUrl = `https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_ID}/values/Clients!A2:I100?key=${API_KEY}`;
                 const clientsResponse = await fetch(clientsUrl);
                 const clientsJson = await clientsResponse.json();
@@ -1004,7 +1024,7 @@
 
         function getStatusClass(status) {
             if (status.includes('Pending')) return 'status-pending';
-            if (status === 'Approved' || status === 'Transport Confirmed' || status === 'Delivered') return 'status-approved';
+            if (status === 'Approved' || status === 'Transport Confirmed' || status === 'Truck Arrived' || status === 'Loading' || status === 'Loaded' || status === 'Truck Departed' || status === 'Delivered') return 'status-approved';
             if (status === 'Rejected') return 'status-rejected';
             if (status === 'Disputed') return 'status-disputed';
             return '';
@@ -1150,6 +1170,67 @@
                             </div>
                             <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
                                 <button class="btn btn-primary" onclick="showTransportAssignmentForm('${order.orderID}')">🚛 Assign Driver & Truck</button>
+                                <button class="btn btn-secondary" onclick="viewOrderDetails('${order.orderID}')">View Details</button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+
+            container.innerHTML = html;
+        }
+        
+        function loadWarehouseDashboard() {
+            // Show orders that have transport confirmed (ready for warehouse)
+            const warehouseOrders = ordersData.filter(o => 
+                o.status === 'Transport Confirmed' || 
+                o.status === 'Truck Arrived' ||
+                o.status === 'Loading' ||
+                o.status === 'Loaded' ||
+                o.status === 'Truck Departed'
+            );
+            
+            const container = document.getElementById('warehouseOrdersList');
+
+            if (warehouseOrders.length === 0) {
+                container.innerHTML = '<p style="text-align:center; padding: 2rem; color: #6B7280;">No orders in warehouse</p>';
+                return;
+            }
+
+            let html = '';
+            warehouseOrders.forEach(order => {
+                html += `
+                    <div class="card">
+                        <div style="display: grid; gap: 1rem;">
+                            <div style="display: flex; justify-content: space-between; align-items: start;">
+                                <div style="flex: 1;">
+                                    <h3 style="margin-bottom: 0.5rem;">${order.orderID} - ${order.clientName}</h3>
+                                    <p style="color: #6B7280; margin-bottom: 0.5rem;">
+                                        ${order.quantity} ${order.unit} of ${order.productType} | 
+                                        Warehouse: ${order.warehouse}
+                                    </p>
+                                    ${order.driverName ? `
+                                        <p style="color: #065F46; margin-bottom: 0.5rem;">
+                                            🚛 Driver: <strong>${order.driverName}</strong> | 
+                                            Truck: <strong>${order.truckPlate}</strong>
+                                        </p>
+                                    ` : ''}
+                                </div>
+                                <span class="status-badge ${getStatusClass(order.status)}">${order.status}</span>
+                            </div>
+                            <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+                                ${order.status === 'Transport Confirmed' ? `
+                                    <button class="btn btn-primary" onclick="updateOrderStatus('${order.orderID}', 'Truck Arrived')">✓ Truck Arrived</button>
+                                ` : ''}
+                                ${order.status === 'Truck Arrived' ? `
+                                    <button class="btn btn-primary" onclick="updateOrderStatus('${order.orderID}', 'Loading')">⏳ Start Loading</button>
+                                ` : ''}
+                                ${order.status === 'Loading' ? `
+                                    <button class="btn btn-success" onclick="updateOrderStatus('${order.orderID}', 'Loaded')">✓ Loading Complete</button>
+                                ` : ''}
+                                ${order.status === 'Loaded' ? `
+                                    <button class="btn btn-success" onclick="updateOrderStatus('${order.orderID}', 'Truck Departed')">🚛 Truck Departed</button>
+                                ` : ''}
                                 <button class="btn btn-secondary" onclick="viewOrderDetails('${order.orderID}')">View Details</button>
                             </div>
                         </div>
@@ -1526,6 +1607,46 @@
             loadData();
             loadTransportDashboard();
         });
+
+        document.getElementById('refreshWarehouseBtn').addEventListener('click', () => {
+            loadData();
+            loadWarehouseDashboard();
+        });
+        
+        // ===== WAREHOUSE STATUS UPDATE =====
+        
+        async function updateOrderStatus(orderID, newStatus) {
+            const note = prompt(`Change status to "${newStatus}"?\n\nAdd note (optional):`) || '';
+            
+            if (note === null) return; // User cancelled
+            
+            try {
+                const response = await fetch(APPS_SCRIPT_URL, {
+                    method: 'POST',
+                    mode: 'no-cors',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        action: 'updateWarehouseStatus',
+                        orderID: orderID,
+                        warehouseUserID: currentUser.id,
+                        status: newStatus,
+                        note: note
+                    })
+                });
+                
+                alert(`✅ Status updated to "${newStatus}"!`);
+                
+                // Reload data and refresh view
+                await loadData();
+                loadWarehouseDashboard();
+                
+            } catch (error) {
+                console.error('Error:', error);
+                alert('❌ Error updating status: ' + error.message);
+            }
+        }
 
         // ===== TRANSPORT ASSIGNMENT =====
         
