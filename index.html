@@ -1599,36 +1599,43 @@
                             const currentIndex = statusOrder.indexOf(order.status);
                             const stepIndex = statusOrder.indexOf(step.status);
                             
-                            let statusClass = '';
                             let checkmark = '';
                             let textColor = '#9CA3AF';
+                            let borderColor = '#E5E7EB';
                             let bgColor = 'white';
+                            let showBadge = false;
                             
-                            if (stepIndex < currentIndex || (order.status === 'Rejected' && stepIndex <= 0)) {
-                                statusClass = 'completed';
+                            if (stepIndex < currentIndex) {
+                                // Completed steps
                                 checkmark = '✅';
                                 textColor = '#059669';
+                                borderColor = '#059669';
                             } else if (stepIndex === currentIndex) {
-                                statusClass = 'current';
+                                // Current step
                                 checkmark = '🟢';
                                 textColor = '#2563EB';
+                                borderColor = '#2563EB';
                                 bgColor = '#EFF6FF';
+                                showBadge = true;
                             } else {
+                                // Pending steps
                                 checkmark = '⚪';
+                                textColor = '#9CA3AF';
+                                borderColor = '#E5E7EB';
                             }
                             
                             return `
-                                <div style="display: flex; align-items: center; gap: 0.75rem; padding: 0.5rem 0.75rem; background: ${bgColor}; border-left: 3px solid ${statusClass === 'current' ? '#2563EB' : statusClass === 'completed' ? '#059669' : '#E5E7EB'}; border-radius: 4px;">
-                                    <span style="font-size: 1.25rem;">${checkmark}</span>
+                                <div style="display: flex; align-items: center; gap: 0.75rem; padding: 0.5rem 0.75rem; background: ${bgColor}; border-left: 3px solid ${borderColor}; border-radius: 4px;">
+                                    <span style="font-size: 1.25rem; line-height: 1;">${checkmark}</span>
                                     <strong style="color: ${textColor}; font-size: 0.95rem; flex: 1;">${step.icon} ${step.status}</strong>
-                                    ${statusClass === 'current' ? '<span style="background: #2563EB; color: white; padding: 0.125rem 0.5rem; border-radius: 12px; font-size: 0.7rem; font-weight: bold;">NOW</span>' : ''}
+                                    ${showBadge ? '<span style="background: #2563EB; color: white; padding: 0.125rem 0.5rem; border-radius: 12px; font-size: 0.7rem; font-weight: bold;">NOW</span>' : ''}
                                 </div>
                             `;
                         }).join('')}
                         
                         ${order.status === 'Rejected' ? `
                             <div style="display: flex; align-items: center; gap: 0.75rem; padding: 0.5rem 0.75rem; background: #FEF2F2; border-left: 3px solid #DC2626; border-radius: 4px; margin-top: 0.5rem;">
-                                <span style="font-size: 1.25rem;">❌</span>
+                                <span style="font-size: 1.25rem; line-height: 1;">❌</span>
                                 <strong style="color: #DC2626; font-size: 0.95rem; flex: 1;">🚫 Rejected</strong>
                                 <span style="background: #DC2626; color: white; padding: 0.125rem 0.5rem; border-radius: 12px; font-size: 0.7rem; font-weight: bold;">NOW</span>
                             </div>
@@ -1636,7 +1643,7 @@
                         
                         ${order.status === 'Disputed' ? `
                             <div style="display: flex; align-items: center; gap: 0.75rem; padding: 0.5rem 0.75rem; background: #FFFBEB; border-left: 3px solid #D97706; border-radius: 4px; margin-top: 0.5rem;">
-                                <span style="font-size: 1.25rem;">⚠️</span>
+                                <span style="font-size: 1.25rem; line-height: 1;">⚠️</span>
                                 <strong style="color: #D97706; font-size: 0.95rem; flex: 1;">⚠️ Disputed</strong>
                                 <span style="background: #D97706; color: white; padding: 0.125rem 0.5rem; border-radius: 12px; font-size: 0.7rem; font-weight: bold;">NOW</span>
                             </div>
