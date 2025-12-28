@@ -1025,7 +1025,7 @@
 
         function getStatusClass(status) {
             if (status.includes('Pending')) return 'status-pending';
-            if (status === 'Approved' || status === 'Transport Confirmed' || status === 'Truck Arrived' || status === 'Loading' || status === 'Loaded' || status === 'Truck Departed' || status === 'Delivered') return 'status-approved';
+            if (status === 'Approved' || status === 'Truck Assigned' || status === 'In Warehouse' || status === 'Loading' || status === 'Left Warehouse' || status === 'Delivered') return 'status-approved';
             if (status === 'Rejected') return 'status-rejected';
             if (status === 'Disputed') return 'status-disputed';
             return '';
@@ -1185,13 +1185,11 @@
             console.log('=== LOADING WAREHOUSE DASHBOARD ===');
             console.log('Total orders:', ordersData.length);
             
-            // Show orders that have transport confirmed (ready for warehouse)
+            // Show orders that have truck assigned or are in warehouse stages
             const warehouseOrders = ordersData.filter(o => 
-                o.status === 'Transport Confirmed' || 
-                o.status === 'Truck Arrived' ||
-                o.status === 'Loading' ||
-                o.status === 'Loaded' ||
-                o.status === 'Truck Departed'
+                o.status === 'Truck Assigned' || 
+                o.status === 'In Warehouse' ||
+                o.status === 'Loading'
             );
             
             console.log('Warehouse orders found:', warehouseOrders.length);
@@ -1212,11 +1210,9 @@
             warehouseOrders.forEach(order => {
                 // Determine which checkboxes should be checked based on status
                 const statusStages = {
-                    'Transport Confirmed': 0,
-                    'Truck Arrived': 1,
-                    'Loading': 2,
-                    'Loaded': 3,
-                    'Truck Departed': 4
+                    'Truck Assigned': 0,
+                    'In Warehouse': 1,
+                    'Loading': 2
                 };
                 
                 const currentStage = statusStages[order.status] || 0;
@@ -1252,10 +1248,10 @@
                                         <input type="checkbox" 
                                                id="stage1_${order.orderID}" 
                                                ${currentStage >= 1 ? 'checked disabled' : ''} 
-                                               onchange="updateWarehouseStage('${order.orderID}', 'Truck Arrived', this)"
+                                               onchange="updateWarehouseStage('${order.orderID}', 'In Warehouse', this)"
                                                style="width: 20px; height: 20px;">
                                         <label for="stage1_${order.orderID}" style="flex: 1; margin: 0;">
-                                            <strong>1. Truck Arrived</strong>
+                                            <strong>1. Truck Arrived in Warehouse</strong>
                                         </label>
                                     </div>
                                     
@@ -1266,29 +1262,18 @@
                                                onchange="updateWarehouseStage('${order.orderID}', 'Loading', this)"
                                                style="width: 20px; height: 20px;">
                                         <label for="stage2_${order.orderID}" style="flex: 1; margin: 0;">
-                                            <strong>2. Loading Started</strong>
+                                            <strong>2. Start Loading (~1 hour)</strong>
                                         </label>
                                     </div>
                                     
                                     <div style="display: flex; align-items: center; gap: 1rem; padding: 0.5rem; background: white; border-radius: 4px;">
                                         <input type="checkbox" 
                                                id="stage3_${order.orderID}" 
-                                               ${currentStage >= 3 ? 'checked disabled' : currentStage < 2 ? 'disabled' : ''} 
-                                               onchange="updateWarehouseStage('${order.orderID}', 'Loaded', this)"
+                                               ${currentStage < 2 ? 'disabled' : ''} 
+                                               onchange="updateWarehouseStage('${order.orderID}', 'Left Warehouse', this)"
                                                style="width: 20px; height: 20px;">
                                         <label for="stage3_${order.orderID}" style="flex: 1; margin: 0;">
-                                            <strong>3. Loading Complete</strong>
-                                        </label>
-                                    </div>
-                                    
-                                    <div style="display: flex; align-items: center; gap: 1rem; padding: 0.5rem; background: white; border-radius: 4px;">
-                                        <input type="checkbox" 
-                                               id="stage4_${order.orderID}" 
-                                               ${currentStage >= 4 ? 'checked disabled' : currentStage < 3 ? 'disabled' : ''} 
-                                               onchange="updateWarehouseStage('${order.orderID}', 'Truck Departed', this)"
-                                               style="width: 20px; height: 20px;">
-                                        <label for="stage4_${order.orderID}" style="flex: 1; margin: 0;">
-                                            <strong>4. Truck Departed</strong>
+                                            <strong>3. Truck Left Warehouse</strong>
                                         </label>
                                     </div>
                                 </div>
@@ -1608,10 +1593,10 @@
                         <div class="progress-dot ${order.status !== 'Pending Approval' ? 'active' : ''}">2</div>
                         <small>Approved</small>
                     </div>
-                    <div class="progress-line ${order.status === 'Transport Confirmed' || order.status === 'Delivered' ? 'active' : ''}"></div>
+                    <div class="progress-line ${order.status === 'Truck Assigned' || order.status === 'In Warehouse' || order.status === 'Loading' || order.status === 'Left Warehouse' || order.status === 'Delivered' ? 'active' : ''}"></div>
                     <div class="progress-step">
-                        <div class="progress-dot ${order.status === 'Transport Confirmed' || order.status === 'Delivered' ? 'active' : ''}">3</div>
-                        <small>Transport</small>
+                        <div class="progress-dot ${order.status === 'Truck Assigned' || order.status === 'In Warehouse' || order.status === 'Loading' || order.status === 'Left Warehouse' || order.status === 'Delivered' ? 'active' : ''}">3</div>
+                        <small>In Transit</small>
                     </div>
                     <div class="progress-line ${order.status === 'Delivered' ? 'active' : ''}"></div>
                     <div class="progress-step">
