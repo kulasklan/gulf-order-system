@@ -892,6 +892,7 @@
                         estimatedDelivery: row[42] || '' // Column AQ (43rd column, index 42)
                     }));
                     console.log('✅ Loaded', ordersData.length, 'orders from Google Sheets');
+                    console.log('Order statuses:', ordersData.map(o => `${o.orderID}: ${o.status}`));
                 } else {
                     console.log('No orders found, using empty array');
                     ordersData = [];
@@ -1181,6 +1182,9 @@
         }
         
         function loadWarehouseDashboard() {
+            console.log('=== LOADING WAREHOUSE DASHBOARD ===');
+            console.log('Total orders:', ordersData.length);
+            
             // Show orders that have transport confirmed (ready for warehouse)
             const warehouseOrders = ordersData.filter(o => 
                 o.status === 'Transport Confirmed' || 
@@ -1189,6 +1193,13 @@
                 o.status === 'Loaded' ||
                 o.status === 'Truck Departed'
             );
+            
+            console.log('Warehouse orders found:', warehouseOrders.length);
+            console.log('Warehouse orders:', warehouseOrders.map(o => ({
+                orderID: o.orderID,
+                status: o.status,
+                driver: o.driverName
+            })));
             
             const container = document.getElementById('warehouseOrdersList');
 
@@ -1705,10 +1716,17 @@
                     })
                 });
                 
+                console.log('Status update sent, reloading data...');
+                
+                // Wait a moment for Apps Script to process
+                await new Promise(resolve => setTimeout(resolve, 1500));
+                
+                // Force reload all data from scratch
+                await loadData();
+                
                 alert(`✅ Status updated to "${newStatus}"!`);
                 
-                // Reload data and refresh view
-                await loadData();
+                // Refresh warehouse view
                 loadWarehouseDashboard();
                 
             } catch (error) {
@@ -1835,6 +1853,11 @@
                 });
                 
                 alert(`✅ Transport assigned to order ${orderID}!\n\nDriver: ${driverName}\nTruck: ${truckPlate}\nCompany: ${transportCompany}\nEst. Delivery: ${estimatedDelivery}`);
+                
+                console.log('Transport assigned, waiting for Apps Script to update...');
+                
+                // Wait for Apps Script to finish processing
+                await new Promise(resolve => setTimeout(resolve, 1500));
                 
                 // Reload data and close modal
                 await loadData();
