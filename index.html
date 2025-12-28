@@ -855,7 +855,7 @@
             
             try {
                 // Load Orders from Google Sheets
-                const ordersUrl = `https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_ID}/values/Orders!A2:AM1000?key=${API_KEY}`;
+                const ordersUrl = `https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_ID}/values/Orders!A2:AZ1000?key=${API_KEY}`;
                 const ordersResponse = await fetch(ordersUrl);
                 const ordersJson = await ordersResponse.json();
                 
