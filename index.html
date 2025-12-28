@@ -955,22 +955,70 @@
                 ? ordersData.filter(o => o.createdBy === currentUser.id)
                 : ordersData;
 
+            // Calculate stats
+            const stats = {
+                total: myOrders.length,
+                pending: myOrders.filter(o => o.status === 'Pending Approval').length,
+                approved: myOrders.filter(o => o.status === 'Approved').length,
+                inProgress: myOrders.filter(o => 
+                    o.status === 'Truck Assigned' || 
+                    o.status === 'In Warehouse' || 
+                    o.status === 'Loading' || 
+                    o.status === 'Left Warehouse'
+                ).length,
+                delivered: myOrders.filter(o => o.status === 'Delivered').length,
+                disputed: myOrders.filter(o => o.status === 'Disputed').length,
+                rejected: myOrders.filter(o => o.status === 'Rejected').length
+            };
+
             const statsHTML = `
-                <div class="stat-card">
-                    <div class="stat-value">${myOrders.length}</div>
-                    <div class="stat-label">Total Orders</div>
-                </div>
-                <div class="stat-card" style="border-left-color: var(--warning);">
-                    <div class="stat-value">${myOrders.filter(o => o.status === 'Pending Approval').length}</div>
-                    <div class="stat-label">Pending Approval</div>
-                </div>
-                <div class="stat-card" style="border-left-color: var(--success);">
-                    <div class="stat-value">${myOrders.filter(o => o.status === 'Delivered').length}</div>
-                    <div class="stat-label">Delivered</div>
-                </div>
-                <div class="stat-card" style="border-left-color: var(--danger);">
-                    <div class="stat-value">${myOrders.filter(o => o.status === 'Disputed').length}</div>
-                    <div class="stat-label">Disputed</div>
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(90px, 1fr)); gap: 0.5rem;">
+                    <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 0.75rem 0.5rem; border-radius: 8px; text-align: center; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+                        <div style="font-size: 1.75rem; font-weight: bold; color: white; line-height: 1;">${stats.total}</div>
+                        <div style="font-size: 0.7rem; color: rgba(255,255,255,0.95); margin-top: 0.25rem; font-weight: 500; text-transform: uppercase;">Total</div>
+                    </div>
+                    
+                    ${stats.pending > 0 ? `
+                        <div style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); padding: 0.75rem 0.5rem; border-radius: 8px; text-align: center; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+                            <div style="font-size: 1.75rem; font-weight: bold; color: white; line-height: 1;">${stats.pending}</div>
+                            <div style="font-size: 0.7rem; color: rgba(255,255,255,0.95); margin-top: 0.25rem; font-weight: 500; text-transform: uppercase;">Pending</div>
+                        </div>
+                    ` : ''}
+                    
+                    ${stats.approved > 0 ? `
+                        <div style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); padding: 0.75rem 0.5rem; border-radius: 8px; text-align: center; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+                            <div style="font-size: 1.75rem; font-weight: bold; color: white; line-height: 1;">${stats.approved}</div>
+                            <div style="font-size: 0.7rem; color: rgba(255,255,255,0.95); margin-top: 0.25rem; font-weight: 500; text-transform: uppercase;">Approved</div>
+                        </div>
+                    ` : ''}
+                    
+                    ${stats.inProgress > 0 ? `
+                        <div style="background: linear-gradient(135deg, #fa709a 0%, #fee140 100%); padding: 0.75rem 0.5rem; border-radius: 8px; text-align: center; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+                            <div style="font-size: 1.75rem; font-weight: bold; color: white; line-height: 1;">${stats.inProgress}</div>
+                            <div style="font-size: 0.7rem; color: rgba(255,255,255,0.95); margin-top: 0.25rem; font-weight: 500; text-transform: uppercase;">In Transit</div>
+                        </div>
+                    ` : ''}
+                    
+                    ${stats.delivered > 0 ? `
+                        <div style="background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%); padding: 0.75rem 0.5rem; border-radius: 8px; text-align: center; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+                            <div style="font-size: 1.75rem; font-weight: bold; color: white; line-height: 1;">${stats.delivered}</div>
+                            <div style="font-size: 0.7rem; color: rgba(255,255,255,0.95); margin-top: 0.25rem; font-weight: 500; text-transform: uppercase;">Delivered</div>
+                        </div>
+                    ` : ''}
+                    
+                    ${stats.disputed > 0 ? `
+                        <div style="background: linear-gradient(135deg, #ff9a56 0%, #ff6a88 100%); padding: 0.75rem 0.5rem; border-radius: 8px; text-align: center; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+                            <div style="font-size: 1.75rem; font-weight: bold; color: white; line-height: 1;">${stats.disputed}</div>
+                            <div style="font-size: 0.7rem; color: rgba(255,255,255,0.95); margin-top: 0.25rem; font-weight: 500; text-transform: uppercase;">Disputed</div>
+                        </div>
+                    ` : ''}
+                    
+                    ${stats.rejected > 0 ? `
+                        <div style="background: linear-gradient(135deg, #868f96 0%, #596164 100%); padding: 0.75rem 0.5rem; border-radius: 8px; text-align: center; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+                            <div style="font-size: 1.75rem; font-weight: bold; color: white; line-height: 1;">${stats.rejected}</div>
+                            <div style="font-size: 0.7rem; color: rgba(255,255,255,0.95); margin-top: 0.25rem; font-weight: 500; text-transform: uppercase;">Rejected</div>
+                        </div>
+                    ` : ''}
                 </div>
             `;
             document.getElementById('statsGrid').innerHTML = statsHTML;
