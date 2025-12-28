@@ -1463,6 +1463,20 @@
             const order = ordersData.find(o => o.orderID === orderID);
             if (!order) return;
 
+        async function viewOrderDetails(orderID) {
+            const order = ordersData.find(o => o.orderID === orderID);
+            if (!order) return;
+            
+            // DEBUG - Remove after testing
+            console.log('Order Details:', {
+                orderID: order.orderID,
+                driverName: order.driverName,
+                truckPlate: order.truckPlate,
+                transportCompany: order.transportCompany,
+                estimatedDelivery: order.estimatedDelivery,
+                status: order.status
+            });
+            
             const modal = document.getElementById('orderDetailsModal');
             const content = document.getElementById('orderDetailsContent');
 
