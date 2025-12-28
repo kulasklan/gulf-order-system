@@ -1585,15 +1585,15 @@
                 
                 <div style="margin-bottom: 2rem;">
                     <h3 style="color: var(--secondary); border-bottom: 2px solid var(--border); padding-bottom: 0.5rem; margin-bottom: 1rem;">📊 Order Progress</h3>
-                    <div style="display: grid; gap: 0.5rem;">
+                    <div style="display: grid; gap: 0.25rem;">
                         ${[
-                            {status: 'Pending Approval', label: 'Order Created - Awaiting Approval', icon: '📝'},
-                            {status: 'Approved', label: 'Approved by Management', icon: '✅'},
-                            {status: 'Truck Assigned', label: 'Transport Assigned', icon: '🚛'},
-                            {status: 'In Warehouse', label: 'Truck Arrived at Warehouse', icon: '📦'},
-                            {status: 'Loading', label: 'Loading in Progress', icon: '⏳'},
-                            {status: 'Left Warehouse', label: 'Truck Departed', icon: '🚚'},
-                            {status: 'Delivered', label: 'Delivered to Customer', icon: '✨'},
+                            {status: 'Pending Approval', icon: '📝'},
+                            {status: 'Approved', icon: '✅'},
+                            {status: 'Truck Assigned', icon: '🚛'},
+                            {status: 'In Warehouse', icon: '📦'},
+                            {status: 'Loading', icon: '⏳'},
+                            {status: 'Left Warehouse', icon: '🚚'},
+                            {status: 'Delivered', icon: '✨'},
                         ].map((step, index) => {
                             const statusOrder = ['Pending Approval', 'Approved', 'Truck Assigned', 'In Warehouse', 'Loading', 'Left Warehouse', 'Delivered'];
                             const currentIndex = statusOrder.indexOf(order.status);
@@ -1602,6 +1602,7 @@
                             let statusClass = '';
                             let checkmark = '';
                             let textColor = '#9CA3AF';
+                            let bgColor = 'white';
                             
                             if (stepIndex < currentIndex || (order.status === 'Rejected' && stepIndex <= 0)) {
                                 statusClass = 'completed';
@@ -1611,41 +1612,33 @@
                                 statusClass = 'current';
                                 checkmark = '🟢';
                                 textColor = '#2563EB';
+                                bgColor = '#EFF6FF';
                             } else {
                                 checkmark = '⚪';
                             }
                             
                             return `
-                                <div style="display: flex; align-items: center; gap: 0.75rem; padding: 0.75rem; background: ${statusClass === 'current' ? '#EFF6FF' : 'white'}; border-left: 3px solid ${statusClass === 'current' ? '#2563EB' : statusClass === 'completed' ? '#059669' : '#E5E7EB'}; border-radius: 4px;">
+                                <div style="display: flex; align-items: center; gap: 0.75rem; padding: 0.5rem 0.75rem; background: ${bgColor}; border-left: 3px solid ${statusClass === 'current' ? '#2563EB' : statusClass === 'completed' ? '#059669' : '#E5E7EB'}; border-radius: 4px;">
                                     <span style="font-size: 1.25rem;">${checkmark}</span>
-                                    <div style="flex: 1;">
-                                        <strong style="color: ${textColor}; font-size: 0.95rem;">${step.icon} ${step.status}</strong>
-                                        <div style="color: #6B7280; font-size: 0.85rem; margin-top: 0.125rem;">${step.label}</div>
-                                    </div>
-                                    ${statusClass === 'current' ? '<span style="background: #2563EB; color: white; padding: 0.25rem 0.5rem; border-radius: 12px; font-size: 0.75rem; font-weight: bold;">CURRENT</span>' : ''}
+                                    <strong style="color: ${textColor}; font-size: 0.95rem; flex: 1;">${step.icon} ${step.status}</strong>
+                                    ${statusClass === 'current' ? '<span style="background: #2563EB; color: white; padding: 0.125rem 0.5rem; border-radius: 12px; font-size: 0.7rem; font-weight: bold;">NOW</span>' : ''}
                                 </div>
                             `;
                         }).join('')}
                         
                         ${order.status === 'Rejected' ? `
-                            <div style="display: flex; align-items: center; gap: 0.75rem; padding: 0.75rem; background: #FEF2F2; border-left: 3px solid #DC2626; border-radius: 4px;">
+                            <div style="display: flex; align-items: center; gap: 0.75rem; padding: 0.5rem 0.75rem; background: #FEF2F2; border-left: 3px solid #DC2626; border-radius: 4px; margin-top: 0.5rem;">
                                 <span style="font-size: 1.25rem;">❌</span>
-                                <div style="flex: 1;">
-                                    <strong style="color: #DC2626; font-size: 0.95rem;">🚫 Rejected</strong>
-                                    <div style="color: #991B1B; font-size: 0.85rem; margin-top: 0.125rem;">Order was rejected</div>
-                                </div>
-                                <span style="background: #DC2626; color: white; padding: 0.25rem 0.5rem; border-radius: 12px; font-size: 0.75rem; font-weight: bold;">REJECTED</span>
+                                <strong style="color: #DC2626; font-size: 0.95rem; flex: 1;">🚫 Rejected</strong>
+                                <span style="background: #DC2626; color: white; padding: 0.125rem 0.5rem; border-radius: 12px; font-size: 0.7rem; font-weight: bold;">NOW</span>
                             </div>
                         ` : ''}
                         
                         ${order.status === 'Disputed' ? `
-                            <div style="display: flex; align-items: center; gap: 0.75rem; padding: 0.75rem; background: #FFFBEB; border-left: 3px solid #D97706; border-radius: 4px;">
+                            <div style="display: flex; align-items: center; gap: 0.75rem; padding: 0.5rem 0.75rem; background: #FFFBEB; border-left: 3px solid #D97706; border-radius: 4px; margin-top: 0.5rem;">
                                 <span style="font-size: 1.25rem;">⚠️</span>
-                                <div style="flex: 1;">
-                                    <strong style="color: #D97706; font-size: 0.95rem;">⚠️ Disputed</strong>
-                                    <div style="color: #92400E; font-size: 0.85rem; margin-top: 0.125rem;">Issue with delivery</div>
-                                </div>
-                                <span style="background: #D97706; color: white; padding: 0.25rem 0.5rem; border-radius: 12px; font-size: 0.75rem; font-weight: bold;">DISPUTED</span>
+                                <strong style="color: #D97706; font-size: 0.95rem; flex: 1;">⚠️ Disputed</strong>
+                                <span style="background: #D97706; color: white; padding: 0.125rem 0.5rem; border-radius: 12px; font-size: 0.7rem; font-weight: bold;">NOW</span>
                             </div>
                         ` : ''}
                     </div>
