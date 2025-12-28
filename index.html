@@ -1199,6 +1199,17 @@
 
             let html = '';
             warehouseOrders.forEach(order => {
+                // Determine which checkboxes should be checked based on status
+                const statusStages = {
+                    'Transport Confirmed': 0,
+                    'Truck Arrived': 1,
+                    'Loading': 2,
+                    'Loaded': 3,
+                    'Truck Departed': 4
+                };
+                
+                const currentStage = statusStages[order.status] || 0;
+                
                 html += `
                     <div class="card">
                         <div style="display: grid; gap: 1rem;">
@@ -1212,27 +1223,67 @@
                                     ${order.driverName ? `
                                         <p style="color: #065F46; margin-bottom: 0.5rem;">
                                             🚛 Driver: <strong>${order.driverName}</strong> | 
-                                            Truck: <strong>${order.truckPlate}</strong>
+                                            Truck: <strong>${order.truckPlate}</strong> | 
+                                            Company: <strong>${order.transportCompany}</strong>
+                                        </p>
+                                        <p style="color: #059669; margin-bottom: 0.25rem;">
+                                            ⏰ Est. Delivery: <strong>${order.estimatedDelivery}</strong>
                                         </p>
                                     ` : ''}
                                 </div>
                                 <span class="status-badge ${getStatusClass(order.status)}">${order.status}</span>
                             </div>
-                            <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
-                                ${order.status === 'Transport Confirmed' ? `
-                                    <button class="btn btn-primary" onclick="updateOrderStatus('${order.orderID}', 'Truck Arrived')">✓ Truck Arrived</button>
-                                ` : ''}
-                                ${order.status === 'Truck Arrived' ? `
-                                    <button class="btn btn-primary" onclick="updateOrderStatus('${order.orderID}', 'Loading')">⏳ Start Loading</button>
-                                ` : ''}
-                                ${order.status === 'Loading' ? `
-                                    <button class="btn btn-success" onclick="updateOrderStatus('${order.orderID}', 'Loaded')">✓ Loading Complete</button>
-                                ` : ''}
-                                ${order.status === 'Loaded' ? `
-                                    <button class="btn btn-success" onclick="updateOrderStatus('${order.orderID}', 'Truck Departed')">🚛 Truck Departed</button>
-                                ` : ''}
-                                <button class="btn btn-secondary" onclick="viewOrderDetails('${order.orderID}')">View Details</button>
+                            
+                            <div style="padding: 1rem; background: var(--light); border-radius: 4px;">
+                                <h4 style="margin-bottom: 1rem; color: var(--secondary);">📋 Warehouse Checklist</h4>
+                                <div style="display: grid; gap: 0.75rem;">
+                                    <div style="display: flex; align-items: center; gap: 1rem; padding: 0.5rem; background: white; border-radius: 4px;">
+                                        <input type="checkbox" 
+                                               id="stage1_${order.orderID}" 
+                                               ${currentStage >= 1 ? 'checked disabled' : ''} 
+                                               onchange="updateWarehouseStage('${order.orderID}', 'Truck Arrived', this)"
+                                               style="width: 20px; height: 20px;">
+                                        <label for="stage1_${order.orderID}" style="flex: 1; margin: 0;">
+                                            <strong>1. Truck Arrived</strong>
+                                        </label>
+                                    </div>
+                                    
+                                    <div style="display: flex; align-items: center; gap: 1rem; padding: 0.5rem; background: white; border-radius: 4px;">
+                                        <input type="checkbox" 
+                                               id="stage2_${order.orderID}" 
+                                               ${currentStage >= 2 ? 'checked disabled' : currentStage < 1 ? 'disabled' : ''} 
+                                               onchange="updateWarehouseStage('${order.orderID}', 'Loading', this)"
+                                               style="width: 20px; height: 20px;">
+                                        <label for="stage2_${order.orderID}" style="flex: 1; margin: 0;">
+                                            <strong>2. Loading Started</strong>
+                                        </label>
+                                    </div>
+                                    
+                                    <div style="display: flex; align-items: center; gap: 1rem; padding: 0.5rem; background: white; border-radius: 4px;">
+                                        <input type="checkbox" 
+                                               id="stage3_${order.orderID}" 
+                                               ${currentStage >= 3 ? 'checked disabled' : currentStage < 2 ? 'disabled' : ''} 
+                                               onchange="updateWarehouseStage('${order.orderID}', 'Loaded', this)"
+                                               style="width: 20px; height: 20px;">
+                                        <label for="stage3_${order.orderID}" style="flex: 1; margin: 0;">
+                                            <strong>3. Loading Complete</strong>
+                                        </label>
+                                    </div>
+                                    
+                                    <div style="display: flex; align-items: center; gap: 1rem; padding: 0.5rem; background: white; border-radius: 4px;">
+                                        <input type="checkbox" 
+                                               id="stage4_${order.orderID}" 
+                                               ${currentStage >= 4 ? 'checked disabled' : currentStage < 3 ? 'disabled' : ''} 
+                                               onchange="updateWarehouseStage('${order.orderID}', 'Truck Departed', this)"
+                                               style="width: 20px; height: 20px;">
+                                        <label for="stage4_${order.orderID}" style="flex: 1; margin: 0;">
+                                            <strong>4. Truck Departed</strong>
+                                        </label>
+                                    </div>
+                                </div>
                             </div>
+                            
+                            <button class="btn btn-secondary" onclick="viewOrderDetails('${order.orderID}')">View Full Details</button>
                         </div>
                     </div>
                 `;
@@ -1462,21 +1513,18 @@
         async function viewOrderDetails(orderID) {
             const order = ordersData.find(o => o.orderID === orderID);
             if (!order) return;
+            
+            // DEBUG - Check transport data
+            console.log('=== ORDER DETAILS DEBUG ===');
+            console.log('Order ID:', order.orderID);
+            console.log('Status:', order.status);
+            console.log('Driver Name:', order.driverName);
+            console.log('Truck Plate:', order.truckPlate);
+            console.log('Transport Company:', order.transportCompany);
+            console.log('Estimated Delivery:', order.estimatedDelivery);
+            console.log('Has Transport Data?', !!(order.driverName));
+            console.log('=========================');
 
-        async function viewOrderDetails(orderID) {
-            const order = ordersData.find(o => o.orderID === orderID);
-            if (!order) return;
-            
-            // DEBUG - Remove after testing
-            console.log('Order Details:', {
-                orderID: order.orderID,
-                driverName: order.driverName,
-                truckPlate: order.truckPlate,
-                transportCompany: order.transportCompany,
-                estimatedDelivery: order.estimatedDelivery,
-                status: order.status
-            });
-            
             const modal = document.getElementById('orderDetailsModal');
             const content = document.getElementById('orderDetailsContent');
 
@@ -1629,10 +1677,17 @@
         
         // ===== WAREHOUSE STATUS UPDATE =====
         
-        async function updateOrderStatus(orderID, newStatus) {
-            const note = prompt(`Change status to "${newStatus}"?\n\nAdd note (optional):`) || '';
+        async function updateWarehouseStage(orderID, newStatus, checkbox) {
+            const confirmMsg = `Mark "${newStatus}" as complete?\n\nThis will update the order status.`;
             
-            if (note === null) return; // User cancelled
+            if (!confirm(confirmMsg)) {
+                checkbox.checked = false;
+                return;
+            }
+            
+            const note = prompt('Add note (optional - e.g., time, observations):') || '';
+            
+            console.log('Updating warehouse status:', {orderID, newStatus, note});
             
             try {
                 const response = await fetch(APPS_SCRIPT_URL, {
@@ -1657,8 +1712,9 @@
                 loadWarehouseDashboard();
                 
             } catch (error) {
-                console.error('Error:', error);
+                console.error('Error updating status:', error);
                 alert('❌ Error updating status: ' + error.message);
+                checkbox.checked = false;
             }
         }
 
