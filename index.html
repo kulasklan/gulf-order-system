@@ -724,6 +724,8 @@
         let ordersData = [];
         let clientsData = [];
         let logsData = [];
+        let driversData = [];
+        let transportCompaniesData = [];
 
         // ===== SAMPLE DATA (for fallback) =====
         const SAMPLE_USERS = {
@@ -888,6 +890,35 @@
                         assignedSM: row[3] || ''
                     }));
                     console.log('✅ Loaded', clientsData.length, 'clients from Google Sheets');
+                }
+                
+                // Load Drivers from Google Sheets
+                const driversUrl = `https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_ID}/values/Drivers!A2:D100?key=${API_KEY}`;
+                const driversResponse = await fetch(driversUrl);
+                const driversJson = await driversResponse.json();
+                
+                if (driversJson.values) {
+                    driversData = driversJson.values.map(row => ({
+                        driverID: row[0] || '',
+                        driverName: row[1] || '',
+                        licenseNumber: row[2] || '',
+                        phone: row[3] || ''
+                    }));
+                    console.log('✅ Loaded', driversData.length, 'drivers from Google Sheets');
+                }
+                
+                // Load Transport Companies from Google Sheets
+                const companiesUrl = `https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_ID}/values/Transport_Companies!A2:C100?key=${API_KEY}`;
+                const companiesResponse = await fetch(companiesUrl);
+                const companiesJson = await companiesResponse.json();
+                
+                if (companiesJson.values) {
+                    transportCompaniesData = companiesJson.values.map(row => ({
+                        companyID: row[0] || '',
+                        companyName: row[1] || '',
+                        trucks: row[2] ? row[2].split(',').map(t => t.trim()) : []
+                    }));
+                    console.log('✅ Loaded', transportCompaniesData.length, 'transport companies from Google Sheets');
                 }
                 
             } catch (error) {
@@ -1086,21 +1117,20 @@
         }
         
         function loadTransportDashboard() {
+            // Only show Approved orders that don't have transport assigned yet
             const transportOrders = ordersData.filter(o => 
-                o.status === 'Approved' || o.status === 'Transport Confirmed' || o.status === 'Delivered'
+                o.status === 'Approved' && !o.driverName
             );
             
             const container = document.getElementById('transportOrdersList');
 
             if (transportOrders.length === 0) {
-                container.innerHTML = '<p style="text-align:center; padding: 2rem; color: #6B7280;">No orders ready for transport</p>';
+                container.innerHTML = '<p style="text-align:center; padding: 2rem; color: #6B7280;">No orders waiting for transport assignment</p>';
                 return;
             }
 
             let html = '';
             transportOrders.forEach(order => {
-                const hasTransport = order.driverName ? true : false;
-                
                 html += `
                     <div class="card">
                         <div style="display: grid; gap: 1rem;">
@@ -1109,23 +1139,17 @@
                                     <h3 style="margin-bottom: 0.5rem;">${order.orderID} - ${order.clientName}</h3>
                                     <p style="color: #6B7280; margin-bottom: 0.5rem;">
                                         ${order.quantity} ${order.unit} of ${order.productType} | 
-                                        Delivery: ${order.requestedDeliveryDate} ${order.preferredDeliveryTime || ''}
+                                        Warehouse: ${order.warehouse}
                                     </p>
-                                    ${hasTransport ? `
-                                        <p style="color: #065F46; margin-bottom: 0.5rem;">
-                                            🚛 Driver: <strong>${order.driverName}</strong> | 
-                                            Truck: <strong>${order.truckPlate}</strong> | 
-                                            Company: <strong>${order.transportCompany}</strong>
-                                        </p>
-                                        <p style="color: #059669; margin-bottom: 0.5rem;">
-                                            ⏰ Est. Delivery: <strong>${order.estimatedDelivery}</strong>
-                                        </p>
-                                    ` : ''}
+                                    <p style="color: #6B7280; margin-bottom: 0.5rem;">
+                                        <strong>Requested Delivery:</strong> ${order.requestedDeliveryDate} ${order.preferredDeliveryTime || ''}
+                                    </p>
+                                    ${order.avoidAfterwork === 'Yes' ? '<p style="color: #D97706;">⚠️ Avoid Afterwork Delivery</p>' : ''}
                                 </div>
                                 <span class="status-badge ${getStatusClass(order.status)}">${order.status}</span>
                             </div>
                             <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
-                                ${!hasTransport ? `<button class="btn btn-primary" onclick="showTransportAssignmentForm('${order.orderID}')">🚛 Assign Driver & Truck</button>` : ''}
+                                <button class="btn btn-primary" onclick="showTransportAssignmentForm('${order.orderID}')">🚛 Assign Driver & Truck</button>
                                 <button class="btn btn-secondary" onclick="viewOrderDetails('${order.orderID}')">View Details</button>
                             </div>
                         </div>
@@ -1399,24 +1423,24 @@
                     </div>
                 ` : ''}
                 
-                ${order.driverName || canAssignTransport ? `
+                ${order.driverName ? `
                     <div style="display: grid; gap: 1rem; margin-bottom: 2rem;">
                         <h3 style="color: var(--secondary); border-bottom: 2px solid var(--border); padding-bottom: 0.5rem;">🚛 Transport</h3>
-                        ${order.driverName ? `
-                            <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 1rem;">
-                                <div><strong>Driver:</strong> ${order.driverName}</div>
-                                <div><strong>Truck:</strong> ${order.truckPlate}</div>
-                                <div><strong>Company:</strong> ${order.transportCompany}</div>
-                                <div><strong>Est. Delivery:</strong> ${order.estimatedDelivery}</div>
-                            </div>
-                        ` : ''}
-                        ${canAssignTransport ? `
-                            <div style="padding: 1rem; background: var(--light); border-radius: 4px;">
-                                <button class="btn btn-primary" onclick="showTransportAssignmentForm('${order.orderID}')" style="width: 100%;">
-                                    🚛 Assign Driver & Truck
-                                </button>
-                            </div>
-                        ` : ''}
+                        <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 1rem;">
+                            <div><strong>Driver:</strong> ${order.driverName}</div>
+                            <div><strong>Truck:</strong> ${order.truckPlate}</div>
+                            <div><strong>Company:</strong> ${order.transportCompany}</div>
+                            <div><strong>Est. Delivery:</strong> ${order.estimatedDelivery}</div>
+                        </div>
+                    </div>
+                ` : canAssignTransport ? `
+                    <div style="display: grid; gap: 1rem; margin-bottom: 2rem;">
+                        <h3 style="color: var(--secondary); border-bottom: 2px solid var(--border); padding-bottom: 0.5rem;">🚛 Transport</h3>
+                        <div style="padding: 1rem; background: var(--light); border-radius: 4px;">
+                            <button class="btn btn-primary" onclick="showTransportAssignmentForm('${order.orderID}')" style="width: 100%;">
+                                🚛 Assign Driver & Truck
+                            </button>
+                        </div>
                     </div>
                 ` : ''}
                 
@@ -1506,19 +1530,99 @@
         // ===== TRANSPORT ASSIGNMENT =====
         
         async function showTransportAssignmentForm(orderID) {
-            const driverName = prompt('Enter Driver Name:');
-            if (!driverName) return;
+            const order = ordersData.find(o => o.orderID === orderID);
+            if (!order) return;
             
-            const truckPlate = prompt('Enter Truck License Plate:');
-            if (!truckPlate) return;
+            // Create modal content with dropdowns
+            const modalContent = `
+                <div style="display: grid; gap: 1rem;">
+                    <h3 style="color: var(--secondary); margin-bottom: 1rem;">🚛 Assign Transport to ${orderID}</h3>
+                    
+                    <div style="padding: 1rem; background: var(--light); border-radius: 4px;">
+                        <p><strong>Client:</strong> ${order.clientName}</p>
+                        <p><strong>Product:</strong> ${order.quantity} ${order.unit} of ${order.productType}</p>
+                        <p><strong>Warehouse:</strong> ${order.warehouse}</p>
+                        <p><strong>Delivery:</strong> ${order.requestedDeliveryDate} ${order.preferredDeliveryTime || ''}</p>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Select Driver *</label>
+                        <select id="transportDriverSelect" required style="width: 100%;">
+                            <option value="">-- Select Driver --</option>
+                            ${driversData.map(d => `<option value="${d.driverName}">${d.driverName} (${d.licenseNumber || 'N/A'})</option>`).join('')}
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Select Transport Company *</label>
+                        <select id="transportCompanySelect" required style="width: 100%;" onchange="updateTruckList()">
+                            <option value="">-- Select Company --</option>
+                            ${transportCompaniesData.map(c => `<option value="${c.companyName}">${c.companyName}</option>`).join('')}
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Truck License Plate *</label>
+                        <input type="text" id="transportTruckInput" placeholder="e.g., SK-1234-AB" required style="width: 100%;">
+                        <small id="truckHint" style="color: #6B7280; margin-top: 0.25rem; display: block;"></small>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Estimated Delivery Date & Time *</label>
+                        <input type="datetime-local" id="transportEstimatedInput" required style="width: 100%;">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Additional Note (optional)</label>
+                        <textarea id="transportNoteInput" rows="3" style="width: 100%;"></textarea>
+                    </div>
+                    
+                    <div style="display: flex; gap: 1rem; justify-content: flex-end;">
+                        <button class="btn btn-secondary" onclick="closeModal()">Cancel</button>
+                        <button class="btn btn-primary" onclick="submitTransportAssignment('${orderID}')">✓ Assign Transport</button>
+                    </div>
+                </div>
+            `;
             
-            const transportCompany = prompt('Enter Transport Company:');
-            if (!transportCompany) return;
+            const modal = document.getElementById('orderDetailsModal');
+            const content = document.getElementById('orderDetailsContent');
+            content.innerHTML = modalContent;
+            modal.classList.add('active');
             
-            const estimatedDelivery = prompt('Enter Estimated Delivery Date & Time (e.g., 2025-12-28 14:00):');
-            if (!estimatedDelivery) return;
+            // Set default estimated delivery to requested date
+            if (order.requestedDeliveryDate) {
+                const estInput = document.getElementById('transportEstimatedInput');
+                estInput.value = order.requestedDeliveryDate + 'T' + (order.preferredDeliveryTime || '10:00');
+            }
+        }
+        
+        function updateTruckList() {
+            const companySelect = document.getElementById('transportCompanySelect');
+            const truckInput = document.getElementById('transportTruckInput');
+            const truckHint = document.getElementById('truckHint');
             
-            const note = prompt('Additional note (optional):') || '';
+            const selectedCompany = companySelect.value;
+            const company = transportCompaniesData.find(c => c.companyName === selectedCompany);
+            
+            if (company && company.trucks && company.trucks.length > 0) {
+                truckHint.textContent = 'Available trucks: ' + company.trucks.join(', ');
+            } else {
+                truckHint.textContent = '';
+            }
+        }
+        
+        async function submitTransportAssignment(orderID) {
+            const driverName = document.getElementById('transportDriverSelect').value;
+            const transportCompany = document.getElementById('transportCompanySelect').value;
+            const truckPlate = document.getElementById('transportTruckInput').value.trim();
+            const estimatedDelivery = document.getElementById('transportEstimatedInput').value;
+            const note = document.getElementById('transportNoteInput').value.trim();
+            
+            // Validation
+            if (!driverName || !transportCompany || !truckPlate || !estimatedDelivery) {
+                alert('Please fill in all required fields');
+                return;
+            }
             
             try {
                 const response = await fetch(APPS_SCRIPT_URL, {
@@ -1539,12 +1643,18 @@
                     })
                 });
                 
-                alert(`✅ Transport assigned to order ${orderID}!`);
+                alert(`✅ Transport assigned to order ${orderID}!\n\nDriver: ${driverName}\nTruck: ${truckPlate}\nCompany: ${transportCompany}\nEst. Delivery: ${estimatedDelivery}`);
                 
                 // Reload data and close modal
                 await loadData();
                 closeModal();
-                loadDashboard();
+                
+                // Refresh current view
+                if (currentView === 'transport') {
+                    loadTransportDashboard();
+                } else {
+                    loadDashboard();
+                }
                 
             } catch (error) {
                 console.error('Error:', error);
