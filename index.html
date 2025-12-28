@@ -877,7 +877,7 @@
                     ordersData = [];
                 }
                 
-                // Load Clients from Google Sheets
+// Load Clients from Google Sheets
                 const clientsUrl = `https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_ID}/values/Clients!A2:I100?key=${API_KEY}`;
                 const clientsResponse = await fetch(clientsUrl);
                 const clientsJson = await clientsResponse.json();
@@ -908,23 +908,7 @@
                 }
                 
                 // Load Transport Companies from Google Sheets
-                // Load Transport Companies from Google Sheets
                 const companiesUrl = `https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_ID}/values/TransportCompanies!A2:C100?key=${API_KEY}`;
-```
-
-**Just remove the underscore!**
-
----
-
-## 💾 **SAVE & TEST:**
-
-1. **Save** the updated index.html
-2. **Upload** to GitHub
-3. **Wait 30 seconds**
-4. **Refresh** your dashboard (Ctrl+Shift+R)
-5. **Check console** - should now see:
-```
-   ✅ Loaded X transport companies from Google Sheets
                 const companiesResponse = await fetch(companiesUrl);
                 const companiesJson = await companiesResponse.json();
                 
