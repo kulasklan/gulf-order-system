@@ -684,6 +684,19 @@
                 </div>
             </div>
 
+            <!-- Transport View -->
+            <div id="transportView" class="view-content hidden">
+                <div class="card">
+                    <div class="card-header">
+                        <h2 class="card-title">🚛 Transport Dashboard</h2>
+                        <button class="btn btn-secondary" id="refreshTransportBtn">Refresh</button>
+                    </div>
+                    <div id="transportOrdersList">
+                        <!-- Transport orders will be shown here -->
+                    </div>
+                </div>
+            </div>
+
             <!-- Order Details Modal -->
             <div id="orderDetailsModal" class="modal">
                 <div class="modal-content">
@@ -778,6 +791,10 @@
             if (currentUser.department === 'Finance') {
                 tabs += '<div class="nav-tab" onclick="showView(\'finance\')">💰 Finance</div>';
             }
+            
+            if (currentUser.department === 'Transport') {
+                tabs += '<div class="nav-tab" onclick="showView(\'transport\')">🚛 Transport</div>';
+            }
 
             navTabs.innerHTML = tabs;
         }
@@ -804,6 +821,9 @@
             } else if (viewName === 'finance') {
                 document.getElementById('financeView').classList.remove('hidden');
                 loadFinanceDashboard();
+            } else if (viewName === 'transport') {
+                document.getElementById('transportView').classList.remove('hidden');
+                loadTransportDashboard();
             }
         }
 
@@ -843,7 +863,11 @@
                         approvalDate: row[21] || '',
                         rejectionReason: row[22] || '',
                         proformaNumber: row[33] || '',
-                        invoiceNumber: row[34] || ''
+                        invoiceNumber: row[34] || '',
+                        driverName: row[39] || '',
+                        truckPlate: row[40] || '',
+                        transportCompany: row[41] || '',
+                        estimatedDelivery: row[42] || ''
                     }));
                     console.log('✅ Loaded', ordersData.length, 'orders from Google Sheets');
                 } else {
@@ -949,7 +973,7 @@
 
         function getStatusClass(status) {
             if (status.includes('Pending')) return 'status-pending';
-            if (status === 'Approved' || status === 'Delivered') return 'status-approved';
+            if (status === 'Approved' || status === 'Transport Confirmed' || status === 'Delivered') return 'status-approved';
             if (status === 'Rejected') return 'status-rejected';
             if (status === 'Disputed') return 'status-disputed';
             return '';
@@ -1051,6 +1075,57 @@
                             <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
                                 ${!hasProforma ? `<button class="btn btn-primary" onclick="showProformaForm('${order.orderID}', '${order.quantity}', '${order.unit}')">🧾 Enter Proforma</button>` : ''}
                                 ${hasProforma && !hasInvoice ? `<button class="btn btn-success" onclick="showInvoiceForm('${order.orderID}', '${order.quantity}', '${order.unit}')">📄 Enter Invoice</button>` : ''}
+                                <button class="btn btn-secondary" onclick="viewOrderDetails('${order.orderID}')">View Details</button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+
+            container.innerHTML = html;
+        }
+        
+        function loadTransportDashboard() {
+            const transportOrders = ordersData.filter(o => 
+                o.status === 'Approved' || o.status === 'Transport Confirmed' || o.status === 'Delivered'
+            );
+            
+            const container = document.getElementById('transportOrdersList');
+
+            if (transportOrders.length === 0) {
+                container.innerHTML = '<p style="text-align:center; padding: 2rem; color: #6B7280;">No orders ready for transport</p>';
+                return;
+            }
+
+            let html = '';
+            transportOrders.forEach(order => {
+                const hasTransport = order.driverName ? true : false;
+                
+                html += `
+                    <div class="card">
+                        <div style="display: grid; gap: 1rem;">
+                            <div style="display: flex; justify-content: space-between; align-items: start;">
+                                <div>
+                                    <h3 style="margin-bottom: 0.5rem;">${order.orderID} - ${order.clientName}</h3>
+                                    <p style="color: #6B7280; margin-bottom: 0.5rem;">
+                                        ${order.quantity} ${order.unit} of ${order.productType} | 
+                                        Delivery: ${order.requestedDeliveryDate} ${order.preferredDeliveryTime || ''}
+                                    </p>
+                                    ${hasTransport ? `
+                                        <p style="color: #065F46; margin-bottom: 0.5rem;">
+                                            🚛 Driver: <strong>${order.driverName}</strong> | 
+                                            Truck: <strong>${order.truckPlate}</strong> | 
+                                            Company: <strong>${order.transportCompany}</strong>
+                                        </p>
+                                        <p style="color: #059669; margin-bottom: 0.5rem;">
+                                            ⏰ Est. Delivery: <strong>${order.estimatedDelivery}</strong>
+                                        </p>
+                                    ` : ''}
+                                </div>
+                                <span class="status-badge ${getStatusClass(order.status)}">${order.status}</span>
+                            </div>
+                            <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
+                                ${!hasTransport ? `<button class="btn btn-primary" onclick="showTransportAssignmentForm('${order.orderID}')">🚛 Assign Driver & Truck</button>` : ''}
                                 <button class="btn btn-secondary" onclick="viewOrderDetails('${order.orderID}')">View Details</button>
                             </div>
                         </div>
@@ -1196,11 +1271,13 @@
         }
 
         async function showProformaForm(orderID, quantity, unit) {
+            const order = ordersData.find(o => o.orderID === orderID);
+            
             const proformaNumber = prompt(`Enter Proforma Number (from your CRM):`);
             if (!proformaNumber) return;
             
             const litres = prompt(`Enter Litres/Quantity:`, quantity) || quantity;
-            const margin = prompt(`Enter Margin (MKD):`) || '';
+            const margin = prompt(`Enter Margin (MKD):`, order ? order.margin : '') || (order ? order.margin : '');
             const totalPrice = prompt(`Enter Total Price (MKD):`) || '';
             const note = prompt('Additional note (optional):') || '';
             
@@ -1236,11 +1313,13 @@
         }
 
         async function showInvoiceForm(orderID, quantity, unit) {
+            const order = ordersData.find(o => o.orderID === orderID);
+            
             const invoiceNumber = prompt(`Enter Invoice Number (from your CRM):`);
             if (!invoiceNumber) return;
             
             const litres = prompt(`Enter Litres/Quantity:`, quantity) || quantity;
-            const margin = prompt(`Enter Margin (MKD):`) || '';
+            const margin = prompt(`Enter Margin (MKD):`, order ? order.margin : '') || (order ? order.margin : '');
             const totalPrice = prompt(`Enter Total Price (MKD):`) || '';
             const note = prompt('Additional note (optional):') || '';
             
@@ -1284,24 +1363,64 @@
 
             // Show upload button for Warehouse and Transport if order is approved
             const canUpload = (currentUser.department === 'Warehouse' || currentUser.department === 'Transport') && 
-                              (order.status === 'Approved' || order.status === 'Delivered');
+                              (order.status === 'Approved' || order.status === 'Transport Confirmed' || order.status === 'Delivered');
+            
+            // Show transport assignment for Transport department
+            const canAssignTransport = currentUser.department === 'Transport' && order.status === 'Approved' && !order.driverName;
 
             content.innerHTML = `
-                <div style="display: grid; gap: 1rem;">
-                    <div><strong>Order ID:</strong> ${order.orderID}</div>
-                    <div><strong>Date:</strong> ${order.orderDate}</div>
-                    <div><strong>Client:</strong> ${order.clientName}</div>
-                    <div><strong>Product:</strong> ${order.productType}</div>
-                    <div><strong>Quantity:</strong> ${order.quantity} ${order.unit}</div>
-                    <div><strong>Warehouse:</strong> ${order.warehouse}</div>
-                    <div><strong>Requested Delivery:</strong> ${order.requestedDeliveryDate}</div>
-                    <div><strong>Priority:</strong> <span class="${getPriorityClass(order.priority)}">${order.priority}</span></div>
-                    <div><strong>Status:</strong> <span class="status-badge ${getStatusClass(order.status)}">${order.status}</span></div>
-                    ${order.proformaNumber ? `<div><strong>Proforma:</strong> ${order.proformaNumber}</div>` : ''}
-                    ${order.invoiceNumber ? `<div><strong>Invoice:</strong> ${order.invoiceNumber}</div>` : ''}
+                <div style="display: grid; gap: 1rem; margin-bottom: 2rem;">
+                    <h3 style="color: var(--secondary); border-bottom: 2px solid var(--border); padding-bottom: 0.5rem;">📋 Order Information</h3>
+                    <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 1rem;">
+                        <div><strong>Order ID:</strong> ${order.orderID}</div>
+                        <div><strong>Date:</strong> ${order.orderDate}</div>
+                        <div><strong>Client:</strong> ${order.clientName}</div>
+                        <div><strong>Product:</strong> ${order.productType}</div>
+                        <div><strong>Quantity:</strong> ${order.quantity} ${order.unit}</div>
+                        <div><strong>Margin:</strong> ${order.margin} MKD</div>
+                        <div><strong>Warehouse:</strong> ${order.warehouse}</div>
+                        <div><strong>Payment Terms:</strong> ${order.paymentTerms}</div>
+                        <div><strong>Requested Delivery:</strong> ${order.requestedDeliveryDate}</div>
+                        <div><strong>Preferred Time:</strong> ${order.preferredDeliveryTime || 'Not specified'}</div>
+                        <div><strong>Avoid Afterwork:</strong> ${order.avoidAfterwork === 'Yes' ? '✓ Yes' : '✗ No'}</div>
+                        <div><strong>No Gulf Brand:</strong> ${order.noGulfBrand === 'Yes' ? '✓ Yes' : '✗ No'}</div>
+                        <div><strong>Priority:</strong> <span class="${getPriorityClass(order.priority)}">${order.priority}</span></div>
+                        <div><strong>Status:</strong> <span class="status-badge ${getStatusClass(order.status)}">${order.status}</span></div>
+                    </div>
                 </div>
                 
-                <div class="progress-bar" style="margin-top: 2rem;">
+                ${order.proformaNumber || order.invoiceNumber ? `
+                    <div style="display: grid; gap: 1rem; margin-bottom: 2rem;">
+                        <h3 style="color: var(--secondary); border-bottom: 2px solid var(--border); padding-bottom: 0.5rem;">💰 Finance</h3>
+                        <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 1rem;">
+                            ${order.proformaNumber ? `<div><strong>Proforma:</strong> ${order.proformaNumber}</div>` : ''}
+                            ${order.invoiceNumber ? `<div><strong>Invoice:</strong> ${order.invoiceNumber}</div>` : ''}
+                        </div>
+                    </div>
+                ` : ''}
+                
+                ${order.driverName || canAssignTransport ? `
+                    <div style="display: grid; gap: 1rem; margin-bottom: 2rem;">
+                        <h3 style="color: var(--secondary); border-bottom: 2px solid var(--border); padding-bottom: 0.5rem;">🚛 Transport</h3>
+                        ${order.driverName ? `
+                            <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 1rem;">
+                                <div><strong>Driver:</strong> ${order.driverName}</div>
+                                <div><strong>Truck:</strong> ${order.truckPlate}</div>
+                                <div><strong>Company:</strong> ${order.transportCompany}</div>
+                                <div><strong>Est. Delivery:</strong> ${order.estimatedDelivery}</div>
+                            </div>
+                        ` : ''}
+                        ${canAssignTransport ? `
+                            <div style="padding: 1rem; background: var(--light); border-radius: 4px;">
+                                <button class="btn btn-primary" onclick="showTransportAssignmentForm('${order.orderID}')" style="width: 100%;">
+                                    🚛 Assign Driver & Truck
+                                </button>
+                            </div>
+                        ` : ''}
+                    </div>
+                ` : ''}
+                
+                <div class="progress-bar" style="margin-bottom: 2rem;">
                     <div class="progress-step">
                         <div class="progress-dot active">1</div>
                         <small>Created</small>
@@ -1311,14 +1430,14 @@
                         <div class="progress-dot ${order.status !== 'Pending Approval' ? 'active' : ''}">2</div>
                         <small>Approved</small>
                     </div>
-                    <div class="progress-line"></div>
+                    <div class="progress-line ${order.status === 'Transport Confirmed' || order.status === 'Delivered' ? 'active' : ''}"></div>
                     <div class="progress-step">
-                        <div class="progress-dot">3</div>
-                        <small>In Transit</small>
+                        <div class="progress-dot ${order.status === 'Transport Confirmed' || order.status === 'Delivered' ? 'active' : ''}">3</div>
+                        <small>Transport</small>
                     </div>
-                    <div class="progress-line"></div>
+                    <div class="progress-line ${order.status === 'Delivered' ? 'active' : ''}"></div>
                     <div class="progress-step">
-                        <div class="progress-dot">4</div>
+                        <div class="progress-dot ${order.status === 'Delivered' ? 'active' : ''}">4</div>
                         <small>Delivered</small>
                     </div>
                 </div>
@@ -1348,15 +1467,15 @@
                         </div>
                     ` : ''}
                     <div id="documentsListContainer">
-                        <div class="spinner"></div>
+                        <p style="text-align: center; color: #6B7280; padding: 1rem;">Document list temporarily disabled - will be enabled in next phase</p>
                     </div>
                 </div>
             `;
 
             modal.classList.add('active');
             
-            // Load documents list
-            loadDocumentsList(orderID);
+            // Temporarily disable document loading to avoid errors
+            // loadDocumentsList(orderID);
         }
 
         function closeModal() {
@@ -1379,6 +1498,60 @@
             loadFinanceDashboard();
         });
 
+        document.getElementById('refreshTransportBtn').addEventListener('click', () => {
+            loadData();
+            loadTransportDashboard();
+        });
+
+        // ===== TRANSPORT ASSIGNMENT =====
+        
+        async function showTransportAssignmentForm(orderID) {
+            const driverName = prompt('Enter Driver Name:');
+            if (!driverName) return;
+            
+            const truckPlate = prompt('Enter Truck License Plate:');
+            if (!truckPlate) return;
+            
+            const transportCompany = prompt('Enter Transport Company:');
+            if (!transportCompany) return;
+            
+            const estimatedDelivery = prompt('Enter Estimated Delivery Date & Time (e.g., 2025-12-28 14:00):');
+            if (!estimatedDelivery) return;
+            
+            const note = prompt('Additional note (optional):') || '';
+            
+            try {
+                const response = await fetch(APPS_SCRIPT_URL, {
+                    method: 'POST',
+                    mode: 'no-cors',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        action: 'assignTransport',
+                        orderID: orderID,
+                        transportUserID: currentUser.id,
+                        driverName: driverName,
+                        truckPlate: truckPlate,
+                        transportCompany: transportCompany,
+                        estimatedDelivery: estimatedDelivery,
+                        note: note
+                    })
+                });
+                
+                alert(`✅ Transport assigned to order ${orderID}!`);
+                
+                // Reload data and close modal
+                await loadData();
+                closeModal();
+                loadDashboard();
+                
+            } catch (error) {
+                console.error('Error:', error);
+                alert('❌ Error assigning transport: ' + error.message);
+            }
+        }
+        
         // ===== DOCUMENT MANAGEMENT FUNCTIONS =====
         
         async function loadDocumentsList(orderID) {
