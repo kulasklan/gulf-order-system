@@ -5,76 +5,118 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Gulf Order Management System</title>
     
-    <!-- CSS Files -->
-    <link rel="stylesheet" href="css/main.css">
-    <link rel="stylesheet" href="css/components.css">
-    <link rel="stylesheet" href="css/tabs.css">
-    <link rel="stylesheet" href="css/responsive.css">
+    <style>
+        /* Minimal inline CSS for testing */
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: Arial, sans-serif; background: #f5f5f5; }
+        .header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 1rem; }
+        .container { max-width: 1200px; margin: 0 auto; padding: 1rem; }
+        .card { background: white; padding: 1.5rem; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); margin-bottom: 1rem; }
+        .btn { padding: 0.75rem 1.5rem; border: none; border-radius: 6px; cursor: pointer; font-size: 1rem; }
+        .btn-primary { background: #667eea; color: white; }
+        .form-group { margin-bottom: 1rem; }
+        .form-group label { display: block; margin-bottom: 0.5rem; font-weight: 500; }
+        .form-group input { width: 100%; padding: 0.75rem; border: 1px solid #ddd; border-radius: 6px; font-size: 1rem; }
+    </style>
 </head>
 <body>
     <!-- Header -->
-    <header id="header">
+    <div class="header">
         <div class="container">
-            <div class="header-content">
-                <h1>🚛 Gulf Order Management System</h1>
-                <div id="userInfo"></div>
-            </div>
-        </div>
-    </header>
-
-    <!-- Navigation -->
-    <nav id="navigation"></nav>
-
-    <!-- Main Content -->
-    <main id="mainContent" class="container">
-        <!-- Login Screen -->
-        <div id="loginScreen"></div>
-        
-        <!-- Dashboard -->
-        <div id="dashboardScreen" style="display: none;">
-            <div id="tabNavigation"></div>
-            <div id="tabContent"></div>
-        </div>
-    </main>
-
-    <!-- Modal -->
-    <div id="orderDetailsModal" class="modal">
-        <div class="modal-content">
-            <span class="close" onclick="closeModal()">&times;</span>
-            <div id="orderDetailsContent"></div>
+            <h1>🚛 Gulf Order Management System</h1>
+            <div id="userInfo"></div>
         </div>
     </div>
 
-    <!-- JavaScript Files - Load in order -->
+    <!-- Main Content -->
+    <div class="container">
+        <!-- Login Screen -->
+        <div id="loginScreen">
+            <div style="max-width: 400px; margin: 2rem auto;">
+                <div class="card">
+                    <h2 style="margin-bottom: 1.5rem; text-align: center;">Login</h2>
+                    <form id="loginForm">
+                        <div class="form-group">
+                            <label>User ID</label>
+                            <input type="text" id="loginUserID" required placeholder="e.g., GoranSM1">
+                        </div>
+                        <div class="form-group">
+                            <label>Password</label>
+                            <input type="password" id="loginPassword" required>
+                        </div>
+                        <button type="submit" class="btn btn-primary" style="width: 100%;">
+                            Login
+                        </button>
+                    </form>
+                    <div id="loginStatus" style="margin-top: 1rem; text-align: center; color: red;"></div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Dashboard -->
+        <div id="dashboardScreen" style="display: none;">
+            <div class="card">
+                <h2>Dashboard</h2>
+                <p>Welcome! System is loading...</p>
+                <div id="debugInfo" style="margin-top: 1rem; padding: 1rem; background: #f0f0f0; border-radius: 4px;">
+                    <strong>Debug Info:</strong>
+                    <pre id="debugOutput" style="margin-top: 0.5rem; font-size: 0.9rem;"></pre>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- JavaScript with debugging -->
+    <script>
+        console.log('🚀 Script starting...');
+        
+        // Test if scripts are loading
+        window.scriptsLoaded = {
+            inline: true
+        };
+        
+        // Simple login for testing
+        document.getElementById('loginForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            console.log('Login form submitted');
+            
+            const userID = document.getElementById('loginUserID').value;
+            const password = document.getElementById('loginPassword').value;
+            
+            console.log('Attempting login:', userID);
+            
+            // Simple test - just show dashboard
+            document.getElementById('loginScreen').style.display = 'none';
+            document.getElementById('dashboardScreen').style.display = 'block';
+            
+            document.getElementById('debugOutput').textContent = 
+                'Login successful!\n' +
+                'User: ' + userID + '\n' +
+                'Scripts loaded: ' + JSON.stringify(window.scriptsLoaded, null, 2);
+            
+            console.log('✅ Login successful');
+        });
+        
+        console.log('✅ Inline script loaded');
+    </script>
     
-    <!-- 1. Configuration -->
-    <script src="js/config.js"></script>
+    <!-- Try loading external scripts -->
+    <script>
+        console.log('Checking for external scripts...');
+        
+        // Check if config.js loaded
+        if (typeof window.CONFIG !== 'undefined') {
+            console.log('✅ config.js loaded');
+            window.scriptsLoaded.config = true;
+        } else {
+            console.error('❌ config.js NOT loaded');
+            window.scriptsLoaded.config = false;
+        }
+    </script>
     
-    <!-- 2. Utilities -->
-    <script src="js/components/utils.js"></script>
-    
-    <!-- 3. Data Management -->
-    <script src="js/data.js"></script>
-    <script src="js/auth.js"></script>
-    
-    <!-- 4. Components -->
-    <script src="js/components/tabs.js"></script>
-    <script src="js/components/modals.js"></script>
-    
-    <!-- 5. Features -->
-    <script src="js/features/orders.js"></script>
-    <script src="js/features/disputes.js"></script>
-    <script src="js/features/documents.js"></script>
-    <script src="js/features/analytics.js"></script>
-    
-    <!-- 6. Department Views -->
-    <script src="js/views/management.js"></script>
-    <script src="js/views/sales.js"></script>
-    <script src="js/views/finance.js"></script>
-    <script src="js/views/transport.js"></script>
-    <script src="js/views/warehouse.js"></script>
-    
-    <!-- 7. Main Application -->
-    <script src="js/main.js"></script>
+    <script src="js/config.js" onerror="console.error('❌ Failed to load js/config.js')"></script>
+    <script src="js/auth.js" onerror="console.error('❌ Failed to load js/auth.js')"></script>
+    <script src="js/data.js" onerror="console.error('❌ Failed to load js/data.js')"></script>
+    <script src="js/main.js" onerror="console.error('❌ Failed to load js/main.js')"></script>
 </body>
 </html>
