@@ -3249,117 +3249,6 @@ const counts = calculateBadgeCounts();
         let currentActiveTab = null;
         let autoRefreshInterval = null;
         
-function renderTabNavigation() {
-            const container = document.getElementById('tabNavigation');
-            if (!container || !currentUser) return;
-            
-            const counts = calculateBadgeCounts();
-            let html = '';
-            
-            if (currentUser.department === 'Management') {
-                html = `
-                    <div class="tab-nav">
-                        <div class="stat-tab-card pending active" onclick="switchDashboardTab('pendingApproval')" data-tab="pendingApproval">
-                            <div class="stat-value">${counts.pending}</div>
-                            <div class="stat-label">⏳ Pending</div>
-                        </div>
-                        <div class="stat-tab-card active-orders" onclick="switchDashboardTab('activeOrders')" data-tab="activeOrders">
-                            <div class="stat-value">${counts.active}</div>
-                            <div class="stat-label">📋 Active</div>
-                        </div>
-                        <div class="stat-tab-card disputed" onclick="switchDashboardTab('disputed')" data-tab="disputed">
-                            <div class="stat-value">${counts.disputed}</div>
-                            <div class="stat-label">⚠️ Disputed</div>
-                        </div>
-                        <div class="stat-tab-card resolved" onclick="switchDashboardTab('resolved')" data-tab="resolved">
-                            <div class="stat-value">${counts.resolved}</div>
-                            <div class="stat-label">✅ Resolved</div>
-                        </div>
-                        <div class="stat-tab-card rejected" onclick="switchDashboardTab('rejected')" data-tab="rejected">
-                            <div class="stat-value">${counts.rejected}</div>
-                            <div class="stat-label">❌ Rejected</div>
-                        </div>
-                        <div class="stat-tab-card finished" onclick="switchDashboardTab('finished')" data-tab="finished">
-                            <div class="stat-value">${counts.finished}</div>
-                            <div class="stat-label">🏁 Finished</div>
-                        </div>
-                    </div>
-                `;
-            } else if (currentUser.department === 'Sales') {
-                html = `
-                    <div class="tab-nav">
-                        <div class="stat-tab-card active-orders active" onclick="switchDashboardTab('myOrders')" data-tab="myOrders">
-                            <div class="stat-value">${counts.myOrders}</div>
-                            <div class="stat-label">📋 My Orders</div>
-                        </div>
-                        <div class="stat-tab-card disputed" onclick="switchDashboardTab('disputed')" data-tab="disputed">
-                            <div class="stat-value">${counts.disputed}</div>
-                            <div class="stat-label">⚠️ Disputed</div>
-                        </div>
-                        <div class="stat-tab-card rejected" onclick="switchDashboardTab('rejected')" data-tab="rejected">
-                            <div class="stat-value">${counts.rejected}</div>
-                            <div class="stat-label">❌ Rejected</div>
-                        </div>
-                        <div class="stat-tab-card finished" onclick="switchDashboardTab('finished')" data-tab="finished">
-                            <div class="stat-value">${counts.finished}</div>
-                            <div class="stat-label">🏁 Finished</div>
-                        </div>
-                    </div>
-                `;
-            } else if (currentUser.department === 'Finance') {
-                html = `
-                    <div class="tab-nav">
-                        <div class="stat-tab-card warning active" onclick="switchDashboardTab('needsDocs')" data-tab="needsDocs">
-                            <div class="stat-value">${counts.needsDocs}</div>
-                            <div class="stat-label">📝 Needs Docs</div>
-                        </div>
-                        <div class="stat-tab-card success" onclick="switchDashboardTab('completed')" data-tab="completed">
-                            <div class="stat-value">${counts.completed}</div>
-                            <div class="stat-label">✅ Completed</div>
-                        </div>
-                    </div>
-                `;
-            } else if (currentUser.department === 'Transport') {
-                html = `
-                    <div class="tab-nav">
-                        <div class="stat-tab-card pending active" onclick="switchDashboardTab('forAssigning')" data-tab="forAssigning">
-                            <div class="stat-value">${counts.forAssigning}</div>
-                            <div class="stat-label">🚛 For Assigning</div>
-                        </div>
-                        <div class="stat-tab-card active-orders" onclick="switchDashboardTab('assigned')" data-tab="assigned">
-                            <div class="stat-value">${counts.assigned}</div>
-                            <div class="stat-label">📋 Assigned</div>
-                        </div>
-                        <div class="stat-tab-card disputed" onclick="switchDashboardTab('disputed')" data-tab="disputed">
-                            <div class="stat-value">${counts.disputed}</div>
-                            <div class="stat-label">⚠️ Disputed</div>
-                        </div>
-                        <div class="stat-tab-card finished" onclick="switchDashboardTab('finished')" data-tab="finished">
-                            <div class="stat-value">${counts.finished}</div>
-                            <div class="stat-label">🏁 Finished</div>
-                        </div>
-                    </div>
-                `;
-            } else if (currentUser.department === 'Warehouse') {
-                html = `
-                    <div class="tab-nav">
-                        <div class="stat-tab-card pending active" onclick="switchDashboardTab('needsProcessing')" data-tab="needsProcessing">
-                            <div class="stat-value">${counts.needsProcessing}</div>
-                            <div class="stat-label">📦 Needs Processing</div>
-                        </div>
-                        <div class="stat-tab-card warning" onclick="switchDashboardTab('inProgress')" data-tab="inProgress">
-                            <div class="stat-value">${counts.inProgress}</div>
-                            <div class="stat-label">⏳ In Progress</div>
-                        </div>
-                        <div class="stat-tab-card finished" onclick="switchDashboardTab('finished')" data-tab="finished">
-                            <div class="stat-value">${counts.finished}</div>
-                            <div class="stat-label">🏁 Finished</div>
-                        </div>
-                    </div>
-                `;
-            }
-            
-            container.innerHTML = html;
         }
                         <button class="tab-btn" onclick="switchDashboardTab('activeOrders')" data-tab="activeOrders">
                             📋 Active Orders <span class="badge">${counts.active}</span>
@@ -3578,7 +3467,6 @@ function renderTabNavigation() {
             autoRefreshInterval = setInterval(async () => {
                 console.log('🔄 Auto-refresh (2 min)');
                 await loadData();
-                renderTabNavigation();
                 if (currentActiveTab) {
                     switchDashboardTab(currentActiveTab);
                 }
