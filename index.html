@@ -599,12 +599,7 @@
     </div>
 
     <!-- Main Application (Hidden until login) -->
-    <div id="mainApp" class="hidden">
-<!-- NEW: Tab Navigation -->
-        <div class="container">
-            <div id="tabNavigation"></div>
-        </div>
-        
+    <div id="mainApp" class="hidden">  
         <!-- Navigation Tabs -->
         <div class="nav-tabs">
             <div class="nav-tabs-inner" id="navTabs">
@@ -3344,7 +3339,6 @@
             autoRefreshInterval = setInterval(async () => {
                 console.log('🔄 Auto-refresh (2 min)');
                 await loadData();
-                renderTabNavigation();
                 if (currentActiveTab) {
                     switchDashboardTab(currentActiveTab);
                 }
@@ -3355,7 +3349,6 @@
         const originalInitializeApp = initializeApp;
         initializeApp = function() {
             originalInitializeApp();
-            renderTabNavigation();
             startAutoRefresh();
             
             if (currentUser.department === 'Management') {
