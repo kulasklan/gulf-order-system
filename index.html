@@ -489,6 +489,81 @@
                 padding: 0.5rem;
             }
         }
+		th, td {
+                padding: 0.5rem;
+            }
+        }
+        
+        /* ========================================
+           NEW: TAB NAVIGATION - ADD THIS
+           ======================================== */
+        
+        .tab-nav {
+            display: flex;
+            gap: 0.5rem;
+            margin: 1rem 0 1.5rem 0;
+            flex-wrap: wrap;
+            background: white;
+            padding: 1rem;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+        
+        .tab-btn {
+            padding: 0.75rem 1.25rem;
+            background: white;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 500;
+            color: #6B7280;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .tab-btn:hover {
+            background: var(--light);
+            color: var(--secondary);
+        }
+        
+        .tab-btn.active {
+            background: var(--primary);
+            color: white;
+        }
+        
+        .badge {
+            display: inline-block;
+            padding: 0.25rem 0.5rem;
+            background: white;
+            color: var(--primary);
+            border-radius: 12px;
+            font-size: 0.75rem;
+            font-weight: bold;
+            min-width: 1.5rem;
+            text-align: center;
+        }
+        
+        .tab-btn.active .badge {
+            background: rgba(255,255,255,0.3);
+            color: white;
+        }
+        
+        .badge-warning { background: var(--warning); color: white; }
+        .badge-success { background: var(--success); color: white; }
+        .badge-danger { background: var(--danger); color: white; }
+        .badge:empty { display: none; }
+        
+        .dispute-card {
+            background: #FEF3C7;
+            border-left: 4px solid var(--warning);
+            padding: 1rem;
+            border-radius: 4px;
+            margin-bottom: 1rem;
+        }
+    </style>
+</head>
     </style>
 </head>
 <body>
@@ -525,6 +600,11 @@
 
     <!-- Main Application (Hidden until login) -->
     <div id="mainApp" class="hidden">
+<!-- NEW: Tab Navigation -->
+        <div class="container">
+            <div id="tabNavigation"></div>
+        </div>
+        
         <!-- Navigation Tabs -->
         <div class="nav-tabs">
             <div class="nav-tabs-inner" id="navTabs">
@@ -2847,13 +2927,279 @@
             }
         }
         
-        // Close modal on outside click
+// Close modal on outside click
         window.onclick = function(event) {
             const modal = document.getElementById('orderDetailsModal');
             if (event.target === modal) {
                 closeModal();
             }
         }
+        
+        // ========================================
+        // NEW: TAB NAVIGATION SYSTEM
+        // ========================================
+        
+        let currentActiveTab = null;
+        let autoRefreshInterval = null;
+        
+        function renderTabNavigation() {
+            const container = document.getElementById('tabNavigation');
+            if (!container || !currentUser) return;
+            
+            const counts = calculateBadgeCounts();
+            let html = '';
+            
+            if (currentUser.department === 'Management') {
+                html = `
+                    <div class="tab-nav">
+                        <button class="tab-btn active" onclick="switchDashboardTab('pendingApproval')" data-tab="pendingApproval">
+                            ⏳ Pending Approval <span class="badge">${counts.pending}</span>
+                        </button>
+                        <button class="tab-btn" onclick="switchDashboardTab('activeOrders')" data-tab="activeOrders">
+                            📋 Active Orders <span class="badge">${counts.active}</span>
+                        </button>
+                        <button class="tab-btn" onclick="switchDashboardTab('disputed')" data-tab="disputed">
+                            ⚠️ Disputed <span class="badge badge-warning">${counts.disputed}</span>
+                        </button>
+                        <button class="tab-btn" onclick="switchDashboardTab('resolved')" data-tab="resolved">
+                            ✅ Resolved <span class="badge badge-success">${counts.resolved}</span>
+                        </button>
+                        <button class="tab-btn" onclick="switchDashboardTab('rejected')" data-tab="rejected">
+                            ❌ Rejected <span class="badge badge-danger">${counts.rejected}</span>
+                        </button>
+                        <button class="tab-btn" onclick="switchDashboardTab('finished')" data-tab="finished">
+                            🏁 Finished <span class="badge">${counts.finished}</span>
+                        </button>
+                    </div>
+                `;
+            } else if (currentUser.department === 'Sales') {
+                html = `
+                    <div class="tab-nav">
+                        <button class="tab-btn active" onclick="switchDashboardTab('myOrders')" data-tab="myOrders">
+                            📋 My Orders <span class="badge">${counts.myOrders}</span>
+                        </button>
+                        <button class="tab-btn" onclick="switchDashboardTab('disputed')" data-tab="disputed">
+                            ⚠️ Disputed <span class="badge badge-warning">${counts.disputed}</span>
+                        </button>
+                        <button class="tab-btn" onclick="switchDashboardTab('rejected')" data-tab="rejected">
+                            ❌ Rejected <span class="badge badge-danger">${counts.rejected}</span>
+                        </button>
+                        <button class="tab-btn" onclick="switchDashboardTab('finished')" data-tab="finished">
+                            🏁 Finished <span class="badge">${counts.finished}</span>
+                        </button>
+                    </div>
+                `;
+            } else if (currentUser.department === 'Finance') {
+                html = `
+                    <div class="tab-nav">
+                        <button class="tab-btn active" onclick="switchDashboardTab('needsDocs')" data-tab="needsDocs">
+                            📝 Needs Documents <span class="badge">${counts.needsDocs}</span>
+                        </button>
+                        <button class="tab-btn" onclick="switchDashboardTab('completed')" data-tab="completed">
+                            ✅ Completed <span class="badge badge-success">${counts.completed}</span>
+                        </button>
+                    </div>
+                `;
+            } else if (currentUser.department === 'Transport') {
+                html = `
+                    <div class="tab-nav">
+                        <button class="tab-btn active" onclick="switchDashboardTab('forAssigning')" data-tab="forAssigning">
+                            🚛 For Assigning <span class="badge">${counts.forAssigning}</span>
+                        </button>
+                        <button class="tab-btn" onclick="switchDashboardTab('assigned')" data-tab="assigned">
+                            📋 Assigned <span class="badge">${counts.assigned}</span>
+                        </button>
+                        <button class="tab-btn" onclick="switchDashboardTab('disputed')" data-tab="disputed">
+                            ⚠️ Disputed <span class="badge badge-warning">${counts.disputed}</span>
+                        </button>
+                        <button class="tab-btn" onclick="switchDashboardTab('finished')" data-tab="finished">
+                            🏁 Finished <span class="badge">${counts.finished}</span>
+                        </button>
+                    </div>
+                `;
+            } else if (currentUser.department === 'Warehouse') {
+                html = `
+                    <div class="tab-nav">
+                        <button class="tab-btn active" onclick="switchDashboardTab('needsProcessing')" data-tab="needsProcessing">
+                            📦 Needs Processing <span class="badge">${counts.needsProcessing}</span>
+                        </button>
+                        <button class="tab-btn" onclick="switchDashboardTab('inProgress')" data-tab="inProgress">
+                            ⏳ In Progress <span class="badge">${counts.inProgress}</span>
+                        </button>
+                        <button class="tab-btn" onclick="switchDashboardTab('finished')" data-tab="finished">
+                            🏁 Finished <span class="badge">${counts.finished}</span>
+                        </button>
+                    </div>
+                `;
+            }
+            
+            container.innerHTML = html;
+        }
+        
+        function calculateBadgeCounts() {
+            let counts = {
+                pending: ordersData.filter(o => o.status === 'Pending Approval').length,
+                active: ordersData.filter(o => 
+                    o.status !== 'Pending Approval' && 
+                    o.status !== 'Delivered' && 
+                    o.status !== 'Disputed' &&
+                    o.status !== 'Resolved' && 
+                    o.status !== 'Rejected'
+                ).length,
+                disputed: ordersData.filter(o => o.status === 'Disputed').length,
+                resolved: ordersData.filter(o => o.status === 'Resolved').length,
+                rejected: ordersData.filter(o => o.status === 'Rejected').length,
+                finished: ordersData.filter(o => o.status === 'Delivered' || o.status === 'Resolved').length,
+                
+                forAssigning: ordersData.filter(o => o.status === 'Approved' && !o.driverName).length,
+                assigned: ordersData.filter(o => 
+                    o.driverName && (
+                        o.status === 'Truck Assigned' ||
+                        o.status === 'In Warehouse' ||
+                        o.status === 'Loading' ||
+                        o.status === 'Left Warehouse'
+                    )
+                ).length,
+                
+                needsDocs: ordersData.filter(o => !o.proformaNumber || !o.invoiceNumber || (o.status !== 'Delivered' && o.status !== 'Resolved')).length,
+                completed: ordersData.filter(o => o.proformaNumber && o.invoiceNumber && (o.status === 'Delivered' || o.status === 'Resolved')).length,
+                
+                needsProcessing: ordersData.filter(o => o.status === 'Truck Assigned').length,
+                inProgress: ordersData.filter(o => o.status === 'In Warehouse' || o.status === 'Loading' || o.status === 'Left Warehouse').length
+            };
+            
+            if (currentUser.department === 'Sales') {
+                counts.myOrders = ordersData.filter(o => 
+                    o.createdBy === currentUser.id &&
+                    o.status !== 'Delivered' &&
+                    o.status !== 'Disputed' &&
+                    o.status !== 'Resolved' &&
+                    o.status !== 'Rejected'
+                ).length;
+                counts.disputed = ordersData.filter(o => o.createdBy === currentUser.id && o.status === 'Disputed').length;
+                counts.rejected = ordersData.filter(o => o.createdBy === currentUser.id && o.status === 'Rejected').length;
+                counts.finished = ordersData.filter(o => o.createdBy === currentUser.id && (o.status === 'Delivered' || o.status === 'Resolved')).length;
+            }
+            
+            return counts;
+        }
+        
+        function switchDashboardTab(tabName) {
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+            const activeBtn = document.querySelector(`[data-tab="${tabName}"]`);
+            if (activeBtn) activeBtn.classList.add('active');
+            
+            currentActiveTab = tabName;
+            
+            let filteredOrders = [];
+            
+            if (currentUser.department === 'Management') {
+                if (tabName === 'pendingApproval') {
+                    filteredOrders = ordersData.filter(o => o.status === 'Pending Approval');
+                } else if (tabName === 'activeOrders') {
+                    filteredOrders = ordersData.filter(o => 
+                        o.status !== 'Pending Approval' && 
+                        o.status !== 'Delivered' && 
+                        o.status !== 'Disputed' &&
+                        o.status !== 'Resolved' && 
+                        o.status !== 'Rejected'
+                    );
+                } else if (tabName === 'disputed') {
+                    filteredOrders = ordersData.filter(o => o.status === 'Disputed');
+                } else if (tabName === 'resolved') {
+                    filteredOrders = ordersData.filter(o => o.status === 'Resolved');
+                } else if (tabName === 'rejected') {
+                    filteredOrders = ordersData.filter(o => o.status === 'Rejected');
+                } else if (tabName === 'finished') {
+                    filteredOrders = ordersData.filter(o => o.status === 'Delivered' || o.status === 'Resolved');
+                }
+            } else if (currentUser.department === 'Sales') {
+                if (tabName === 'myOrders') {
+                    filteredOrders = ordersData.filter(o => 
+                        o.createdBy === currentUser.id &&
+                        o.status !== 'Delivered' &&
+                        o.status !== 'Disputed' &&
+                        o.status !== 'Resolved' &&
+                        o.status !== 'Rejected'
+                    );
+                } else if (tabName === 'disputed') {
+                    filteredOrders = ordersData.filter(o => o.createdBy === currentUser.id && o.status === 'Disputed');
+                } else if (tabName === 'rejected') {
+                    filteredOrders = ordersData.filter(o => o.createdBy === currentUser.id && o.status === 'Rejected');
+                } else if (tabName === 'finished') {
+                    filteredOrders = ordersData.filter(o => o.createdBy === currentUser.id && (o.status === 'Delivered' || o.status === 'Resolved'));
+                }
+            } else if (currentUser.department === 'Finance') {
+                if (tabName === 'needsDocs') {
+                    filteredOrders = ordersData.filter(o => !o.proformaNumber || !o.invoiceNumber || (o.status !== 'Delivered' && o.status !== 'Resolved'));
+                } else if (tabName === 'completed') {
+                    filteredOrders = ordersData.filter(o => o.proformaNumber && o.invoiceNumber && (o.status === 'Delivered' || o.status === 'Resolved'));
+                }
+            } else if (currentUser.department === 'Transport') {
+                if (tabName === 'forAssigning') {
+                    filteredOrders = ordersData.filter(o => o.status === 'Approved' && !o.driverName);
+                } else if (tabName === 'assigned') {
+                    filteredOrders = ordersData.filter(o => 
+                        o.driverName && (
+                            o.status === 'Truck Assigned' ||
+                            o.status === 'In Warehouse' ||
+                            o.status === 'Loading' ||
+                            o.status === 'Left Warehouse'
+                        )
+                    );
+                } else if (tabName === 'disputed') {
+                    filteredOrders = ordersData.filter(o => o.status === 'Disputed' && o.driverName);
+                } else if (tabName === 'finished') {
+                    filteredOrders = ordersData.filter(o => o.driverName && (o.status === 'Delivered' || o.status === 'Resolved'));
+                }
+            } else if (currentUser.department === 'Warehouse') {
+                if (tabName === 'needsProcessing') {
+                    filteredOrders = ordersData.filter(o => o.status === 'Truck Assigned');
+                } else if (tabName === 'inProgress') {
+                    filteredOrders = ordersData.filter(o => o.status === 'In Warehouse' || o.status === 'Loading' || o.status === 'Left Warehouse');
+                } else if (tabName === 'finished') {
+                    filteredOrders = ordersData.filter(o => o.status === 'Delivered' || o.status === 'Resolved');
+                }
+            }
+            
+            filteredOrders = filterOrdersByDate(filteredOrders);
+            loadOrdersTable(filteredOrders);
+        }
+        
+        function startAutoRefresh() {
+            if (autoRefreshInterval) clearInterval(autoRefreshInterval);
+            
+            autoRefreshInterval = setInterval(async () => {
+                console.log('🔄 Auto-refresh (2 min)');
+                await loadData();
+                renderTabNavigation();
+                if (currentActiveTab) {
+                    switchDashboardTab(currentActiveTab);
+                }
+            }, 120000);
+        }
+        
+        // Update initializeApp to include tab navigation
+        const originalInitializeApp = initializeApp;
+        initializeApp = function() {
+            originalInitializeApp();
+            renderTabNavigation();
+            startAutoRefresh();
+            
+            if (currentUser.department === 'Management') {
+                switchDashboardTab('pendingApproval');
+            } else if (currentUser.department === 'Sales') {
+                switchDashboardTab('myOrders');
+            } else if (currentUser.department === 'Finance') {
+                switchDashboardTab('needsDocs');
+            } else if (currentUser.department === 'Transport') {
+                switchDashboardTab('forAssigning');
+            } else if (currentUser.department === 'Warehouse') {
+                switchDashboardTab('needsProcessing');
+            }
+        };
+        
+        console.log('✅ Tab navigation system loaded');
     </script>
 </body>
 </html>
