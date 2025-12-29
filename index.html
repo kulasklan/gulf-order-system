@@ -1573,6 +1573,84 @@ function formatFileSize(bytes) {
 
             // Load orders table
             loadOrdersTable(myOrders);
+			function filterOrders(filterType) {
+        let filteredOrders = [];
+        
+        if (currentUser.department === 'Management') {
+            if (filterType === 'pendingApproval') {
+                filteredOrders = ordersData.filter(o => o.status === 'Pending Approval');
+            } else if (filterType === 'activeOrders') {
+                filteredOrders = ordersData.filter(o => 
+                    o.status !== 'Pending Approval' && 
+                    o.status !== 'Delivered' && 
+                    o.status !== 'Disputed' &&
+                    o.status !== 'Resolved' && 
+                    o.status !== 'Rejected'
+                );
+            } else if (filterType === 'disputed') {
+                filteredOrders = ordersData.filter(o => o.status === 'Disputed');
+            } else if (filterType === 'resolved') {
+                filteredOrders = ordersData.filter(o => o.status === 'Resolved');
+            } else if (filterType === 'rejected') {
+                filteredOrders = ordersData.filter(o => o.status === 'Rejected');
+            } else if (filterType === 'finished') {
+                filteredOrders = ordersData.filter(o => o.status === 'Delivered' || o.status === 'Resolved');
+            }
+        } else if (currentUser.department === 'Sales') {
+            if (filterType === 'myOrders') {
+                filteredOrders = ordersData.filter(o => 
+                    o.createdBy === currentUser.id &&
+                    o.status !== 'Delivered' &&
+                    o.status !== 'Disputed' &&
+                    o.status !== 'Resolved' &&
+                    o.status !== 'Rejected'
+                );
+            } else if (filterType === 'disputed') {
+                filteredOrders = ordersData.filter(o => o.createdBy === currentUser.id && o.status === 'Disputed');
+            } else if (filterType === 'rejected') {
+                filteredOrders = ordersData.filter(o => o.createdBy === currentUser.id && o.status === 'Rejected');
+            } else if (filterType === 'finished') {
+                filteredOrders = ordersData.filter(o => o.createdBy === currentUser.id && (o.status === 'Delivered' || o.status === 'Resolved'));
+            }
+        } else if (currentUser.department === 'Finance') {
+            if (filterType === 'needsDocs') {
+                filteredOrders = ordersData.filter(o => !o.proformaNumber || !o.invoiceNumber || (o.status !== 'Delivered' && o.status !== 'Resolved'));
+            } else if (filterType === 'completed') {
+                filteredOrders = ordersData.filter(o => o.proformaNumber && o.invoiceNumber && (o.status === 'Delivered' || o.status === 'Resolved'));
+            }
+        } else if (currentUser.department === 'Transport') {
+            if (filterType === 'forAssigning') {
+                filteredOrders = ordersData.filter(o => o.status === 'Approved' && !o.driverName);
+            } else if (filterType === 'assigned') {
+                filteredOrders = ordersData.filter(o => 
+                    o.driverName && (
+                        o.status === 'Truck Assigned' ||
+                        o.status === 'In Warehouse' ||
+                        o.status === 'Loading' ||
+                        o.status === 'Left Warehouse'
+                    )
+                );
+            } else if (filterType === 'disputed') {
+                filteredOrders = ordersData.filter(o => o.status === 'Disputed' && o.driverName);
+            } else if (filterType === 'finished') {
+                filteredOrders = ordersData.filter(o => o.driverName && (o.status === 'Delivered' || o.status === 'Resolved'));
+            }
+        } else if (currentUser.department === 'Warehouse') {
+            if (filterType === 'needsProcessing') {
+                filteredOrders = ordersData.filter(o => o.status === 'Truck Assigned');
+            } else if (filterType === 'inProgress') {
+                filteredOrders = ordersData.filter(o => o.status === 'In Warehouse' || o.status === 'Loading' || o.status === 'Left Warehouse');
+            } else if (filterType === 'finished') {
+                filteredOrders = ordersData.filter(o => o.status === 'Delivered' || o.status === 'Resolved');
+            }
+        }
+        
+        // Apply date filter
+        filteredOrders = filterOrdersByDate(filteredOrders);
+        
+        // Load filtered orders into table
+        loadOrdersTable(filteredOrders);
+    }
         }
 
         function loadOrdersTable(orders) {
