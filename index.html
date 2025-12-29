@@ -1519,41 +1519,49 @@ if (currentUser.department === 'Transport') {
             document.getElementById('deliveryDateInput').setAttribute('min', today);
         }
 
-        function loadApprovals() {
-            let pendingOrders = ordersData.filter(o => o.status === 'Pending Approval');
-            pendingOrders = filterOrdersByDate(pendingOrders);
-            const container = document.getElementById('pendingApprovalsList');
+function loadApprovals() {
+        console.log('Loading approvals...');
+        console.log('Total orders:', ordersData.length);
+        
+        let pendingOrders = ordersData.filter(o => o.status === 'Pending Approval');
+        console.log('Pending orders found:', pendingOrders.length);
+        
+        pendingOrders = filterOrdersByDate(pendingOrders);
+        console.log('After date filter:', pendingOrders.length);
+        
+        const container = document.getElementById('pendingApprovalsList');
 
-            if (pendingOrders.length === 0) {
-                container.innerHTML = '<p style="text-align:center; padding: 2rem; color: #6B7280;">No pending approvals</p>';
-                return;
-            }
+        if (pendingOrders.length === 0) {
+            container.innerHTML = '<p style="text-align:center; padding: 2rem; color: #6B7280;">No pending approvals</p>';
+            return;
+        }
 
-            let html = '';
-            pendingOrders.forEach(order => {
-                html += `
-                    <div class="card">
-                        <div style="display: flex; justify-content: space-between; align-items: start; gap: 1rem;">
-                            <div style="flex: 1;">
-                                <h3 style="margin-bottom: 0.5rem;">${order.orderID} - ${order.clientName}</h3>
-                                <p style="color: #6B7280; margin-bottom: 1rem;">
-                                    ${order.quantity} ${order.unit} of ${order.productType} | 
-                                    Delivery: ${order.requestedDeliveryDate} | 
-                                    <span class="${getPriorityClass(order.priority)}">${order.priority}</span>
-                                </p>
-                                <div style="display: flex; gap: 1rem;">
-                                    <button class="btn btn-success" onclick="approveOrder('${order.orderID}')">✓ Approve</button>
-                                    <button class="btn btn-danger" onclick="rejectOrder('${order.orderID}')">✗ Reject</button>
-                                    <button class="btn btn-secondary" onclick="viewOrderDetails('${order.orderID}')">View Details</button>
-                                </div>
+        let html = '';
+        pendingOrders.forEach(order => {
+            html += `
+                <div class="card">
+                    <div style="display: flex; justify-content: space-between; align-items: start; gap: 1rem;">
+                        <div style="flex: 1;">
+                            <h3 style="margin-bottom: 0.5rem;">${order.orderID} - ${order.clientName}</h3>
+                            <p style="color: #6B7280; margin-bottom: 1rem;">
+                                ${order.quantity} ${order.unit} of ${order.productType} |
+                                Delivery: ${order.requestedDeliveryDate} |
+                                <span class="${getPriorityClass(order.priority)}">${order.priority}</span>
+                            </p>
+                            <div style="display: flex; gap: 1rem;">
+                                <button class="btn btn-success" onclick="approveOrder('${order.orderID}')">✓ Approve</button>
+                                <button class="btn btn-danger" onclick="rejectOrder('${order.orderID}')">✗ Reject</button>
+                                <button class="btn btn-secondary" onclick="viewOrderDetails('${order.orderID}')">View Details</button>
                             </div>
                         </div>
                     </div>
-                `;
-            });
+                </div>
+            `;
+        });
 
-            container.innerHTML = html;
-        }
+        console.log('HTML generated, length:', html.length);
+        container.innerHTML = html;
+    }
 		function loadApprovals() {
         let pendingOrders = ordersData.filter(o => o.status === 'Pending Approval');
         pendingOrders = filterOrdersByDate(pendingOrders);
@@ -2179,13 +2187,23 @@ if (currentUser.department === 'Transport') {
         }
 
         // ===== ORDER ACTIONS =====
-        document.getElementById('createOrderForm').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            
-            // Generate Order ID
-            const orderNumber = String(ordersData.length + 1).padStart(5, '0');
-            const dateString = new Date().toISOString().split('T')[0].replace(/-/g, '');
-            const orderID = `ORD${orderNumber}-${dateString}`;
+document.getElementById('createOrderForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+
+    // Generate Order ID - FIXED VERSION
+    const today = new Date();
+    const year = today.getFullYear();
+    const month = String(today.getMonth() + 1).padStart(2, '0');
+    const day = String(today.getDate()).padStart(2, '0');
+    
+    // Count orders created TODAY by this user
+    const todayString = `${year}-${month}-${day}`;
+    const todayOrders = ordersData.filter(o => 
+        o.orderDate === todayString && o.createdBy === currentUser.id
+    ).length;
+    
+    const orderNumber = String(todayOrders + 1).padStart(5, '0');
+    const orderID = `ORD${orderNumber}-${year}${month}${day}`;
             
             // Get form data
             const clientID = document.getElementById('clientSelect').value;
