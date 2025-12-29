@@ -1025,25 +1025,34 @@
                 }
                 
                 // Load Documents from Google Sheets
-                const documentsUrl = `https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_ID}/values/Documents!A2:H1000?key=${API_KEY}`;
-                const documentsResponse = await fetch(documentsUrl);
-                const documentsJson = await documentsResponse.json();
-                
-                if (documentsJson.values) {
-                    documentsData = documentsJson.values.map(row => ({
-                        orderID: row[0] || '',
-                        fileName: row[1] || '',
-                        fileType: row[2] || '',
-                        documentType: row[3] || '',
-                        fileId: row[4] || '',
-                        fileUrl: row[5] || '',
-                        uploadedBy: row[6] || '',
-                        uploadedDate: row[7] || ''
-                    }));
-                    console.log('✅ Loaded', documentsData.length, 'documents from Google Sheets');
-                } else {
+                try {
+                    const documentsUrl = `https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_ID}/values/Documents!A2:H1000?key=${API_KEY}`;
+                    const documentsResponse = await fetch(documentsUrl);
+                    const documentsJson = await documentsResponse.json();
+                    
+                    console.log('Documents API response:', documentsJson);
+                    
+                    if (documentsJson.values && documentsJson.values.length > 0) {
+                        documentsData = documentsJson.values.map(row => ({
+                            orderID: row[0] || '',
+                            fileName: row[1] || '',
+                            fileType: row[2] || '',
+                            documentType: row[3] || '',
+                            fileId: row[4] || '',
+                            fileUrl: row[5] || '',
+                            uploadedBy: row[6] || '',
+                            uploadedDate: row[7] || ''
+                        }));
+                        console.log('✅ Loaded', documentsData.length, 'documents from Google Sheets');
+                        console.log('Documents data:', documentsData);
+                    } else {
+                        documentsData = [];
+                        console.log('ℹ️ No documents found (Documents sheet may be empty or has only headers)');
+                    }
+                } catch (docError) {
+                    console.warn('⚠️ Could not load Documents sheet:', docError);
+                    console.log('This is OK if Documents sheet doesn\'t exist yet');
                     documentsData = [];
-                    console.log('ℹ️ No documents found (Documents sheet may be empty)');
                 }
                 
             } catch (error) {
@@ -1811,7 +1820,12 @@
                 </div>
                 
                 <div style="margin-top: 2rem;">
-                    <h3 style="margin-bottom: 1rem; color: var(--secondary);">📎 Documents</h3>
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                        <h3 style="color: var(--secondary); margin: 0;">📎 Documents</h3>
+                        <button class="btn btn-secondary" onclick="refreshDocumentsForOrder('${orderID}')" style="padding: 0.5rem 1rem; font-size: 0.85rem;">
+                            🔄 Refresh Documents
+                        </button>
+                    </div>
                     ${canUpload ? `
                         <div style="margin-bottom: 1rem; padding: 1rem; background: var(--light); border-radius: 4px;">
                             <div class="form-group" style="margin-bottom: 0.5rem;">
@@ -1837,6 +1851,11 @@
                     <div id="documentsListContainer">
                         <p style="text-align: center; color: #6B7280; padding: 1rem;">Loading documents...</p>
                     </div>
+                    <div style="margin-top: 1rem; padding: 0.75rem; background: #EFF6FF; border-radius: 4px; font-size: 0.85rem;">
+                        <strong>Debug Info:</strong><br>
+                        Total documents in system: <span id="debugTotalDocs">0</span><br>
+                        Documents for this order: <span id="debugOrderDocs">0</span>
+                    </div>
                 </div>
             `;
 
@@ -1852,16 +1871,54 @@
         
         // ===== DOCUMENT MANAGEMENT =====
         
+        async function refreshDocumentsForOrder(orderID) {
+            console.log('🔄 Manual refresh requested for order:', orderID);
+            
+            // Show loading message
+            const container = document.getElementById('documentsListContainer');
+            container.innerHTML = '<p style="text-align: center; color: #6B7280; padding: 1rem;">🔄 Refreshing documents...</p>';
+            
+            // Reload all data
+            await loadData();
+            
+            // Reload documents list
+            loadDocumentsList(orderID);
+        }
+        
         async function loadDocumentsList(orderID) {
             const container = document.getElementById('documentsListContainer');
             
+            console.log('=== LOADING DOCUMENTS LIST ===');
+            console.log('OrderID:', orderID);
+            console.log('Total documentsData:', documentsData.length);
+            console.log('All documents:', documentsData);
+            
+            // Update debug info
+            const debugTotal = document.getElementById('debugTotalDocs');
+            const debugOrder = document.getElementById('debugOrderDocs');
+            if (debugTotal) debugTotal.textContent = documentsData.length;
+            
             // Filter documents for this order
-            const orderDocuments = documentsData.filter(doc => doc.orderID === orderID);
+            const orderDocuments = documentsData.filter(doc => {
+                console.log('Checking doc:', doc.orderID, 'against', orderID, 'match:', doc.orderID === orderID);
+                return doc.orderID === orderID;
+            });
+            
+            console.log('Documents for this order:', orderDocuments.length);
+            console.log('Filtered documents:', orderDocuments);
+            
+            // Update debug info
+            if (debugOrder) debugOrder.textContent = orderDocuments.length;
             
             if (orderDocuments.length === 0) {
                 container.innerHTML = `
                     <div style="padding: 1rem; background: var(--light); border-radius: 4px; text-align: center;">
                         <p style="color: #6B7280;">📁 No documents uploaded yet</p>
+                        <p style="color: #9CA3AF; font-size: 0.85rem; margin-top: 0.5rem;">
+                            ${documentsData.length === 0 
+                                ? 'Documents sheet may be empty or not loading' 
+                                : 'Upload documents using the form above'}
+                        </p>
                     </div>
                 `;
                 return;
@@ -1899,7 +1956,10 @@
             });
             
             html += '</div>';
+            
+            console.log('Rendering documents HTML...');
             container.innerHTML = html;
+            console.log('=== DOCUMENTS LIST LOADED ===');
         }
         
         function deleteDocumentConfirm(orderID, fileId, fileName) {
@@ -1989,16 +2049,15 @@
                         })
                     });
                     
-                    alert('✅ Document uploaded successfully!');
+                    console.log('Upload response received');
                     
                     // Clear the form
                     fileInput.value = '';
                     
-                    // Reload all data to get updated documents list
-                    await loadData();
+                    // Show success message
+                    alert('✅ Document uploaded successfully!\n\nWait 2 seconds then click "🔄 Refresh Documents" button to see it.');
                     
-                    // Reload documents list
-                    loadDocumentsList(orderID);
+                    console.log('Upload complete. User should refresh manually.');
                 };
                 
                 reader.onerror = function(error) {
