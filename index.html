@@ -1890,8 +1890,7 @@
             
             console.log('=== LOADING DOCUMENTS LIST ===');
             console.log('OrderID:', orderID);
-            console.log('Total documentsData:', documentsData.length);
-            console.log('All documents:', documentsData);
+            console.log('Total documentsData loaded:', documentsData.length);
             
             // Update debug info
             const debugTotal = document.getElementById('debugTotalDocs');
@@ -1899,13 +1898,9 @@
             if (debugTotal) debugTotal.textContent = documentsData.length;
             
             // Filter documents for this order
-            const orderDocuments = documentsData.filter(doc => {
-                console.log('Checking doc:', doc.orderID, 'against', orderID, 'match:', doc.orderID === orderID);
-                return doc.orderID === orderID;
-            });
+            const orderDocuments = documentsData.filter(doc => doc.orderID === orderID);
             
-            console.log('Documents for this order:', orderDocuments.length);
-            console.log('Filtered documents:', orderDocuments);
+            console.log('Documents for order', orderID, ':', orderDocuments.length);
             
             // Update debug info
             if (debugOrder) debugOrder.textContent = orderDocuments.length;
@@ -1916,7 +1911,7 @@
                         <p style="color: #6B7280;">📁 No documents uploaded yet</p>
                         <p style="color: #9CA3AF; font-size: 0.85rem; margin-top: 0.5rem;">
                             ${documentsData.length === 0 
-                                ? 'Documents sheet may be empty or not loading' 
+                                ? '⚠️ Documents sheet may be empty. Check Google Sheets!' 
                                 : 'Upload documents using the form above'}
                         </p>
                     </div>
@@ -1956,10 +1951,8 @@
             });
             
             html += '</div>';
-            
-            console.log('Rendering documents HTML...');
             container.innerHTML = html;
-            console.log('=== DOCUMENTS LIST LOADED ===');
+            console.log('=== DOCUMENTS LIST RENDERED ===');
         }
         
         function deleteDocumentConfirm(orderID, fileId, fileName) {
