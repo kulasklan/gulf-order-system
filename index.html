@@ -1,4 +1,258 @@
-<!DOCTYPE html>
+// ==============================================
+// DOCUMENT MANAGEMENT
+// ==============================================
+
+/**
+ * Upload document to order folder
+ */
+function uploadDocument(orderID, fileData, fileName, fileType, uploadedBy, department, documentType, note) {
+  try {
+    const ss = SpreadsheetApp.openById(CONFIG.SPREADSHEET_ID);
+    const ordersSheet = ss.getSheetByName('Orders');
+    const logsSheet = ss.getSheetByName('OrderLogs');
+    
+    // Find order and get folder URL
+    const data = ordersSheet.getDataRange().getValues();
+    let folderUrl = '';
+    let orderFound = false;
+    
+    for (let i = 1; i < data.length; i++) {
+      if (data[i][0] === orderID) {
+        folderUrl = data[i][36]; // Column AK: Drive_Folder_URL
+        orderFound = true;
+        break;
+      }
+    }
+    
+    if (!orderFound || !folderUrl) {
+      return {
+        success: false,
+        message: 'Order folder not found. Order must be approved first.'
+      };
+    }
+    
+    // Get the Documents subfolder
+    const folderId = folderUrl.match(/folders\/([a-zA-Z0-9-_]+)/)[1];
+    const orderFolder = DriveApp.getFolderById(folderId);
+    
+    const docsFolders = orderFolder.getFoldersByName('Documents');
+    let docsFolder;
+    
+    if (docsFolders.hasNext()) {
+      docsFolder = docsFolders.next();
+    } else {
+      docsFolder = orderFolder.createFolder('Documents');
+    }
+    
+    // Decode base64 file data
+    const blob = Utilities.newBlob(Utilities.base64Decode(fileData), fileType, fileName);
+    
+    // Upload file to Documents folder
+    const file = docsFolder.createFile(blob);
+    const fileUrl = file.getUrl();
+    
+    // Log to OrderLogs
+    logsSheet.appendRow([
+      logsSheet.getLastRow(),
+      orderID,
+      new Date(),
+      uploadedBy,
+      department,
+      'Document Uploaded',
+      'Document',
+      '',
+      fileName,
+      note || `Uploaded ${documentType || 'document'}: ${fileName}`
+    ]);
+    
+    // Append to Order History
+    const historyDocUrl = getHistoryDocUrl(folderUrl, orderID);
+    if (historyDocUrl) {
+      appendToOrderHistory(
+        historyDocUrl,
+        uploadedBy,
+        department,
+        `Document Uploaded: ${fileName}`,
+        `Type: ${documentType || 'General'}. ${note || ''}`
+      );
+    }
+    
+    Logger.log('Document uploaded successfully: ' + fileName);
+    
+    return {
+      success: true,
+      message: 'Document uploaded successfully',
+      fileName: fileName,
+      fileUrl: fileUrl
+    };
+    
+  } catch (error) {
+    Logger.log('Error uploading document: ' + error.toString());
+    return {
+      success: false,
+      message: 'Error uploading document: ' + error.toString()
+    };
+  }
+}
+
+/**
+ * List documents in order folder
+ */
+function listDocuments(orderID) {
+  try {
+    const ss = SpreadsheetApp.openById(CONFIG.SPREADSHEET_ID);
+    const ordersSheet = ss.getSheetByName('Orders');
+    
+    // Find order and get folder URL
+    const data = ordersSheet.getDataRange().getValues();
+    let folderUrl = '';
+    
+    for (let i = 1; i < data.length; i++) {
+      if (data[i][0] === orderID) {
+        folderUrl = data[i][36]; // Column AK
+        break;
+      }
+    }
+    
+    if (!folderUrl) {
+      return {
+        success: false,
+        documents: [],
+        message: 'Order folder not found'
+      };
+    }
+    
+    // Get Documents folder
+    const folderId = folderUrl.match(/folders\/([a-zA-Z0-9-_]+)/)[1];
+    const orderFolder = DriveApp.getFolderById(folderId);
+    
+    const docsFolders = orderFolder.getFoldersByName('Documents');
+    if (!docsFolders.hasNext()) {
+      return {
+        success: true,
+        documents: [],
+        message: 'No documents folder yet'
+      };
+    }
+    
+    const docsFolder = docsFolders.next();
+    const files = docsFolder.getFiles();
+    const documents = [];
+    
+    while (files.hasNext()) {
+      const file = files.next();
+      
+      // Skip the Order History file
+      if (file.getName().startsWith('Order History -')) {
+        continue;
+      }
+      
+      documents.push({
+        id: file.getId(),
+        name: file.getName(),
+        url: file.getUrl(),
+        size: formatFileSize(file.getSize()),
+        dateCreated: file.getDateCreated(),
+        lastModified: file.getLastUpdated(),
+        mimeType: file.getMimeType()
+      });
+    }
+    
+    return {
+      success: true,
+      documents: documents
+    };
+    
+  } catch (error) {
+    Logger.log('Error listing documents: ' + error.toString());
+    return {
+      success: false,
+      documents: [],
+      message: error.toString()
+    };
+  }
+}
+
+/**
+ * Delete document from order folder
+ */
+function deleteDocument(orderID, fileId, fileName, deletedBy, department, reason) {
+  try {
+    const ss = SpreadsheetApp.openById(CONFIG.SPREADSHEET_ID);
+    const ordersSheet = ss.getSheetByName('Orders');
+    const logsSheet = ss.getSheetByName('OrderLogs');
+    
+    // Find order and get folder URL
+    const data = ordersSheet.getDataRange().getValues();
+    let folderUrl = '';
+    
+    for (let i = 1; i < data.length; i++) {
+      if (data[i][0] === orderID) {
+        folderUrl = data[i][36];
+        break;
+      }
+    }
+    
+    // Delete the file
+    const file = DriveApp.getFileById(fileId);
+    file.setTrashed(true);
+    
+    // Log to OrderLogs
+    logsSheet.appendRow([
+      logsSheet.getLastRow(),
+      orderID,
+      new Date(),
+      deletedBy,
+      department,
+      'Document Deleted',
+      'Document',
+      fileName,
+      '',
+      reason || 'Document removed'
+    ]);
+    
+    // Append to Order History
+    if (folderUrl) {
+      const historyDocUrl = getHistoryDocUrl(folderUrl, orderID);
+      if (historyDocUrl) {
+        appendToOrderHistory(
+          historyDocUrl,
+          deletedBy,
+          department,
+          `Document Deleted: ${fileName}`,
+          `Reason: ${reason || 'Not specified'}`
+        );
+      }
+    }
+    
+    Logger.log('Document deleted: ' + fileName);
+    
+    return {
+      success: true,
+      message: 'Document deleted successfully'
+    };
+    
+  } catch (error) {
+    Logger.log('Error deleting document: ' + error.toString());
+    return {
+      success: false,
+      message: 'Error deleting document: ' + error.toString()
+    };
+  }
+}
+
+/**
+ * Format file size to human readable
+ */
+function formatFileSize(bytes) {
+  if (bytes === 0) return '0 Bytes';
+  
+  const k = 1024;
+  const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+  const i = Math.floor(Math.log(bytes) / Math.log(k));
+  
+  return Math.round(bytes / Math.pow(k, i) * 100) / 100 + ' ' + sizes[i];
+}<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -498,62 +752,59 @@
            NEW: TAB NAVIGATION - ADD THIS
            ======================================== */
         
-        .tab-nav {
-            display: flex;
-            gap: 0.5rem;
+.tab-nav {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            gap: 1rem;
             margin: 1rem 0 1.5rem 0;
-            flex-wrap: wrap;
-            background: white;
-            padding: 1rem;
-            border-radius: 8px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
         }
         
-        .tab-btn {
-            padding: 0.75rem 1.25rem;
-            background: white;
-            border: 1px solid var(--border);
-            border-radius: 8px;
-            cursor: pointer;
-            font-weight: 500;
-            color: #6B7280;
-            transition: all 0.2s;
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
-        
-        .tab-btn:hover {
-            background: var(--light);
-            color: var(--secondary);
-        }
-        
-        .tab-btn.active {
-            background: var(--primary);
-            color: white;
-        }
-        
-        .badge {
-            display: inline-block;
-            padding: 0.25rem 0.5rem;
-            background: white;
-            color: var(--primary);
+        .stat-tab-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 1.25rem 1rem;
             border-radius: 12px;
-            font-size: 0.75rem;
-            font-weight: bold;
-            min-width: 1.5rem;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            border: 3px solid transparent;
             text-align: center;
         }
         
-        .tab-btn.active .badge {
-            background: rgba(255,255,255,0.3);
-            color: white;
+        .stat-tab-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 8px 12px rgba(0,0,0,0.15);
         }
         
-        .badge-warning { background: var(--warning); color: white; }
-        .badge-success { background: var(--success); color: white; }
-        .badge-danger { background: var(--danger); color: white; }
-        .badge:empty { display: none; }
+        .stat-tab-card.active {
+            border: 3px solid #FFD700;
+            box-shadow: 0 8px 16px rgba(255,215,0,0.4);
+        }
+        
+        .stat-tab-card .stat-value {
+            font-size: 2.5rem;
+            font-weight: bold;
+            color: white;
+            line-height: 1;
+            margin-bottom: 0.5rem;
+        }
+        
+        .stat-tab-card .stat-label {
+            font-size: 0.85rem;
+            color: rgba(255,255,255,0.95);
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        /* Different gradient colors */
+        .stat-tab-card.pending { background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); }
+        .stat-tab-card.active-orders { background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); }
+        .stat-tab-card.disputed { background: linear-gradient(135deg, #ff9a56 0%, #ff6a88 100%); }
+        .stat-tab-card.resolved { background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%); }
+        .stat-tab-card.rejected { background: linear-gradient(135deg, #868f96 0%, #596164 100%); }
+        .stat-tab-card.finished { background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%); }
+        .stat-tab-card.warning { background: linear-gradient(135deg, #fa709a 0%, #fee140 100%); }
+        .stat-tab-card.success { background: linear-gradient(135deg, #30cfd0 0%, #330867 100%); }
         
         .dispute-card {
             background: #FEF3C7;
@@ -2942,7 +3193,7 @@
         let currentActiveTab = null;
         let autoRefreshInterval = null;
         
-        function renderTabNavigation() {
+function renderTabNavigation() {
             const container = document.getElementById('tabNavigation');
             if (!container || !currentUser) return;
             
@@ -2952,9 +3203,108 @@
             if (currentUser.department === 'Management') {
                 html = `
                     <div class="tab-nav">
-                        <button class="tab-btn active" onclick="switchDashboardTab('pendingApproval')" data-tab="pendingApproval">
-                            ⏳ Pending Approval <span class="badge">${counts.pending}</span>
-                        </button>
+                        <div class="stat-tab-card pending active" onclick="switchDashboardTab('pendingApproval')" data-tab="pendingApproval">
+                            <div class="stat-value">${counts.pending}</div>
+                            <div class="stat-label">⏳ Pending</div>
+                        </div>
+                        <div class="stat-tab-card active-orders" onclick="switchDashboardTab('activeOrders')" data-tab="activeOrders">
+                            <div class="stat-value">${counts.active}</div>
+                            <div class="stat-label">📋 Active</div>
+                        </div>
+                        <div class="stat-tab-card disputed" onclick="switchDashboardTab('disputed')" data-tab="disputed">
+                            <div class="stat-value">${counts.disputed}</div>
+                            <div class="stat-label">⚠️ Disputed</div>
+                        </div>
+                        <div class="stat-tab-card resolved" onclick="switchDashboardTab('resolved')" data-tab="resolved">
+                            <div class="stat-value">${counts.resolved}</div>
+                            <div class="stat-label">✅ Resolved</div>
+                        </div>
+                        <div class="stat-tab-card rejected" onclick="switchDashboardTab('rejected')" data-tab="rejected">
+                            <div class="stat-value">${counts.rejected}</div>
+                            <div class="stat-label">❌ Rejected</div>
+                        </div>
+                        <div class="stat-tab-card finished" onclick="switchDashboardTab('finished')" data-tab="finished">
+                            <div class="stat-value">${counts.finished}</div>
+                            <div class="stat-label">🏁 Finished</div>
+                        </div>
+                    </div>
+                `;
+            } else if (currentUser.department === 'Sales') {
+                html = `
+                    <div class="tab-nav">
+                        <div class="stat-tab-card active-orders active" onclick="switchDashboardTab('myOrders')" data-tab="myOrders">
+                            <div class="stat-value">${counts.myOrders}</div>
+                            <div class="stat-label">📋 My Orders</div>
+                        </div>
+                        <div class="stat-tab-card disputed" onclick="switchDashboardTab('disputed')" data-tab="disputed">
+                            <div class="stat-value">${counts.disputed}</div>
+                            <div class="stat-label">⚠️ Disputed</div>
+                        </div>
+                        <div class="stat-tab-card rejected" onclick="switchDashboardTab('rejected')" data-tab="rejected">
+                            <div class="stat-value">${counts.rejected}</div>
+                            <div class="stat-label">❌ Rejected</div>
+                        </div>
+                        <div class="stat-tab-card finished" onclick="switchDashboardTab('finished')" data-tab="finished">
+                            <div class="stat-value">${counts.finished}</div>
+                            <div class="stat-label">🏁 Finished</div>
+                        </div>
+                    </div>
+                `;
+            } else if (currentUser.department === 'Finance') {
+                html = `
+                    <div class="tab-nav">
+                        <div class="stat-tab-card warning active" onclick="switchDashboardTab('needsDocs')" data-tab="needsDocs">
+                            <div class="stat-value">${counts.needsDocs}</div>
+                            <div class="stat-label">📝 Needs Docs</div>
+                        </div>
+                        <div class="stat-tab-card success" onclick="switchDashboardTab('completed')" data-tab="completed">
+                            <div class="stat-value">${counts.completed}</div>
+                            <div class="stat-label">✅ Completed</div>
+                        </div>
+                    </div>
+                `;
+            } else if (currentUser.department === 'Transport') {
+                html = `
+                    <div class="tab-nav">
+                        <div class="stat-tab-card pending active" onclick="switchDashboardTab('forAssigning')" data-tab="forAssigning">
+                            <div class="stat-value">${counts.forAssigning}</div>
+                            <div class="stat-label">🚛 For Assigning</div>
+                        </div>
+                        <div class="stat-tab-card active-orders" onclick="switchDashboardTab('assigned')" data-tab="assigned">
+                            <div class="stat-value">${counts.assigned}</div>
+                            <div class="stat-label">📋 Assigned</div>
+                        </div>
+                        <div class="stat-tab-card disputed" onclick="switchDashboardTab('disputed')" data-tab="disputed">
+                            <div class="stat-value">${counts.disputed}</div>
+                            <div class="stat-label">⚠️ Disputed</div>
+                        </div>
+                        <div class="stat-tab-card finished" onclick="switchDashboardTab('finished')" data-tab="finished">
+                            <div class="stat-value">${counts.finished}</div>
+                            <div class="stat-label">🏁 Finished</div>
+                        </div>
+                    </div>
+                `;
+            } else if (currentUser.department === 'Warehouse') {
+                html = `
+                    <div class="tab-nav">
+                        <div class="stat-tab-card pending active" onclick="switchDashboardTab('needsProcessing')" data-tab="needsProcessing">
+                            <div class="stat-value">${counts.needsProcessing}</div>
+                            <div class="stat-label">📦 Needs Processing</div>
+                        </div>
+                        <div class="stat-tab-card warning" onclick="switchDashboardTab('inProgress')" data-tab="inProgress">
+                            <div class="stat-value">${counts.inProgress}</div>
+                            <div class="stat-label">⏳ In Progress</div>
+                        </div>
+                        <div class="stat-tab-card finished" onclick="switchDashboardTab('finished')" data-tab="finished">
+                            <div class="stat-value">${counts.finished}</div>
+                            <div class="stat-label">🏁 Finished</div>
+                        </div>
+                    </div>
+                `;
+            }
+            
+            container.innerHTML = html;
+        }
                         <button class="tab-btn" onclick="switchDashboardTab('activeOrders')" data-tab="activeOrders">
                             📋 Active Orders <span class="badge">${counts.active}</span>
                         </button>
@@ -3084,9 +3434,9 @@
             return counts;
         }
         
-        function switchDashboardTab(tabName) {
-            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
-            const activeBtn = document.querySelector(`[data-tab="${tabName}"]`);
+			function switchDashboardTab(tabName) {
+            document.querySelectorAll('.stat-tab-card').forEach(card => card.classList.remove('active'));
+            const activeCard = document.querySelector(`[data-tab="${tabName}"]`);
             if (activeBtn) activeBtn.classList.add('active');
             
             currentActiveTab = tabName;
