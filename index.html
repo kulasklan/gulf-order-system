@@ -759,6 +759,12 @@
                                     <label style="display: block; font-size: 0.85rem; color: #6B7280; margin-bottom: 0.25rem;">To Date</label>
                                     <input type="date" id="analyticsDateEnd" style="width: 100%; padding: 0.5rem; border: 1px solid #D1D5DB; border-radius: 4px;">
                                 </div>
+                                <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+                                    <button class="btn btn-secondary" onclick="setAnalyticsDateRange(0)" style="padding: 0.5rem 0.75rem; font-size: 0.85rem;">Today</button>
+                                    <button class="btn btn-secondary" onclick="setAnalyticsDateRange(7)" style="padding: 0.5rem 0.75rem; font-size: 0.85rem;">Last 7 Days</button>
+                                    <button class="btn btn-secondary" onclick="setAnalyticsDateRange(30)" style="padding: 0.5rem 0.75rem; font-size: 0.85rem;">Last 30 Days</button>
+                                    <button class="btn btn-secondary" onclick="setAnalyticsDateRange(365)" style="padding: 0.5rem 0.75rem; font-size: 0.85rem;">All Time</button>
+                                </div>
                                 <button class="btn btn-primary" onclick="loadAnalytics()" style="padding: 0.5rem 1.5rem;">Generate Report</button>
                             </div>
                         </div>
@@ -1921,6 +1927,29 @@
         });
         
         // ===== ANALYTICS & EXCEL EXPORT =====
+        
+        function setAnalyticsDateRange(days) {
+            const end = new Date();
+            const start = new Date();
+            
+            if (days === 0) {
+                // Today only
+                start.setHours(0, 0, 0, 0);
+            } else if (days === 365) {
+                // All time - set to very old date
+                start.setFullYear(2020, 0, 1);
+            } else {
+                // Last N days
+                start.setDate(start.getDate() - days);
+            }
+            
+            // Update analytics input fields
+            document.getElementById('analyticsDateStart').valueAsDate = start;
+            document.getElementById('analyticsDateEnd').valueAsDate = end;
+            
+            // Auto-generate report
+            loadAnalytics();
+        }
         
         function loadAnalytics() {
             const startInput = document.getElementById('analyticsDateStart');
