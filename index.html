@@ -771,16 +771,42 @@
                     </div>
                 </div>
             </div>
-
-            <!-- Finance View -->
-            <div id="financeView" class="view-content hidden">
+			
+			<!-- Disputes Resolution View -->
+            <div id="disputesView" class="view-content hidden">
                 <div class="card">
                     <div class="card-header">
-                        <h2 class="card-title">💰 Finance Dashboard</h2>
-                        <button class="btn btn-secondary" id="refreshFinanceBtn">Refresh</button>
+                        <h2 class="card-title">⚠️ Resolve Disputes</h2>
+                        <button class="btn btn-secondary" onclick="loadDisputesView()">Refresh</button>
                     </div>
-                    <div id="financeOrdersList">
-                        <!-- Finance orders will be shown here -->
+                    <div id="disputesList">
+                        <!-- Disputed orders will be shown here -->
+                    </div>
+                </div>
+            </div>
+
+<!-- Proforma View -->
+            <div id="proformaView" class="view-content hidden">
+                <div class="card">
+                    <div class="card-header">
+                        <h2 class="card-title">🧾 Enter Proforma</h2>
+                        <button class="btn btn-secondary" onclick="loadProformaView()">Refresh</button>
+                    </div>
+                    <div id="proformaOrdersList">
+                        <!-- Orders needing proforma -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Invoice View -->
+            <div id="invoiceView" class="view-content hidden">
+                <div class="card">
+                    <div class="card-header">
+                        <h2 class="card-title">📄 Enter Invoice</h2>
+                        <button class="btn btn-secondary" onclick="loadInvoiceView()">Refresh</button>
+                    </div>
+                    <div id="invoiceOrdersList">
+                        <!-- Orders needing invoice -->
                     </div>
                 </div>
             </div>
@@ -960,14 +986,16 @@
                 tabs += '<div class="nav-tab" onclick="showView(\'createOrder\')">➕ Create Order</div>';
             }
 
-            if (currentUser.department === 'Management') {
-                tabs += '<div class="nav-tab" onclick="showView(\'approval\')">✅ Approvals</div>';
-                tabs += '<div class="nav-tab" onclick="showView(\'analytics\')">📊 Analytics</div>';
-            }
+if (currentUser.department === 'Management') {
+            tabs += '<div class="nav-tab" onclick="showView(\'approval\')">✅ Approvals</div>';
+            tabs += '<div class="nav-tab" onclick="showView(\'disputes\')">⚠️ Resolve Disputes</div>';
+            tabs += '<div class="nav-tab" onclick="showView(\'analytics\')">📊 Analytics</div>';
+        }
 
-            if (currentUser.department === 'Finance') {
-                tabs += '<div class="nav-tab" onclick="showView(\'finance\')">💰 Finance</div>';
-            }
+if (currentUser.department === 'Finance') {
+            tabs += '<div class="nav-tab" onclick="showView(\'proforma\')">🧾 Enter Proforma</div>';
+            tabs += '<div class="nav-tab" onclick="showView(\'invoice\')">📄 Enter Invoice</div>';
+        }
             
 if (currentUser.department === 'Transport') {
             tabs += '<div class="nav-tab" onclick="showView(\'assignedTrucks\')">🚛 Assigned Trucks</div>';
@@ -997,12 +1025,18 @@ if (currentUser.department === 'Transport') {
             } else if (viewName === 'createOrder') {
                 document.getElementById('createOrderView').classList.remove('hidden');
                 loadCreateOrderForm();
-            } else if (viewName === 'approval') {
-                document.getElementById('approvalView').classList.remove('hidden');
-                loadApprovals();
-            } else if (viewName === 'finance') {
-                document.getElementById('financeView').classList.remove('hidden');
-                loadFinanceDashboard();
+		} else if (viewName === 'approval') {
+            document.getElementById('approvalView').classList.remove('hidden');
+            loadApprovals();
+        } else if (viewName === 'disputes') {
+            document.getElementById('disputesView').classList.remove('hidden');
+            loadDisputesView();
+        } else if (viewName === 'analytics') {
+            document.getElementById('proformaView').classList.remove('hidden');
+            loadProformaView();
+        } else if (viewName === 'invoice') {
+            document.getElementById('invoiceView').classList.remove('hidden');
+            loadInvoiceView();
 } else if (viewName === 'assignedTrucks') {
             document.getElementById('assignedTrucksView').classList.remove('hidden');
             loadAssignedTrucksView();
@@ -1520,6 +1554,180 @@ if (currentUser.department === 'Transport') {
 
             container.innerHTML = html;
         }
+		function loadApprovals() {
+        let pendingOrders = ordersData.filter(o => o.status === 'Pending Approval');
+        pendingOrders = filterOrdersByDate(pendingOrders);
+        const container = document.getElementById('pendingApprovalsList');
+
+        if (pendingOrders.length === 0) {
+            container.innerHTML = '<p style="text-align:center; padding: 2rem; color: #6B7280;">No pending approvals</p>';
+            return;
+        }
+
+        let html = '';
+        pendingOrders.forEach(order => {
+            html += `
+                <div class="card">
+                    ... (order details)
+                </div>
+            `;
+        });
+
+        container.innerHTML = html;
+    }
+
+    // NEW FUNCTION STARTS HERE ⬇️
+    function loadDisputesView() {
+        let disputedOrders = ordersData.filter(o => o.status === 'Disputed');
+        disputedOrders = filterOrdersByDate(disputedOrders);
+
+        const container = document.getElementById('disputesList');
+
+        if (disputedOrders.length === 0) {
+            container.innerHTML = '<p style="text-align:center; padding: 2rem; color: #6B7280;">No disputed orders</p>';
+            return;
+        }
+
+        let html = '';
+        disputedOrders.forEach(order => {
+            html += `
+                <div class="card" style="border-left: 4px solid var(--warning);">
+                    <div style="display: grid; gap: 1rem;">
+                        <div style="display: flex; justify-content: space-between; align-items: start;">
+                            <div style="flex: 1;">
+                                <h3 style="margin-bottom: 0.5rem;">${order.orderID} - ${order.clientName}</h3>
+                                <p style="color: #6B7280; margin-bottom: 0.5rem;">
+                                    ${order.quantity} ${order.unit} of ${order.productType}
+                                </p>
+                                ${order.driverName ? `
+                                <p style="color: #065F46; margin-bottom: 0.5rem;">
+                                    🚛 Driver: <strong>${order.driverName}</strong> | Truck: <strong>${order.truckPlate}</strong>
+                                </p>
+                                ` : ''}
+                                <p style="color: #D97706; font-weight: 500;">
+                                    ⚠️ Dispute Reason: ${order.rejectionReason || 'Not specified'}
+                                </p>
+                            </div>
+                            <span class="status-badge status-disputed">${order.status}</span>
+                        </div>
+                        <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
+                            <button class="btn btn-success" onclick="resolveDispute('${order.orderID}')">✅ Mark as Resolved</button>
+                            <button class="btn btn-secondary" onclick="viewOrderDetails('${order.orderID}')">View Details</button>
+                        </div>
+                    </div>
+                </div>
+            `;
+        });
+
+        container.innerHTML = html;
+    }
+
+    async function resolveDispute(orderID) {
+        const resolution = prompt('Enter resolution details:');
+        if (!resolution) return;
+
+        try {
+            const response = await fetch(APPS_SCRIPT_URL, {
+                method: 'POST',
+                mode: 'no-cors',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    action: 'resolveDispute',
+                    orderID: orderID,
+                    resolverID: currentUser.id,
+                    resolution: resolution
+                })
+            });
+
+            alert(`✅ Dispute for order ${orderID} marked as RESOLVED!`);
+
+            await loadData();
+            loadDisputesView();
+
+        } catch (error) {
+            console.error('Error:', error);
+            alert('❌ Error resolving dispute');
+        }
+    }
+    // NEW FUNCTION ENDS HERE ⬆️
+
+    // Next function will be here (like loadFinanceDashboard or whatever comes next)
+		function loadDisputesView() {
+        let disputedOrders = ordersData.filter(o => o.status === 'Disputed');
+        disputedOrders = filterOrdersByDate(disputedOrders);
+
+        const container = document.getElementById('disputesList');
+
+        if (disputedOrders.length === 0) {
+            container.innerHTML = '<p style="text-align:center; padding: 2rem; color: #6B7280;">No disputed orders</p>';
+            return;
+        }
+
+        let html = '';
+        disputedOrders.forEach(order => {
+            html += `
+                <div class="card" style="border-left: 4px solid var(--warning);">
+                    <div style="display: grid; gap: 1rem;">
+                        <div style="display: flex; justify-content: space-between; align-items: start;">
+                            <div style="flex: 1;">
+                                <h3 style="margin-bottom: 0.5rem;">${order.orderID} - ${order.clientName}</h3>
+                                <p style="color: #6B7280; margin-bottom: 0.5rem;">
+                                    ${order.quantity} ${order.unit} of ${order.productType}
+                                </p>
+                                ${order.driverName ? `
+                                <p style="color: #065F46; margin-bottom: 0.5rem;">
+                                    🚛 Driver: <strong>${order.driverName}</strong> | Truck: <strong>${order.truckPlate}</strong>
+                                </p>
+                                ` : ''}
+                                <p style="color: #D97706; font-weight: 500;">
+                                    ⚠️ Dispute Reason: ${order.rejectionReason || 'Not specified'}
+                                </p>
+                            </div>
+                            <span class="status-badge status-disputed">${order.status}</span>
+                        </div>
+                        <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
+                            <button class="btn btn-success" onclick="resolveDispute('${order.orderID}')">✅ Mark as Resolved</button>
+                            <button class="btn btn-secondary" onclick="viewOrderDetails('${order.orderID}')">View Details</button>
+                        </div>
+                    </div>
+                </div>
+            `;
+        });
+
+        container.innerHTML = html;
+    }
+
+    async function resolveDispute(orderID) {
+        const resolution = prompt('Enter resolution details:');
+        if (!resolution) return;
+
+        try {
+            const response = await fetch(APPS_SCRIPT_URL, {
+                method: 'POST',
+                mode: 'no-cors',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    action: 'resolveDispute',
+                    orderID: orderID,
+                    resolverID: currentUser.id,
+                    resolution: resolution
+                })
+            });
+
+            alert(`✅ Dispute for order ${orderID} marked as RESOLVED!`);
+
+            await loadData();
+            loadDisputesView();
+
+        } catch (error) {
+            console.error('Error:', error);
+            alert('❌ Error resolving dispute');
+        }
+    }
 
         function loadFinanceDashboard() {
             let financeOrders = ordersData.filter(o => 
@@ -1566,6 +1774,95 @@ if (currentUser.department === 'Transport') {
 
             container.innerHTML = html;
         }
+		function loadProformaView() {
+        // Orders that need proforma (Approved or later, but no proforma yet)
+        let proformaOrders = ordersData.filter(o => 
+            o.status !== 'Pending Approval' && 
+            o.status !== 'Rejected' &&
+            !o.proformaNumber
+        );
+        proformaOrders = filterOrdersByDate(proformaOrders);
+
+        const container = document.getElementById('proformaOrdersList');
+
+        if (proformaOrders.length === 0) {
+            container.innerHTML = '<p style="text-align:center; padding: 2rem; color: #6B7280;">No orders need proforma</p>';
+            return;
+        }
+
+        let html = '';
+        proformaOrders.forEach(order => {
+            html += `
+                <div class="card">
+                    <div style="display: grid; gap: 1rem;">
+                        <div style="display: flex; justify-content: space-between; align-items: start;">
+                            <div style="flex: 1;">
+                                <h3 style="margin-bottom: 0.5rem;">${order.orderID} - ${order.clientName}</h3>
+                                <p style="color: #6B7280; margin-bottom: 0.5rem;">
+                                    ${order.quantity} ${order.unit} of ${order.productType} |
+                                    Total: ${order.totalAmount} MKD
+                                </p>
+                                <p style="color: #059669;">
+                                    💰 Margin: <strong>${order.margin} MKD</strong>
+                                </p>
+                            </div>
+                            <span class="status-badge ${getStatusClass(order.status)}">${order.status}</span>
+                        </div>
+                        <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
+                            <button class="btn btn-primary" onclick="showProformaForm('${order.orderID}', '${order.quantity}', '${order.unit}')">🧾 Enter Proforma Number</button>
+                            <button class="btn btn-secondary" onclick="viewOrderDetails('${order.orderID}')">View Details</button>
+                        </div>
+                    </div>
+                </div>
+            `;
+        });
+
+        container.innerHTML = html;
+    }
+
+    function loadInvoiceView() {
+        // Orders that have proforma but no invoice yet
+        let invoiceOrders = ordersData.filter(o => 
+            o.proformaNumber && !o.invoiceNumber
+        );
+        invoiceOrders = filterOrdersByDate(invoiceOrders);
+
+        const container = document.getElementById('invoiceOrdersList');
+
+        if (invoiceOrders.length === 0) {
+            container.innerHTML = '<p style="text-align:center; padding: 2rem; color: #6B7280;">No orders need invoice</p>';
+            return;
+        }
+
+        let html = '';
+        invoiceOrders.forEach(order => {
+            html += `
+                <div class="card">
+                    <div style="display: grid; gap: 1rem;">
+                        <div style="display: flex; justify-content: space-between; align-items: start;">
+                            <div style="flex: 1;">
+                                <h3 style="margin-bottom: 0.5rem;">${order.orderID} - ${order.clientName}</h3>
+                                <p style="color: #6B7280; margin-bottom: 0.5rem;">
+                                    ${order.quantity} ${order.unit} of ${order.productType} |
+                                    Total: ${order.totalAmount} MKD
+                                </p>
+                                <p style="color: #065F46; margin-bottom: 0.5rem;">
+                                    🧾 Proforma: <strong>${order.proformaNumber}</strong>
+                                </p>
+                            </div>
+                            <span class="status-badge ${getStatusClass(order.status)}">${order.status}</span>
+                        </div>
+                        <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
+                            <button class="btn btn-success" onclick="showInvoiceForm('${order.orderID}', '${order.quantity}', '${order.unit}')">📄 Enter Invoice Number</button>
+                            <button class="btn btn-secondary" onclick="viewOrderDetails('${order.orderID}')">View Details</button>
+                        </div>
+                    </div>
+                </div>
+            `;
+        });
+
+        container.innerHTML = html;
+    }
         
         function loadTransportDashboard() {
             // Only show Approved orders that don't have transport assigned yet
