@@ -747,73 +747,7 @@ function formatFileSize(bytes) {
                 padding: 0.5rem;
             }
         }
-        
-        /* ========================================
-           NEW: TAB NAVIGATION - ADD THIS
-           ======================================== */
-        
-.tab-nav {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
-            gap: 1rem;
-            margin: 1rem 0 1.5rem 0;
-        }
-        
-        .stat-tab-card {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            padding: 1.25rem 1rem;
-            border-radius: 12px;
-            cursor: pointer;
-            transition: all 0.3s;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-            border: 3px solid transparent;
-            text-align: center;
-        }
-        
-        .stat-tab-card:hover {
-            transform: translateY(-4px);
-            box-shadow: 0 8px 12px rgba(0,0,0,0.15);
-        }
-        
-        .stat-tab-card.active {
-            border: 3px solid #FFD700;
-            box-shadow: 0 8px 16px rgba(255,215,0,0.4);
-        }
-        
-        .stat-tab-card .stat-value {
-            font-size: 2.5rem;
-            font-weight: bold;
-            color: white;
-            line-height: 1;
-            margin-bottom: 0.5rem;
-        }
-        
-        .stat-tab-card .stat-label {
-            font-size: 0.85rem;
-            color: rgba(255,255,255,0.95);
-            font-weight: 500;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-        
-        /* Different gradient colors */
-        .stat-tab-card.pending { background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); }
-        .stat-tab-card.active-orders { background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); }
-        .stat-tab-card.disputed { background: linear-gradient(135deg, #ff9a56 0%, #ff6a88 100%); }
-        .stat-tab-card.resolved { background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%); }
-        .stat-tab-card.rejected { background: linear-gradient(135deg, #868f96 0%, #596164 100%); }
-        .stat-tab-card.finished { background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%); }
-        .stat-tab-card.warning { background: linear-gradient(135deg, #fa709a 0%, #fee140 100%); }
-        .stat-tab-card.success { background: linear-gradient(135deg, #30cfd0 0%, #330867 100%); }
-        
-        .dispute-card {
-            background: #FEF3C7;
-            border-left: 4px solid var(--warning);
-            padding: 1rem;
-            border-radius: 4px;
-            margin-bottom: 1rem;
-        }
-    </style>
+        </style>
 </head>
     </style>
 </head>
@@ -850,12 +784,7 @@ function formatFileSize(bytes) {
     </div>
 
     <!-- Main Application (Hidden until login) -->
-    <div id="mainApp" class="hidden">
-<!-- NEW: Tab Navigation -->
-        <div class="container">
-            <div id="tabNavigation"></div>
-        </div>
-        
+<div id="mainApp" class="hidden">
         <!-- Navigation Tabs -->
         <div class="nav-tabs">
             <div class="nav-tabs-inner" id="navTabs">
@@ -1393,34 +1322,150 @@ function formatFileSize(bytes) {
             }
         }
 
-        function loadDashboard() {
-            // Load stats
-            let myOrders = currentUser.department === 'Sales' 
-                ? ordersData.filter(o => o.createdBy === currentUser.id)
-                : ordersData;
+// Calculate additional counts for filters
+        const filterCounts = {
+            pending: ordersData.filter(o => o.status === 'Pending Approval').length,
+            active: ordersData.filter(o => 
+                o.status !== 'Pending Approval' && 
+                o.status !== 'Delivered' && 
+                o.status !== 'Disputed' &&
+                o.status !== 'Resolved' && 
+                o.status !== 'Rejected'
+            ).length,
+            disputed: ordersData.filter(o => o.status === 'Disputed').length,
+            resolved: ordersData.filter(o => o.status === 'Resolved').length,
+            rejected: ordersData.filter(o => o.status === 'Rejected').length,
+            finished: ordersData.filter(o => o.status === 'Delivered' || o.status === 'Resolved').length,
             
-            // Apply date filter
-            myOrders = filterOrdersByDate(myOrders);
-
-            // Calculate stats
-            const stats = {
-                total: myOrders.length,
-                pending: myOrders.filter(o => o.status === 'Pending Approval').length,
-                approved: myOrders.filter(o => o.status === 'Approved').length,
-                inProgress: myOrders.filter(o => 
-                    o.status === 'Truck Assigned' || 
-                    o.status === 'In Warehouse' || 
-                    o.status === 'Loading' || 
+            myOrders: currentUser.department === 'Sales' ? ordersData.filter(o => 
+                o.createdBy === currentUser.id &&
+                o.status !== 'Delivered' &&
+                o.status !== 'Disputed' &&
+                o.status !== 'Resolved' &&
+                o.status !== 'Rejected'
+            ).length : 0,
+            
+            forAssigning: ordersData.filter(o => o.status === 'Approved' && !o.driverName).length,
+            assigned: ordersData.filter(o => 
+                o.driverName && (
+                    o.status === 'Truck Assigned' ||
+                    o.status === 'In Warehouse' ||
+                    o.status === 'Loading' ||
                     o.status === 'Left Warehouse'
-                ).length,
-                delivered: myOrders.filter(o => o.status === 'Delivered').length,
-                disputed: myOrders.filter(o => o.status === 'Disputed').length,
-                rejected: myOrders.filter(o => o.status === 'Rejected').length
-            };
-
-const counts = calculateBadgeCounts();
+                )
+            ).length,
+            
+            needsDocs: ordersData.filter(o => !o.proformaNumber || !o.invoiceNumber || (o.status !== 'Delivered' && o.status !== 'Resolved')).length,
+            completed: ordersData.filter(o => o.proformaNumber && o.invoiceNumber && (o.status === 'Delivered' || o.status === 'Resolved')).length,
+            
+            needsProcessing: ordersData.filter(o => o.status === 'Truck Assigned').length,
+            inProgress: ordersData.filter(o => o.status === 'In Warehouse' || o.status === 'Loading' || o.status === 'Left Warehouse').length
+        };
         
         let statsHTML = '';
+        
+        if (currentUser.department === 'Management') {
+            statsHTML = `
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 0.75rem;">
+                    <div onclick="filterOrders('pendingApproval')" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); padding: 1rem; border-radius: 12px; text-align: center; cursor: pointer; box-shadow: 0 4px 6px rgba(0,0,0,0.1); transition: all 0.3s;" onmouseover="this.style.transform='translateY(-4px)'; this.style.boxShadow='0 8px 12px rgba(0,0,0,0.15)'" onmouseout="this.style.transform=''; this.style.boxShadow='0 4px 6px rgba(0,0,0,0.1)'">
+                        <div style="font-size: 2rem; font-weight: bold; color: white; line-height: 1;">${filterCounts.pending}</div>
+                        <div style="font-size: 0.75rem; color: rgba(255,255,255,0.95); margin-top: 0.5rem; font-weight: 500; text-transform: uppercase;">⏳ Pending</div>
+                    </div>
+                    <div onclick="filterOrders('activeOrders')" style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); padding: 1rem; border-radius: 12px; text-align: center; cursor: pointer; box-shadow: 0 4px 6px rgba(0,0,0,0.1); transition: all 0.3s;" onmouseover="this.style.transform='translateY(-4px)'; this.style.boxShadow='0 8px 12px rgba(0,0,0,0.15)'" onmouseout="this.style.transform=''; this.style.boxShadow='0 4px 6px rgba(0,0,0,0.1)'">
+                        <div style="font-size: 2rem; font-weight: bold; color: white; line-height: 1;">${filterCounts.active}</div>
+                        <div style="font-size: 0.75rem; color: rgba(255,255,255,0.95); margin-top: 0.5rem; font-weight: 500; text-transform: uppercase;">📋 Active</div>
+                    </div>
+                    <div onclick="filterOrders('disputed')" style="background: linear-gradient(135deg, #ff9a56 0%, #ff6a88 100%); padding: 1rem; border-radius: 12px; text-align: center; cursor: pointer; box-shadow: 0 4px 6px rgba(0,0,0,0.1); transition: all 0.3s;" onmouseover="this.style.transform='translateY(-4px)'; this.style.boxShadow='0 8px 12px rgba(0,0,0,0.15)'" onmouseout="this.style.transform=''; this.style.boxShadow='0 4px 6px rgba(0,0,0,0.1)'">
+                        <div style="font-size: 2rem; font-weight: bold; color: white; line-height: 1;">${filterCounts.disputed}</div>
+                        <div style="font-size: 0.75rem; color: rgba(255,255,255,0.95); margin-top: 0.5rem; font-weight: 500; text-transform: uppercase;">⚠️ Disputed</div>
+                    </div>
+                    <div onclick="filterOrders('resolved')" style="background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%); padding: 1rem; border-radius: 12px; text-align: center; cursor: pointer; box-shadow: 0 4px 6px rgba(0,0,0,0.1); transition: all 0.3s;" onmouseover="this.style.transform='translateY(-4px)'; this.style.boxShadow='0 8px 12px rgba(0,0,0,0.15)'" onmouseout="this.style.transform=''; this.style.boxShadow='0 4px 6px rgba(0,0,0,0.1)'">
+                        <div style="font-size: 2rem; font-weight: bold; color: white; line-height: 1;">${filterCounts.resolved}</div>
+                        <div style="font-size: 0.75rem; color: rgba(255,255,255,0.95); margin-top: 0.5rem; font-weight: 500; text-transform: uppercase;">✅ Resolved</div>
+                    </div>
+                    <div onclick="filterOrders('rejected')" style="background: linear-gradient(135deg, #868f96 0%, #596164 100%); padding: 1rem; border-radius: 12px; text-align: center; cursor: pointer; box-shadow: 0 4px 6px rgba(0,0,0,0.1); transition: all 0.3s;" onmouseover="this.style.transform='translateY(-4px)'; this.style.boxShadow='0 8px 12px rgba(0,0,0,0.15)'" onmouseout="this.style.transform=''; this.style.boxShadow='0 4px 6px rgba(0,0,0,0.1)'">
+                        <div style="font-size: 2rem; font-weight: bold; color: white; line-height: 1;">${filterCounts.rejected}</div>
+                        <div style="font-size: 0.75rem; color: rgba(255,255,255,0.95); margin-top: 0.5rem; font-weight: 500; text-transform: uppercase;">❌ Rejected</div>
+                    </div>
+                    <div onclick="filterOrders('finished')" style="background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%); padding: 1rem; border-radius: 12px; text-align: center; cursor: pointer; box-shadow: 0 4px 6px rgba(0,0,0,0.1); transition: all 0.3s;" onmouseover="this.style.transform='translateY(-4px)'; this.style.boxShadow='0 8px 12px rgba(0,0,0,0.15)'" onmouseout="this.style.transform=''; this.style.boxShadow='0 4px 6px rgba(0,0,0,0.1)'">
+                        <div style="font-size: 2rem; font-weight: bold; color: white; line-height: 1;">${filterCounts.finished}</div>
+                        <div style="font-size: 0.75rem; color: rgba(255,255,255,0.95); margin-top: 0.5rem; font-weight: 500; text-transform: uppercase;">🏁 Finished</div>
+                    </div>
+                </div>
+            `;
+        } else if (currentUser.department === 'Sales') {
+            statsHTML = `
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 0.75rem;">
+                    <div onclick="filterOrders('myOrders')" style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); padding: 1rem; border-radius: 12px; text-align: center; cursor: pointer; box-shadow: 0 4px 6px rgba(0,0,0,0.1); transition: all 0.3s;" onmouseover="this.style.transform='translateY(-4px)'; this.style.boxShadow='0 8px 12px rgba(0,0,0,0.15)'" onmouseout="this.style.transform=''; this.style.boxShadow='0 4px 6px rgba(0,0,0,0.1)'">
+                        <div style="font-size: 2rem; font-weight: bold; color: white; line-height: 1;">${filterCounts.myOrders}</div>
+                        <div style="font-size: 0.75rem; color: rgba(255,255,255,0.95); margin-top: 0.5rem; font-weight: 500; text-transform: uppercase;">📋 My Orders</div>
+                    </div>
+                    <div onclick="filterOrders('disputed')" style="background: linear-gradient(135deg, #ff9a56 0%, #ff6a88 100%); padding: 1rem; border-radius: 12px; text-align: center; cursor: pointer; box-shadow: 0 4px 6px rgba(0,0,0,0.1); transition: all 0.3s;" onmouseover="this.style.transform='translateY(-4px)'; this.style.boxShadow='0 8px 12px rgba(0,0,0,0.15)'" onmouseout="this.style.transform=''; this.style.boxShadow='0 4px 6px rgba(0,0,0,0.1)'">
+                        <div style="font-size: 2rem; font-weight: bold; color: white; line-height: 1;">${filterCounts.disputed}</div>
+                        <div style="font-size: 0.75rem; color: rgba(255,255,255,0.95); margin-top: 0.5rem; font-weight: 500; text-transform: uppercase;">⚠️ Disputed</div>
+                    </div>
+                    <div onclick="filterOrders('rejected')" style="background: linear-gradient(135deg, #868f96 0%, #596164 100%); padding: 1rem; border-radius: 12px; text-align: center; cursor: pointer; box-shadow: 0 4px 6px rgba(0,0,0,0.1); transition: all 0.3s;" onmouseover="this.style.transform='translateY(-4px)'; this.style.boxShadow='0 8px 12px rgba(0,0,0,0.15)'" onmouseout="this.style.transform=''; this.style.boxShadow='0 4px 6px rgba(0,0,0,0.1)'">
+                        <div style="font-size: 2rem; font-weight: bold; color: white; line-height: 1;">${filterCounts.rejected}</div>
+                        <div style="font-size: 0.75rem; color: rgba(255,255,255,0.95); margin-top: 0.5rem; font-weight: 500; text-transform: uppercase;">❌ Rejected</div>
+                    </div>
+                    <div onclick="filterOrders('finished')" style="background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%); padding: 1rem; border-radius: 12px; text-align: center; cursor: pointer; box-shadow: 0 4px 6px rgba(0,0,0,0.1); transition: all 0.3s;" onmouseover="this.style.transform='translateY(-4px)'; this.style.boxShadow='0 8px 12px rgba(0,0,0,0.15)'" onmouseout="this.style.transform=''; this.style.boxShadow='0 4px 6px rgba(0,0,0,0.1)'">
+                        <div style="font-size: 2rem; font-weight: bold; color: white; line-height: 1;">${filterCounts.finished}</div>
+                        <div style="font-size: 0.75rem; color: rgba(255,255,255,0.95); margin-top: 0.5rem; font-weight: 500; text-transform: uppercase;">🏁 Finished</div>
+                    </div>
+                </div>
+            `;
+        } else if (currentUser.department === 'Finance') {
+            statsHTML = `
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 0.75rem;">
+                    <div onclick="filterOrders('needsDocs')" style="background: linear-gradient(135deg, #fa709a 0%, #fee140 100%); padding: 1rem; border-radius: 12px; text-align: center; cursor: pointer; box-shadow: 0 4px 6px rgba(0,0,0,0.1); transition: all 0.3s;" onmouseover="this.style.transform='translateY(-4px)'; this.style.boxShadow='0 8px 12px rgba(0,0,0,0.15)'" onmouseout="this.style.transform=''; this.style.boxShadow='0 4px 6px rgba(0,0,0,0.1)'">
+                        <div style="font-size: 2rem; font-weight: bold; color: white; line-height: 1;">${filterCounts.needsDocs}</div>
+                        <div style="font-size: 0.75rem; color: rgba(255,255,255,0.95); margin-top: 0.5rem; font-weight: 500; text-transform: uppercase;">📝 Needs Docs</div>
+                    </div>
+                    <div onclick="filterOrders('completed')" style="background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%); padding: 1rem; border-radius: 12px; text-align: center; cursor: pointer; box-shadow: 0 4px 6px rgba(0,0,0,0.1); transition: all 0.3s;" onmouseover="this.style.transform='translateY(-4px)'; this.style.boxShadow='0 8px 12px rgba(0,0,0,0.15)'" onmouseout="this.style.transform=''; this.style.boxShadow='0 4px 6px rgba(0,0,0,0.1)'">
+                        <div style="font-size: 2rem; font-weight: bold; color: white; line-height: 1;">${filterCounts.completed}</div>
+                        <div style="font-size: 0.75rem; color: rgba(255,255,255,0.95); margin-top: 0.5rem; font-weight: 500; text-transform: uppercase;">✅ Completed</div>
+                    </div>
+                </div>
+            `;
+        } else if (currentUser.department === 'Transport') {
+            statsHTML = `
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 0.75rem;">
+                    <div onclick="filterOrders('forAssigning')" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); padding: 1rem; border-radius: 12px; text-align: center; cursor: pointer; box-shadow: 0 4px 6px rgba(0,0,0,0.1); transition: all 0.3s;" onmouseover="this.style.transform='translateY(-4px)'; this.style.boxShadow='0 8px 12px rgba(0,0,0,0.15)'" onmouseout="this.style.transform=''; this.style.boxShadow='0 4px 6px rgba(0,0,0,0.1)'">
+                        <div style="font-size: 2rem; font-weight: bold; color: white; line-height: 1;">${filterCounts.forAssigning}</div>
+                        <div style="font-size: 0.75rem; color: rgba(255,255,255,0.95); margin-top: 0.5rem; font-weight: 500; text-transform: uppercase;">🚛 For Assigning</div>
+                    </div>
+                    <div onclick="filterOrders('assigned')" style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); padding: 1rem; border-radius: 12px; text-align: center; cursor: pointer; box-shadow: 0 4px 6px rgba(0,0,0,0.1); transition: all 0.3s;" onmouseover="this.style.transform='translateY(-4px)'; this.style.boxShadow='0 8px 12px rgba(0,0,0,0.15)'" onmouseout="this.style.transform=''; this.style.boxShadow='0 4px 6px rgba(0,0,0,0.1)'">
+                        <div style="font-size: 2rem; font-weight: bold; color: white; line-height: 1;">${filterCounts.assigned}</div>
+                        <div style="font-size: 0.75rem; color: rgba(255,255,255,0.95); margin-top: 0.5rem; font-weight: 500; text-transform: uppercase;">📋 Assigned</div>
+                    </div>
+                    <div onclick="filterOrders('disputed')" style="background: linear-gradient(135deg, #ff9a56 0%, #ff6a88 100%); padding: 1rem; border-radius: 12px; text-align: center; cursor: pointer; box-shadow: 0 4px 6px rgba(0,0,0,0.1); transition: all 0.3s;" onmouseover="this.style.transform='translateY(-4px)'; this.style.boxShadow='0 8px 12px rgba(0,0,0,0.15)'" onmouseout="this.style.transform=''; this.style.boxShadow='0 4px 6px rgba(0,0,0,0.1)'">
+                        <div style="font-size: 2rem; font-weight: bold; color: white; line-height: 1;">${filterCounts.disputed}</div>
+                        <div style="font-size: 0.75rem; color: rgba(255,255,255,0.95); margin-top: 0.5rem; font-weight: 500; text-transform: uppercase;">⚠️ Disputed</div>
+                    </div>
+                    <div onclick="filterOrders('finished')" style="background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%); padding: 1rem; border-radius: 12px; text-align: center; cursor: pointer; box-shadow: 0 4px 6px rgba(0,0,0,0.1); transition: all 0.3s;" onmouseover="this.style.transform='translateY(-4px)'; this.style.boxShadow='0 8px 12px rgba(0,0,0,0.15)'" onmouseout="this.style.transform=''; this.style.boxShadow='0 4px 6px rgba(0,0,0,0.1)'">
+                        <div style="font-size: 2rem; font-weight: bold; color: white; line-height: 1;">${filterCounts.finished}</div>
+                        <div style="font-size: 0.75rem; color: rgba(255,255,255,0.95); margin-top: 0.5rem; font-weight: 500; text-transform: uppercase;">🏁 Finished</div>
+                    </div>
+                </div>
+            `;
+        } else if (currentUser.department === 'Warehouse') {
+            statsHTML = `
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 0.75rem;">
+                    <div onclick="filterOrders('needsProcessing')" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); padding: 1rem; border-radius: 12px; text-align: center; cursor: pointer; box-shadow: 0 4px 6px rgba(0,0,0,0.1); transition: all 0.3s;" onmouseover="this.style.transform='translateY(-4px)'; this.style.boxShadow='0 8px 12px rgba(0,0,0,0.15)'" onmouseout="this.style.transform=''; this.style.boxShadow='0 4px 6px rgba(0,0,0,0.1)'">
+                        <div style="font-size: 2rem; font-weight: bold; color: white; line-height: 1;">${filterCounts.needsProcessing}</div>
+                        <div style="font-size: 0.75rem; color: rgba(255,255,255,0.95); margin-top: 0.5rem; font-weight: 500; text-transform: uppercase;">📦 Needs Processing</div>
+                    </div>
+                    <div onclick="filterOrders('inProgress')" style="background: linear-gradient(135deg, #fa709a 0%, #fee140 100%); padding: 1rem; border-radius: 12px; text-align: center; cursor: pointer; box-shadow: 0 4px 6px rgba(0,0,0,0.1); transition: all 0.3s;" onmouseover="this.style.transform='translateY(-4px)'; this.style.boxShadow='0 8px 12px rgba(0,0,0,0.15)'" onmouseout="this.style.transform=''; this.style.boxShadow='0 4px 6px rgba(0,0,0,0.1)'">
+                        <div style="font-size: 2rem; font-weight: bold; color: white; line-height: 1;">${filterCounts.inProgress}</div>
+                        <div style="font-size: 0.75rem; color: rgba(255,255,255,0.95); margin-top: 0.5rem; font-weight: 500; text-transform: uppercase;">⏳ In Progress</div>
+                    </div>
+                    <div onclick="filterOrders('finished')" style="background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%); padding: 1rem; border-radius: 12px; text-align: center; cursor: pointer; box-shadow: 0 4px 6px rgba(0,0,0,0.1); transition: all 0.3s;" onmouseover="this.style.transform='translateY(-4px)'; this.style.boxShadow='0 8px 12px rgba(0,0,0,0.15)'" onmouseout="this.style.transform=''; this.style.boxShadow='0 4px 6px rgba(0,0,0,0.1)'">
+                        <div style="font-size: 2rem; font-weight: bold; color: white; line-height: 1;">${filterCounts.finished}</div>
+                        <div style="font-size: 0.75rem; color: rgba(255,255,255,0.95); margin-top: 0.5rem; font-weight: 500; text-transform: uppercase;">🏁 Finished</div>
+                    </div>
+                </div>
+            `;
+        }
         
         if (currentUser.department === 'Management') {
             statsHTML = `
@@ -3241,259 +3286,6 @@ const counts = calculateBadgeCounts();
                 closeModal();
             }
         }
-        
-        // ========================================
-        // NEW: TAB NAVIGATION SYSTEM
-        // ========================================
-        
-        let currentActiveTab = null;
-        let autoRefreshInterval = null;
-        
-        }
-                        <button class="tab-btn" onclick="switchDashboardTab('activeOrders')" data-tab="activeOrders">
-                            📋 Active Orders <span class="badge">${counts.active}</span>
-                        </button>
-                        <button class="tab-btn" onclick="switchDashboardTab('disputed')" data-tab="disputed">
-                            ⚠️ Disputed <span class="badge badge-warning">${counts.disputed}</span>
-                        </button>
-                        <button class="tab-btn" onclick="switchDashboardTab('resolved')" data-tab="resolved">
-                            ✅ Resolved <span class="badge badge-success">${counts.resolved}</span>
-                        </button>
-                        <button class="tab-btn" onclick="switchDashboardTab('rejected')" data-tab="rejected">
-                            ❌ Rejected <span class="badge badge-danger">${counts.rejected}</span>
-                        </button>
-                        <button class="tab-btn" onclick="switchDashboardTab('finished')" data-tab="finished">
-                            🏁 Finished <span class="badge">${counts.finished}</span>
-                        </button>
-                    </div>
-                `;
-            } else if (currentUser.department === 'Sales') {
-                html = `
-                    <div class="tab-nav">
-                        <button class="tab-btn active" onclick="switchDashboardTab('myOrders')" data-tab="myOrders">
-                            📋 My Orders <span class="badge">${counts.myOrders}</span>
-                        </button>
-                        <button class="tab-btn" onclick="switchDashboardTab('disputed')" data-tab="disputed">
-                            ⚠️ Disputed <span class="badge badge-warning">${counts.disputed}</span>
-                        </button>
-                        <button class="tab-btn" onclick="switchDashboardTab('rejected')" data-tab="rejected">
-                            ❌ Rejected <span class="badge badge-danger">${counts.rejected}</span>
-                        </button>
-                        <button class="tab-btn" onclick="switchDashboardTab('finished')" data-tab="finished">
-                            🏁 Finished <span class="badge">${counts.finished}</span>
-                        </button>
-                    </div>
-                `;
-            } else if (currentUser.department === 'Finance') {
-                html = `
-                    <div class="tab-nav">
-                        <button class="tab-btn active" onclick="switchDashboardTab('needsDocs')" data-tab="needsDocs">
-                            📝 Needs Documents <span class="badge">${counts.needsDocs}</span>
-                        </button>
-                        <button class="tab-btn" onclick="switchDashboardTab('completed')" data-tab="completed">
-                            ✅ Completed <span class="badge badge-success">${counts.completed}</span>
-                        </button>
-                    </div>
-                `;
-            } else if (currentUser.department === 'Transport') {
-                html = `
-                    <div class="tab-nav">
-                        <button class="tab-btn active" onclick="switchDashboardTab('forAssigning')" data-tab="forAssigning">
-                            🚛 For Assigning <span class="badge">${counts.forAssigning}</span>
-                        </button>
-                        <button class="tab-btn" onclick="switchDashboardTab('assigned')" data-tab="assigned">
-                            📋 Assigned <span class="badge">${counts.assigned}</span>
-                        </button>
-                        <button class="tab-btn" onclick="switchDashboardTab('disputed')" data-tab="disputed">
-                            ⚠️ Disputed <span class="badge badge-warning">${counts.disputed}</span>
-                        </button>
-                        <button class="tab-btn" onclick="switchDashboardTab('finished')" data-tab="finished">
-                            🏁 Finished <span class="badge">${counts.finished}</span>
-                        </button>
-                    </div>
-                `;
-            } else if (currentUser.department === 'Warehouse') {
-                html = `
-                    <div class="tab-nav">
-                        <button class="tab-btn active" onclick="switchDashboardTab('needsProcessing')" data-tab="needsProcessing">
-                            📦 Needs Processing <span class="badge">${counts.needsProcessing}</span>
-                        </button>
-                        <button class="tab-btn" onclick="switchDashboardTab('inProgress')" data-tab="inProgress">
-                            ⏳ In Progress <span class="badge">${counts.inProgress}</span>
-                        </button>
-                        <button class="tab-btn" onclick="switchDashboardTab('finished')" data-tab="finished">
-                            🏁 Finished <span class="badge">${counts.finished}</span>
-                        </button>
-                    </div>
-                `;
-            }
-            
-            container.innerHTML = html;
-        }
-        
-        function calculateBadgeCounts() {
-            let counts = {
-                pending: ordersData.filter(o => o.status === 'Pending Approval').length,
-                active: ordersData.filter(o => 
-                    o.status !== 'Pending Approval' && 
-                    o.status !== 'Delivered' && 
-                    o.status !== 'Disputed' &&
-                    o.status !== 'Resolved' && 
-                    o.status !== 'Rejected'
-                ).length,
-                disputed: ordersData.filter(o => o.status === 'Disputed').length,
-                resolved: ordersData.filter(o => o.status === 'Resolved').length,
-                rejected: ordersData.filter(o => o.status === 'Rejected').length,
-                finished: ordersData.filter(o => o.status === 'Delivered' || o.status === 'Resolved').length,
-                
-                forAssigning: ordersData.filter(o => o.status === 'Approved' && !o.driverName).length,
-                assigned: ordersData.filter(o => 
-                    o.driverName && (
-                        o.status === 'Truck Assigned' ||
-                        o.status === 'In Warehouse' ||
-                        o.status === 'Loading' ||
-                        o.status === 'Left Warehouse'
-                    )
-                ).length,
-                
-                needsDocs: ordersData.filter(o => !o.proformaNumber || !o.invoiceNumber || (o.status !== 'Delivered' && o.status !== 'Resolved')).length,
-                completed: ordersData.filter(o => o.proformaNumber && o.invoiceNumber && (o.status === 'Delivered' || o.status === 'Resolved')).length,
-                
-                needsProcessing: ordersData.filter(o => o.status === 'Truck Assigned').length,
-                inProgress: ordersData.filter(o => o.status === 'In Warehouse' || o.status === 'Loading' || o.status === 'Left Warehouse').length
-            };
-            
-            if (currentUser.department === 'Sales') {
-                counts.myOrders = ordersData.filter(o => 
-                    o.createdBy === currentUser.id &&
-                    o.status !== 'Delivered' &&
-                    o.status !== 'Disputed' &&
-                    o.status !== 'Resolved' &&
-                    o.status !== 'Rejected'
-                ).length;
-                counts.disputed = ordersData.filter(o => o.createdBy === currentUser.id && o.status === 'Disputed').length;
-                counts.rejected = ordersData.filter(o => o.createdBy === currentUser.id && o.status === 'Rejected').length;
-                counts.finished = ordersData.filter(o => o.createdBy === currentUser.id && (o.status === 'Delivered' || o.status === 'Resolved')).length;
-            }
-            
-            return counts;
-        }
-        
-			function switchDashboardTab(tabName) {
-            document.querySelectorAll('.stat-tab-card').forEach(card => card.classList.remove('active'));
-            const activeCard = document.querySelector(`[data-tab="${tabName}"]`);
-            if (activeBtn) activeBtn.classList.add('active');
-            
-            currentActiveTab = tabName;
-            
-            let filteredOrders = [];
-            
-            if (currentUser.department === 'Management') {
-                if (tabName === 'pendingApproval') {
-                    filteredOrders = ordersData.filter(o => o.status === 'Pending Approval');
-                } else if (tabName === 'activeOrders') {
-                    filteredOrders = ordersData.filter(o => 
-                        o.status !== 'Pending Approval' && 
-                        o.status !== 'Delivered' && 
-                        o.status !== 'Disputed' &&
-                        o.status !== 'Resolved' && 
-                        o.status !== 'Rejected'
-                    );
-                } else if (tabName === 'disputed') {
-                    filteredOrders = ordersData.filter(o => o.status === 'Disputed');
-                } else if (tabName === 'resolved') {
-                    filteredOrders = ordersData.filter(o => o.status === 'Resolved');
-                } else if (tabName === 'rejected') {
-                    filteredOrders = ordersData.filter(o => o.status === 'Rejected');
-                } else if (tabName === 'finished') {
-                    filteredOrders = ordersData.filter(o => o.status === 'Delivered' || o.status === 'Resolved');
-                }
-            } else if (currentUser.department === 'Sales') {
-                if (tabName === 'myOrders') {
-                    filteredOrders = ordersData.filter(o => 
-                        o.createdBy === currentUser.id &&
-                        o.status !== 'Delivered' &&
-                        o.status !== 'Disputed' &&
-                        o.status !== 'Resolved' &&
-                        o.status !== 'Rejected'
-                    );
-                } else if (tabName === 'disputed') {
-                    filteredOrders = ordersData.filter(o => o.createdBy === currentUser.id && o.status === 'Disputed');
-                } else if (tabName === 'rejected') {
-                    filteredOrders = ordersData.filter(o => o.createdBy === currentUser.id && o.status === 'Rejected');
-                } else if (tabName === 'finished') {
-                    filteredOrders = ordersData.filter(o => o.createdBy === currentUser.id && (o.status === 'Delivered' || o.status === 'Resolved'));
-                }
-            } else if (currentUser.department === 'Finance') {
-                if (tabName === 'needsDocs') {
-                    filteredOrders = ordersData.filter(o => !o.proformaNumber || !o.invoiceNumber || (o.status !== 'Delivered' && o.status !== 'Resolved'));
-                } else if (tabName === 'completed') {
-                    filteredOrders = ordersData.filter(o => o.proformaNumber && o.invoiceNumber && (o.status === 'Delivered' || o.status === 'Resolved'));
-                }
-            } else if (currentUser.department === 'Transport') {
-                if (tabName === 'forAssigning') {
-                    filteredOrders = ordersData.filter(o => o.status === 'Approved' && !o.driverName);
-                } else if (tabName === 'assigned') {
-                    filteredOrders = ordersData.filter(o => 
-                        o.driverName && (
-                            o.status === 'Truck Assigned' ||
-                            o.status === 'In Warehouse' ||
-                            o.status === 'Loading' ||
-                            o.status === 'Left Warehouse'
-                        )
-                    );
-                } else if (tabName === 'disputed') {
-                    filteredOrders = ordersData.filter(o => o.status === 'Disputed' && o.driverName);
-                } else if (tabName === 'finished') {
-                    filteredOrders = ordersData.filter(o => o.driverName && (o.status === 'Delivered' || o.status === 'Resolved'));
-                }
-            } else if (currentUser.department === 'Warehouse') {
-                if (tabName === 'needsProcessing') {
-                    filteredOrders = ordersData.filter(o => o.status === 'Truck Assigned');
-                } else if (tabName === 'inProgress') {
-                    filteredOrders = ordersData.filter(o => o.status === 'In Warehouse' || o.status === 'Loading' || o.status === 'Left Warehouse');
-                } else if (tabName === 'finished') {
-                    filteredOrders = ordersData.filter(o => o.status === 'Delivered' || o.status === 'Resolved');
-                }
-            }
-            
-            filteredOrders = filterOrdersByDate(filteredOrders);
-            loadOrdersTable(filteredOrders);
-        }
-        
-        function startAutoRefresh() {
-            if (autoRefreshInterval) clearInterval(autoRefreshInterval);
-            
-            autoRefreshInterval = setInterval(async () => {
-                console.log('🔄 Auto-refresh (2 min)');
-                await loadData();
-                if (currentActiveTab) {
-                    switchDashboardTab(currentActiveTab);
-                }
-            }, 120000);
-        }
-        
-        // Update initializeApp to include tab navigation
-        const originalInitializeApp = initializeApp;
-        initializeApp = function() {
-            originalInitializeApp();
-            renderTabNavigation();
-            startAutoRefresh();
-            
-            if (currentUser.department === 'Management') {
-                switchDashboardTab('pendingApproval');
-            } else if (currentUser.department === 'Sales') {
-                switchDashboardTab('myOrders');
-            } else if (currentUser.department === 'Finance') {
-                switchDashboardTab('needsDocs');
-            } else if (currentUser.department === 'Transport') {
-                switchDashboardTab('forAssigning');
-            } else if (currentUser.department === 'Warehouse') {
-                switchDashboardTab('needsProcessing');
-            }
-        };
-        
-        console.log('✅ Tab navigation system loaded');
     </script>
 </body>
 </html>
