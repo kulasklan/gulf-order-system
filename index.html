@@ -833,11 +833,20 @@
         // ========================================
         // DATA LOADING
         // ========================================
-        async function loadData() {
+async function loadData() {
             try {
                 console.log('📥 Loading data from server...');
                 
-                const response = await fetch(`${APPS_SCRIPT_URL}?action=getAllData&timestamp=${Date.now()}`);
+                // Use GET request for fetching data
+                const url = `${APPS_SCRIPT_URL}?action=getAllData&timestamp=${Date.now()}`;
+                console.log('📡 Fetching from:', url);
+                
+                const response = await fetch(url);
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                
                 const data = await response.json();
                 
                 console.log('✅ Data loaded:', data);
@@ -851,7 +860,7 @@
                 return data;
             } catch (error) {
                 console.error('❌ Error loading data:', error);
-                alert('Error loading data. Please refresh the page.');
+                alert('Error loading data: ' + error.message + '\n\nPlease check:\n1. Apps Script URL is correct\n2. Apps Script is deployed as Web App\n3. Access is set to "Anyone"');
                 throw error;
             }
         }
