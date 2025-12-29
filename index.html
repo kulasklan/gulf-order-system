@@ -806,6 +806,7 @@
         let logsData = [];
         let driversData = [];
         let transportCompaniesData = [];
+        let documentsData = [];
         
         // Date range filter - default to last 7 days
         let dateFilterStart = new Date();
@@ -1021,6 +1022,28 @@
                         trucks: row[2] ? row[2].split(',').map(t => t.trim()) : []
                     }));
                     console.log('✅ Loaded', transportCompaniesData.length, 'transport companies from Google Sheets');
+                }
+                
+                // Load Documents from Google Sheets
+                const documentsUrl = `https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_ID}/values/Documents!A2:H1000?key=${API_KEY}`;
+                const documentsResponse = await fetch(documentsUrl);
+                const documentsJson = await documentsResponse.json();
+                
+                if (documentsJson.values) {
+                    documentsData = documentsJson.values.map(row => ({
+                        orderID: row[0] || '',
+                        fileName: row[1] || '',
+                        fileType: row[2] || '',
+                        documentType: row[3] || '',
+                        fileId: row[4] || '',
+                        fileUrl: row[5] || '',
+                        uploadedBy: row[6] || '',
+                        uploadedDate: row[7] || ''
+                    }));
+                    console.log('✅ Loaded', documentsData.length, 'documents from Google Sheets');
+                } else {
+                    documentsData = [];
+                    console.log('ℹ️ No documents found (Documents sheet may be empty)');
                 }
                 
             } catch (error) {
@@ -1832,6 +1855,62 @@
         async function loadDocumentsList(orderID) {
             const container = document.getElementById('documentsListContainer');
             
+            // Filter documents for this order
+            const orderDocuments = documentsData.filter(doc => doc.orderID === orderID);
+            
+            if (orderDocuments.length === 0) {
+                container.innerHTML = `
+                    <div style="padding: 1rem; background: var(--light); border-radius: 4px; text-align: center;">
+                        <p style="color: #6B7280;">📁 No documents uploaded yet</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            // Display documents list
+            let html = '<div style="display: grid; gap: 0.5rem;">';
+            
+            orderDocuments.forEach(doc => {
+                const uploadDate = doc.uploadedDate ? new Date(doc.uploadedDate).toLocaleString() : '';
+                const canDelete = (currentUser.department === 'Warehouse' || currentUser.department === 'Transport');
+                
+                html += `
+                    <div style="display: flex; justify-content: space-between; align-items: center; padding: 0.75rem; background: white; border: 1px solid #E5E7EB; border-radius: 4px;">
+                        <div style="flex: 1;">
+                            <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.25rem;">
+                                <a href="${doc.fileUrl}" target="_blank" style="color: var(--primary); text-decoration: none; font-weight: 500;">
+                                    📄 ${doc.fileName}
+                                </a>
+                                <span style="background: #DBEAFE; color: #1E40AF; padding: 0.125rem 0.5rem; border-radius: 12px; font-size: 0.75rem;">
+                                    ${doc.documentType}
+                                </span>
+                            </div>
+                            <div style="font-size: 0.75rem; color: #6B7280;">
+                                Uploaded by ${doc.uploadedBy} • ${uploadDate}
+                            </div>
+                        </div>
+                        ${canDelete ? `
+                            <button class="btn btn-danger" onclick="deleteDocumentConfirm('${orderID}', '${doc.fileId}', '${doc.fileName}')" style="padding: 0.25rem 0.75rem; font-size: 0.85rem;">
+                                🗑️ Delete
+                            </button>
+                        ` : ''}
+                    </div>
+                `;
+            });
+            
+            html += '</div>';
+            container.innerHTML = html;
+        }
+        
+        function deleteDocumentConfirm(orderID, fileId, fileName) {
+            if (!confirm(`Delete document "${fileName}"?\n\nThis will move it to Google Drive trash.`)) {
+                return;
+            }
+            
+            deleteDocumentFromOrder(orderID, fileId);
+        }
+        
+        async function deleteDocumentFromOrder(orderID, fileId) {
             try {
                 const response = await fetch(APPS_SCRIPT_URL, {
                     method: 'POST',
@@ -1840,24 +1919,24 @@
                         'Content-Type': 'application/json',
                     },
                     body: JSON.stringify({
-                        action: 'listDocuments',
-                        orderID: orderID
+                        action: 'deleteDocument',
+                        orderID: orderID,
+                        fileId: fileId,
+                        deletedBy: currentUser.id
                     })
                 });
                 
-                // Note: Due to no-cors, we can't read the response
-                // So we'll use a different approach - store documents info in sheet
-                // For now, show a simple message
-                container.innerHTML = `
-                    <div style="padding: 1rem; background: var(--light); border-radius: 4px; text-align: center;">
-                        <p style="color: #6B7280; margin-bottom: 0.5rem;">📁 Documents are stored in Google Drive</p>
-                        <p style="color: #6B7280; font-size: 0.85rem;">Upload files above, they will be saved to the order folder</p>
-                    </div>
-                `;
+                alert('✅ Document deleted successfully!');
+                
+                // Reload data
+                await loadData();
+                
+                // Reload documents list
+                loadDocumentsList(orderID);
                 
             } catch (error) {
-                console.error('Error loading documents:', error);
-                container.innerHTML = '<p style="color: #DC2626; text-align: center;">Error loading documents</p>';
+                console.error('Error deleting document:', error);
+                alert('❌ Error deleting document');
             }
         }
         
@@ -1914,6 +1993,9 @@
                     
                     // Clear the form
                     fileInput.value = '';
+                    
+                    // Reload all data to get updated documents list
+                    await loadData();
                     
                     // Reload documents list
                     loadDocumentsList(orderID);
