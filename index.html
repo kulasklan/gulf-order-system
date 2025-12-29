@@ -2190,13 +2190,12 @@ function loadApprovals() {
 document.getElementById('createOrderForm').addEventListener('submit', async (e) => {
     e.preventDefault();
 
-    // Generate Order ID - FIXED VERSION
+    // Generate Order ID
     const today = new Date();
     const year = today.getFullYear();
     const month = String(today.getMonth() + 1).padStart(2, '0');
     const day = String(today.getDate()).padStart(2, '0');
     
-    // Count orders created TODAY by this user
     const todayString = `${year}-${month}-${day}`;
     const todayOrders = ordersData.filter(o => 
         o.orderDate === todayString && o.createdBy === currentUser.id
@@ -2204,68 +2203,64 @@ document.getElementById('createOrderForm').addEventListener('submit', async (e) 
     
     const orderNumber = String(todayOrders + 1).padStart(5, '0');
     const orderID = `ORD${orderNumber}-${year}${month}${day}`;
-            
-            // Get form data
-            const clientID = document.getElementById('clientSelect').value;
-            const client = clientsData.find(c => c.clientID === clientID);
-            
-            const orderData = {
-                orderID: orderID,
-                orderDate: new Date().toISOString().split('T')[0],
-                createdBy: currentUser.id,
-                clientID: clientID,
-                clientName: client ? client.clientName : '',
-                productType: document.getElementById('productTypeSelect').value,
-                unit: document.getElementById('unitSelect').value,
-                quantity: document.getElementById('quantityInput').value,
-                margin: document.getElementById('marginInput').value,
-                warehouse: document.getElementById('warehouseSelect').value,
-                requestedDeliveryDate: document.getElementById('deliveryDateInput').value,
-                preferredDeliveryTime: document.getElementById('deliveryTimeInput').value,
-                paymentTerms: document.getElementById('paymentTermsSelect').value,
-                priority: document.getElementById('prioritySelect').value,
-                avoidAfterwork: document.getElementById('avoidAfterworkCheck').checked,
-                noGulfBrand: document.getElementById('noGulfBrandCheck').checked,
-                notes: document.getElementById('orderNotesInput').value,
-                status: 'Pending Approval'
-            };
-            
-            // Show loading
-            const submitBtn = e.target.querySelector('button[type="submit"]');
-            const originalText = submitBtn.textContent;
-            submitBtn.textContent = 'Creating...';
-            submitBtn.disabled = true;
-            
-            try {
-                // Send to Apps Script Web App
-                const response = await fetch(APPS_SCRIPT_URL, {
-                    method: 'POST',
-                    mode: 'no-cors',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({
-                        action: 'createOrder',
-                        orderData: orderData
-                    })
-                });
-                
-                // With no-cors, if no error thrown, it succeeded
-                alert(`✅ Order ${orderData.orderID} created successfully!`);
-                document.getElementById('createOrderForm').reset();
-                
-                // Reload data and refresh dashboard
-                await loadData();
-                showView('dashboard');
-                
-            } catch (error) {
-                console.error('Error:', error);
-                alert('❌ Error creating order: ' + error.message);
-            } finally {
-                submitBtn.textContent = originalText;
-                submitBtn.disabled = false;
-            }
+    
+    // Get form data
+    const clientID = document.getElementById('clientSelect').value;
+    const client = clientsData.find(c => c.clientID === clientID);
+    
+    const orderData = {
+        action: 'createOrder',  // ✅ ADD THIS LINE
+        orderID: orderID,
+        orderDate: today.toISOString().split('T')[0],
+        createdBy: currentUser.id,
+        clientID: clientID,
+        clientName: client ? client.clientName : '',
+        productType: document.getElementById('productTypeSelect').value,
+        unit: document.getElementById('unitSelect').value,
+        quantity: document.getElementById('quantityInput').value,
+        margin: document.getElementById('marginInput').value,
+        warehouse: document.getElementById('warehouseSelect').value,
+        requestedDeliveryDate: document.getElementById('deliveryDateInput').value,
+        preferredTime: document.getElementById('deliveryTimeInput').value,
+        paymentTerms: document.getElementById('paymentTermsSelect').value,
+        priority: document.getElementById('prioritySelect').value,
+        avoidAfterwork: document.getElementById('avoidAfterworkCheck').checked ? 'Yes' : 'No',
+        noGulfBrand: document.getElementById('noGulfBrandCheck').checked,
+        notes: document.getElementById('orderNotesInput').value || ''
+    };
+    
+    console.log('📤 Sending order data:', orderData);  // ✅ Debug log
+    
+    // Show loading
+    const submitBtn = e.target.querySelector('button[type="submit"]');
+    const originalText = submitBtn.textContent;
+    submitBtn.textContent = 'Creating...';
+    submitBtn.disabled = true;
+    
+    try {
+        const response = await fetch(APPS_SCRIPT_URL, {
+            method: 'POST',
+            mode: 'no-cors',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(orderData)  // ✅ Send directly
         });
+        
+        alert(`✅ Order ${orderData.orderID} created successfully!`);
+        document.getElementById('createOrderForm').reset();
+        
+        await loadData();
+        showView('dashboard');
+        
+    } catch (error) {
+        console.error('Error:', error);
+        alert('❌ Error creating order: ' + error.message);
+    } finally {
+        submitBtn.textContent = originalText;
+        submitBtn.disabled = false;
+    }
+});
 
         async function approveOrder(orderID) {
             if (!confirm(`Approve order ${orderID}?`)) return;
@@ -2342,21 +2337,15 @@ document.getElementById('createOrderForm').addEventListener('submit', async (e) 
             const note = prompt('Additional note (optional):') || '';
             
             try {
-                const response = await fetch(APPS_SCRIPT_URL, {
+const response = await fetch(APPS_SCRIPT_URL, {
                     method: 'POST',
                     mode: 'no-cors',
                     headers: {
                         'Content-Type': 'application/json',
                     },
                     body: JSON.stringify({
-                        action: 'enterProforma',
-                        orderID: orderID,
-                        financeUserID: currentUser.id,
-                        proformaNumber: proformaNumber,
-                        litres: litres,
-                        margin: margin,
-                        totalPrice: totalPrice,
-                        note: note
+                        action: 'createOrder',
+                        ...orderData  // ✅ Spread the data at the top level
                     })
                 });
                 
@@ -3588,12 +3577,12 @@ document.getElementById('createOrderForm').addEventListener('submit', async (e) 
         }
         
 // Close modal on outside click
-        window.onclick = function(event) {
-            const modal = document.getElementById('orderDetailsModal');
-            if (event.target === modal) {
-                closeModal();
-            }
-        }
+window.onclick = function(event) {
+    const modal = document.getElementById('orderDetailsModal');
+    if (event.target === modal) {
+        closeModal();
+    }
+}
         
         // ========================================
         // NEW: TAB NAVIGATION SYSTEM
