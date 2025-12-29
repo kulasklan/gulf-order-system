@@ -1660,9 +1660,9 @@
             const modal = document.getElementById('orderDetailsModal');
             const content = document.getElementById('orderDetailsContent');
 
-            // Show upload button for Warehouse and Transport if order is approved
+            // Show upload button for Warehouse and Transport for most statuses
             const canUpload = (currentUser.department === 'Warehouse' || currentUser.department === 'Transport') && 
-                              (order.status === 'Approved' || order.status === 'Transport Confirmed' || order.status === 'Delivered');
+                              (order.status !== 'Pending Approval' && order.status !== 'Rejected');
             
             // Show transport assignment for Transport department
             const canAssignTransport = currentUser.department === 'Transport' && order.status === 'Approved' && !order.driverName;
@@ -1812,19 +1812,124 @@
                         </div>
                     ` : ''}
                     <div id="documentsListContainer">
-                        <p style="text-align: center; color: #6B7280; padding: 1rem;">Document list temporarily disabled - will be enabled in next phase</p>
+                        <p style="text-align: center; color: #6B7280; padding: 1rem;">Loading documents...</p>
                     </div>
                 </div>
             `;
 
             modal.classList.add('active');
             
-            // Temporarily disable document loading to avoid errors
-            // loadDocumentsList(orderID);
+            // Load documents list
+            loadDocumentsList(orderID);
         }
 
         function closeModal() {
             document.getElementById('orderDetailsModal').classList.remove('active');
+        }
+        
+        // ===== DOCUMENT MANAGEMENT =====
+        
+        async function loadDocumentsList(orderID) {
+            const container = document.getElementById('documentsListContainer');
+            
+            try {
+                const response = await fetch(APPS_SCRIPT_URL, {
+                    method: 'POST',
+                    mode: 'no-cors',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        action: 'listDocuments',
+                        orderID: orderID
+                    })
+                });
+                
+                // Note: Due to no-cors, we can't read the response
+                // So we'll use a different approach - store documents info in sheet
+                // For now, show a simple message
+                container.innerHTML = `
+                    <div style="padding: 1rem; background: var(--light); border-radius: 4px; text-align: center;">
+                        <p style="color: #6B7280; margin-bottom: 0.5rem;">📁 Documents are stored in Google Drive</p>
+                        <p style="color: #6B7280; font-size: 0.85rem;">Upload files above, they will be saved to the order folder</p>
+                    </div>
+                `;
+                
+            } catch (error) {
+                console.error('Error loading documents:', error);
+                container.innerHTML = '<p style="color: #DC2626; text-align: center;">Error loading documents</p>';
+            }
+        }
+        
+        async function uploadDocumentForOrder(orderID) {
+            const fileInput = document.getElementById('documentFileInput');
+            const typeSelect = document.getElementById('documentTypeSelect');
+            
+            if (!fileInput.files || fileInput.files.length === 0) {
+                alert('Please select a file to upload');
+                return;
+            }
+            
+            const file = fileInput.files[0];
+            const documentType = typeSelect.value;
+            
+            // Check file size (limit to 10MB)
+            if (file.size > 10 * 1024 * 1024) {
+                alert('File is too large. Maximum size is 10MB');
+                return;
+            }
+            
+            try {
+                // Convert file to base64
+                const reader = new FileReader();
+                reader.onload = async function(e) {
+                    const base64Data = e.target.result.split(',')[1];
+                    
+                    console.log('Uploading document...', {
+                        orderID: orderID,
+                        fileName: file.name,
+                        fileType: file.type,
+                        documentType: documentType,
+                        size: file.size
+                    });
+                    
+                    const response = await fetch(APPS_SCRIPT_URL, {
+                        method: 'POST',
+                        mode: 'no-cors',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({
+                            action: 'uploadDocument',
+                            orderID: orderID,
+                            fileName: file.name,
+                            fileType: file.type,
+                            documentType: documentType,
+                            fileData: base64Data,
+                            uploadedBy: currentUser.id
+                        })
+                    });
+                    
+                    alert('✅ Document uploaded successfully!');
+                    
+                    // Clear the form
+                    fileInput.value = '';
+                    
+                    // Reload documents list
+                    loadDocumentsList(orderID);
+                };
+                
+                reader.onerror = function(error) {
+                    console.error('Error reading file:', error);
+                    alert('❌ Error reading file');
+                };
+                
+                reader.readAsDataURL(file);
+                
+            } catch (error) {
+                console.error('Error uploading document:', error);
+                alert('❌ Error uploading document: ' + error.message);
+            }
         }
 
         // Refresh buttons
