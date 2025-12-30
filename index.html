@@ -24,7 +24,7 @@
         }
 
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
             background: var(--bg-gray);
             color: #1F2937;
             line-height: 1.6;
@@ -36,7 +36,6 @@
             padding: 0 1rem;
         }
 
-        /* Header */
         header {
             background: linear-gradient(135deg, #1E40AF 0%, #1E3A8A 100%);
             color: white;
@@ -75,7 +74,6 @@
             font-size: 0.875rem;
         }
 
-        /* Navigation */
         .nav-tabs {
             background: white;
             border-bottom: 2px solid var(--border-gray);
@@ -115,7 +113,6 @@
             color: white;
         }
 
-        /* Buttons */
         .btn {
             padding: 0.625rem 1.25rem;
             border: none;
@@ -129,54 +126,16 @@
             gap: 0.5rem;
         }
 
-        .btn-primary {
-            background: var(--primary);
-            color: white;
-        }
+        .btn-primary { background: var(--primary); color: white; }
+        .btn-primary:hover { background: var(--primary-dark); }
+        .btn-secondary { background: var(--secondary); color: white; }
+        .btn-secondary:hover { background: #4B5563; }
+        .btn-success { background: var(--success); color: white; }
+        .btn-success:hover { background: #059669; }
+        .btn-danger { background: var(--danger); color: white; }
+        .btn-danger:hover { background: #DC2626; }
+        .btn-warning { background: var(--warning); color: white; }
 
-        .btn-primary:hover {
-            background: var(--primary-dark);
-            transform: translateY(-1px);
-            box-shadow: 0 4px 6px rgba(30, 64, 175, 0.3);
-        }
-
-        .btn-secondary {
-            background: var(--secondary);
-            color: white;
-        }
-
-        .btn-secondary:hover {
-            background: #4B5563;
-        }
-
-        .btn-success {
-            background: var(--success);
-            color: white;
-        }
-
-        .btn-success:hover {
-            background: #059669;
-        }
-
-        .btn-danger {
-            background: var(--danger);
-            color: white;
-        }
-
-        .btn-danger:hover {
-            background: #DC2626;
-        }
-
-        .btn-warning {
-            background: var(--warning);
-            color: white;
-        }
-
-        .btn-warning:hover {
-            background: #D97706;
-        }
-
-        /* Cards */
         .card {
             background: white;
             border-radius: 8px;
@@ -200,7 +159,6 @@
             color: #111827;
         }
 
-        /* Forms */
         .form-group {
             margin-bottom: 1rem;
         }
@@ -213,9 +171,7 @@
             font-size: 0.875rem;
         }
 
-        .form-input,
-        .form-select,
-        .form-textarea {
+        .form-input, .form-select, .form-textarea {
             width: 100%;
             padding: 0.625rem;
             border: 1px solid var(--border-gray);
@@ -224,9 +180,7 @@
             transition: border-color 0.2s;
         }
 
-        .form-input:focus,
-        .form-select:focus,
-        .form-textarea:focus {
+        .form-input:focus, .form-select:focus, .form-textarea:focus {
             outline: none;
             border-color: var(--primary);
             box-shadow: 0 0 0 3px rgba(30, 64, 175, 0.1);
@@ -243,13 +197,6 @@
             gap: 0.5rem;
         }
 
-        .form-checkbox input[type="checkbox"] {
-            width: 1rem;
-            height: 1rem;
-            cursor: pointer;
-        }
-
-        /* Status Badges */
         .status-badge {
             display: inline-block;
             padding: 0.25rem 0.75rem;
@@ -257,63 +204,20 @@
             font-size: 0.75rem;
             font-weight: 600;
             text-transform: uppercase;
-            letter-spacing: 0.025em;
         }
 
-        .status-pending {
-            background: #FEF3C7;
-            color: #92400E;
-        }
+        .status-pending { background: #FEF3C7; color: #92400E; }
+        .status-approved { background: #D1FAE5; color: #065F46; }
+        .status-rejected { background: #FEE2E2; color: #991B1B; }
+        .status-disputed { background: #FED7AA; color: #9A3412; }
+        .status-resolved { background: #D1FAE5; color: #065F46; }
+        .status-delivered { background: #DBEAFE; color: #1E40AF; }
 
-        .status-approved {
-            background: #D1FAE5;
-            color: #065F46;
-        }
+        .priority-critical { background: #FEE2E2; color: #991B1B; font-weight: 600; }
+        .priority-high { background: #FED7AA; color: #9A3412; font-weight: 600; }
+        .priority-normal { background: #E0E7FF; color: #3730A3; }
+        .priority-low { background: #F3F4F6; color: #6B7280; }
 
-        .status-rejected {
-            background: #FEE2E2;
-            color: #991B1B;
-        }
-
-        .status-disputed {
-            background: #FED7AA;
-            color: #9A3412;
-        }
-
-        .status-resolved {
-            background: #D1FAE5;
-            color: #065F46;
-        }
-
-        .status-delivered {
-            background: #DBEAFE;
-            color: #1E40AF;
-        }
-
-        /* Priority Badges */
-        .priority-critical {
-            background: #FEE2E2;
-            color: #991B1B;
-            font-weight: 600;
-        }
-
-        .priority-high {
-            background: #FED7AA;
-            color: #9A3412;
-            font-weight: 600;
-        }
-
-        .priority-normal {
-            background: #E0E7FF;
-            color: #3730A3;
-        }
-
-        .priority-low {
-            background: #F3F4F6;
-            color: #6B7280;
-        }
-
-        /* Tables */
         table {
             width: 100%;
             border-collapse: collapse;
@@ -338,7 +242,6 @@
             background: var(--bg-gray);
         }
 
-        /* Modal */
         .modal {
             display: none;
             position: fixed;
@@ -375,36 +278,14 @@
             color: #1F2937;
         }
 
-        /* Utility Classes */
         .hidden {
             display: none !important;
         }
 
-        .text-center {
-            text-align: center;
-        }
-
-        .text-right {
-            text-align: right;
-        }
-
-        .mt-1 { margin-top: 0.5rem; }
-        .mt-2 { margin-top: 1rem; }
-        .mb-1 { margin-bottom: 0.5rem; }
-        .mb-2 { margin-bottom: 1rem; }
-
-        .grid-2 {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 1rem;
-        }
-
-        /* View Content */
         .view-content {
             padding: 2rem 0;
         }
 
-        /* Login Screen */
         #loginScreen {
             display: flex;
             justify-content: center;
@@ -433,58 +314,20 @@
             margin-bottom: 0.5rem;
         }
 
-        .login-header p {
-            color: var(--secondary);
-            font-size: 0.875rem;
+        .grid-2 {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1rem;
         }
 
-        /* Loading Spinner */
-        .spinner {
-            border: 3px solid var(--bg-gray);
-            border-top: 3px solid var(--primary);
-            border-radius: 50%;
-            width: 40px;
-            height: 40px;
-            animation: spin 1s linear infinite;
-            margin: 2rem auto;
-        }
-
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-
-        /* Responsive */
         @media (max-width: 768px) {
-            .header-content {
-                flex-direction: column;
-                gap: 1rem;
-            }
-
             .grid-2 {
                 grid-template-columns: 1fr;
-            }
-
-            .nav-tabs-inner {
-                flex-wrap: nowrap;
-            }
-
-            .card {
-                padding: 1rem;
-            }
-
-            table {
-                font-size: 0.75rem;
-            }
-
-            th, td {
-                padding: 0.5rem;
             }
         }
     </style>
 </head>
 <body>
-    <!-- Login Screen -->
     <div id="loginScreen">
         <div class="login-card">
             <div class="login-header">
@@ -503,15 +346,11 @@
         </div>
     </div>
 
-    <!-- Main App -->
     <div id="mainApp" class="hidden">
-        <!-- Header -->
         <header>
             <div class="container">
                 <div class="header-content">
-                    <div class="logo">
-                        📋 Gulf Order Management
-                    </div>
+                    <div class="logo">📋 Gulf Order Management</div>
                     <div class="user-info">
                         <span class="user-badge" id="currentUserDisplay"></span>
                         <button class="btn btn-danger" onclick="logout()">Logout</button>
@@ -520,18 +359,13 @@
             </div>
         </header>
 
-        <!-- Navigation Tabs -->
         <div class="nav-tabs">
-            <div class="nav-tabs-inner" id="navTabs">
-                <!-- Tabs will be generated based on user role -->
-            </div>
+            <div class="nav-tabs-inner" id="navTabs"></div>
         </div>
 
         <div class="container">
-            <!-- Dashboard View -->
             <div id="dashboardView" class="view-content">
                 <div class="card">
-                    <!-- Date Filter -->
                     <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 1.5rem;">
                         <div class="form-group" style="margin: 0;">
                             <label class="form-label">📅 From Date</label>
@@ -541,7 +375,7 @@
                             <label class="form-label">📅 To Date</label>
                             <input type="date" id="filterToDate" class="form-input">
                         </div>
-                        <div style="display: flex; gap: 0.5rem; align-items: flex-end;">
+                        <div style="display: flex; gap: 0.5rem; align-items: flex-end; flex-wrap: wrap;">
                             <button class="btn btn-primary" onclick="setDateFilter('today')">Today</button>
                             <button class="btn btn-primary" onclick="setDateFilter('last7days')">Last 7 Days</button>
                             <button class="btn btn-primary" onclick="setDateFilter('last30days')">Last 30 Days</button>
@@ -550,23 +384,16 @@
                         </div>
                     </div>
 
-                    <!-- Stats Grid - Will be replaced with clickable filter boxes -->
-                    <div id="statsGrid" style="margin-bottom: 1.5rem;">
-                        <!-- Stats boxes will be generated here -->
-                    </div>
+                    <div id="statsGrid" style="margin-bottom: 1.5rem;"></div>
 
-                    <!-- Orders Section -->
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
-                        <h2 class="card-title" id="ordersTableTitle">📋 My Orders</h2>
+                        <h2 class="card-title">📋 Orders</h2>
                         <button class="btn btn-secondary" onclick="loadDashboard()">Refresh</button>
                     </div>
-                    <div id="ordersTableContainer">
-                        <!-- Orders table will be shown here -->
-                    </div>
+                    <div id="ordersTableContainer"></div>
                 </div>
             </div>
 
-            <!-- Create Order View (Sales Only) -->
             <div id="createOrderView" class="view-content hidden">
                 <div class="card">
                     <div class="card-header">
@@ -655,173 +482,132 @@
                         </div>
                         <div class="form-group">
                             <label class="form-label">Notes</label>
-                            <textarea id="orderNotesInput" class="form-textarea" placeholder="Any special instructions..."></textarea>
+                            <textarea id="orderNotesInput" class="form-textarea"></textarea>
                         </div>
                         <button type="submit" class="btn btn-success">Create Order</button>
                     </form>
                 </div>
             </div>
 
-            <!-- Approval View (Management Only) -->
             <div id="approvalView" class="view-content hidden">
                 <div class="card">
                     <div class="card-header">
                         <h2 class="card-title">✅ Pending Approvals</h2>
                         <button class="btn btn-secondary" onclick="loadApprovals()">Refresh</button>
                     </div>
-                    <div id="pendingApprovalsList">
-                        <!-- Pending approvals will be shown here -->
-                    </div>
+                    <div id="pendingApprovalsList"></div>
                 </div>
             </div>
 
-            <!-- Disputes Resolution View (Management Only) -->
             <div id="disputesView" class="view-content hidden">
                 <div class="card">
                     <div class="card-header">
                         <h2 class="card-title">⚠️ Resolve Disputes</h2>
                         <button class="btn btn-secondary" onclick="loadDisputesView()">Refresh</button>
                     </div>
-                    <div id="disputesList">
-                        <!-- Disputed orders will be shown here -->
-                    </div>
+                    <div id="disputesList"></div>
                 </div>
             </div>
 
-            <!-- Proforma View (Finance Only) -->
             <div id="proformaView" class="view-content hidden">
                 <div class="card">
                     <div class="card-header">
                         <h2 class="card-title">🧾 Enter Proforma</h2>
                         <button class="btn btn-secondary" onclick="loadProformaView()">Refresh</button>
                     </div>
-                    <div id="proformaOrdersList">
-                        <!-- Orders needing proforma -->
-                    </div>
+                    <div id="proformaOrdersList"></div>
                 </div>
             </div>
 
-            <!-- Invoice View (Finance Only) -->
             <div id="invoiceView" class="view-content hidden">
                 <div class="card">
                     <div class="card-header">
                         <h2 class="card-title">📄 Enter Invoice</h2>
                         <button class="btn btn-secondary" onclick="loadInvoiceView()">Refresh</button>
                     </div>
-                    <div id="invoiceOrdersList">
-                        <!-- Orders needing invoice -->
-                    </div>
+                    <div id="invoiceOrdersList"></div>
                 </div>
             </div>
 
-            <!-- Assigned Trucks View (Transport Only) -->
             <div id="assignedTrucksView" class="view-content hidden">
                 <div class="card">
                     <div class="card-header">
                         <h2 class="card-title">🚛 Assigned Trucks</h2>
                         <button class="btn btn-secondary" onclick="loadAssignedTrucksView()">Refresh</button>
                     </div>
-                    <div id="assignedTrucksList">
-                        <!-- Assigned trucks will be shown here -->
-                    </div>
+                    <div id="assignedTrucksList"></div>
                 </div>
             </div>
 
-            <!-- Delivery View (Transport Only) -->
             <div id="deliveryView" class="view-content hidden">
                 <div class="card">
                     <div class="card-header">
-                        <h2 class="card-title">📦 Delivery - Mark Orders</h2>
+                        <h2 class="card-title">📦 Delivery</h2>
                         <button class="btn btn-secondary" onclick="loadDeliveryView()">Refresh</button>
                     </div>
-                    <div id="deliveryOrdersList">
-                        <!-- Delivery orders will be shown here -->
-                    </div>
+                    <div id="deliveryOrdersList"></div>
                 </div>
             </div>
 
-            <!-- Warehouse View -->
             <div id="warehouseView" class="view-content hidden">
                 <div class="card">
                     <div class="card-header">
-                        <h2 class="card-title">📦 Warehouse Dashboard</h2>
-                        <button class="btn btn-secondary" id="refreshWarehouseBtn">Refresh</button>
+                        <h2 class="card-title">📦 Warehouse</h2>
+                        <button class="btn btn-secondary" onclick="loadWarehouseDashboard()">Refresh</button>
                     </div>
-                    <div id="warehouseOrdersList">
-                        <!-- Warehouse orders will be shown here -->
-                    </div>
+                    <div id="warehouseOrdersList"></div>
                 </div>
             </div>
 
-            <!-- Analytics View (Management Only) -->
             <div id="analyticsView" class="view-content hidden">
                 <div class="card">
                     <div class="card-header">
                         <h2 class="card-title">📊 Analytics</h2>
-                        <button class="btn btn-success" onclick="exportToExcel()">📥 Export to Excel</button>
+                        <button class="btn btn-success" onclick="exportToExcel()">📥 Export</button>
                     </div>
-                    <div id="analyticsContent">
-                        <!-- Analytics will be shown here -->
-                    </div>
+                    <div id="analyticsContent"></div>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Order Details Modal -->
     <div id="orderDetailsModal" class="modal">
         <div class="modal-content">
             <span class="close" onclick="closeModal()">&times;</span>
-            <div id="orderDetailsContent">
-                <!-- Order details will be loaded here -->
-            </div>
+            <div id="orderDetailsContent"></div>
         </div>
     </div>
-	<script>
-        // ========================================
-        // CONFIGURATION
-        // ========================================
-   		const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzLh-Z6trPUdNIqkE-gYqhb74voXIuQkHbv9hhWV0fTUYLUkeFWrQdWHZfTckpv4L-k/exec';
 
-        // ========================================
-        // GLOBAL VARIABLES
-        // ========================================
+    <script>
+        const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzLh-Z6trPUdNIqkE-gYqhb74voXIuQkHbv9hhWV0fTUYLUkeFWrQdWHZfTckpv4L-k/exec';
+
         let currentUser = null;
         let usersData = [];
         let ordersData = [];
         let clientsData = [];
-
-        // Date filter state
         let dateFilterFrom = null;
         let dateFilterTo = null;
 
-        // ========================================
-        // UTILITY FUNCTIONS
-        // ========================================
         function getStatusClass(status) {
-            const statusMap = {
+            const map = {
                 'Pending Approval': 'status-pending',
                 'Approved': 'status-approved',
                 'Rejected': 'status-rejected',
                 'Disputed': 'status-disputed',
                 'Resolved': 'status-resolved',
-                'Delivered': 'status-delivered',
-                'Truck Assigned': 'status-approved',
-                'In Warehouse': 'status-pending',
-                'Loading': 'status-pending',
-                'Left Warehouse': 'status-approved'
+                'Delivered': 'status-delivered'
             };
-            return statusMap[status] || 'status-pending';
+            return map[status] || 'status-pending';
         }
 
         function getPriorityClass(priority) {
-            const priorityMap = {
+            const map = {
                 'Critical': 'priority-critical',
                 'High': 'priority-high',
                 'Normal': 'priority-normal',
                 'Low': 'priority-low'
             };
-            return priorityMap[priority] || 'priority-normal';
+            return map[priority] || 'priority-normal';
         }
 
         function formatDate(dateString) {
@@ -830,186 +616,139 @@
             return date.toLocaleDateString('en-GB');
         }
 
-        // ========================================
-        // DATA LOADING
-        // ========================================
-async function loadData() {
+        async function loadData() {
             try {
-                console.log('📥 Loading data from server...');
-                
-                const url = `${APPS_SCRIPT_URL}?action=getAllData&timestamp=${Date.now()}`;
-                console.log('📡 Fetching from:', url);
-                
+                console.log('📥 Loading data...');
+                const url = `${APPS_SCRIPT_URL}?action=getAllData&t=${Date.now()}`;
                 const response = await fetch(url);
                 
-                if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status}`);
-                }
+                if (!response.ok) throw new Error(`HTTP ${response.status}`);
                 
                 const data = await response.json();
-                
                 console.log('✅ Data loaded:', data);
-                
-                // NORMALIZE FIELD NAMES
-                usersData = (data.users || []).map(user => ({
-                    userID: user.UserID,
-                    name: user.Full_Name,
-                    email: user.Email,
-                    department: user.Department,
-                    role: user.Role,
-                    active: user.Active
+
+                usersData = (data.users || []).map(u => ({
+                    userID: u.UserID,
+                    name: u.Full_Name,
+                    email: u.Email,
+                    department: u.Department,
+                    role: u.Role
                 }));
-                
-                ordersData = (data.orders || []).map(order => ({
-                    orderID: order.OrderID || order.Order_ID,
-                    orderDate: order.Order_Date || order.orderDate,
-                    createdBy: order.Created_By || order.createdBy,
-                    clientID: order.Client_ID || order.clientID,
-                    clientName: order.Client_Name || order.clientName,
-                    productType: order.Product_Type || order.productType,
-                    unit: order.Unit,
-                    quantity: order.Quantity,
-                    margin: order.Margin_MKD || order.margin,
-                    warehouse: order.Warehouse,
-                    requestedDeliveryDate: order.Requested_Delivery_Date || order.requestedDeliveryDate,
-                    preferredTime: order.Preferred_Time || order.preferredTime,
-                    avoidAfterwork: order.Avoid_Afterwork || order.avoidAfterwork,
-                    paymentTerms: order.Payment_Terms || order.paymentTerms,
-                    priority: order.Priority,
-                    noGulfBrand: order.No_Gulf_Brand || order.noGulfBrand,
-                    notes: order.Notes,
-                    internalNotes: order.Internal_Notes || order.internalNotes,
-                    rejectionReason: order.Rejection_Reason || order.rejectionReason,
-                    status: order.Status,
-                    approvedBy: order.Approved_By || order.approvedBy,
-                    approvalDate: order.Approval_Date || order.approvalDate,
-                    proformaNumber: order.Proforma_Number || order.proformaNumber,
-                    proformaDate: order.Proforma_Date || order.proformaDate,
-                    invoiceNumber: order.Invoice_Number || order.invoiceNumber,
-                    invoiceDate: order.Invoice_Date || order.invoiceDate,
-                    driverName: order.Driver_Name || order.driverName,
-                    truckPlate: order.Truck_Plate || order.truckPlate,
-                    transportCompany: order.Transport_Company || order.transportCompany,
-                    estimatedDelivery: order.Estimated_Delivery || order.estimatedDelivery
+
+                ordersData = (data.orders || []).map(o => ({
+                    orderID: o.OrderID || o.Order_ID,
+                    orderDate: o.Order_Date,
+                    createdBy: o.Created_By,
+                    clientID: o.Client_ID,
+                    clientName: o.Client_Name,
+                    productType: o.Product_Type,
+                    unit: o.Unit,
+                    quantity: o.Quantity,
+                    margin: o.Margin_MKD,
+                    warehouse: o.Warehouse,
+                    requestedDeliveryDate: o.Requested_Delivery_Date,
+                    preferredTime: o.Preferred_Time,
+                    avoidAfterwork: o.Avoid_Afterwork,
+                    paymentTerms: o.Payment_Terms,
+                    priority: o.Priority,
+                    noGulfBrand: o.No_Gulf_Brand,
+                    notes: o.Notes,
+                    rejectionReason: o.Rejection_Reason,
+                    status: o.Status,
+                    approvedBy: o.Approved_By,
+                    approvalDate: o.Approval_Date,
+                    proformaNumber: o.Proforma_Number,
+                    invoiceNumber: o.Invoice_Number,
+                    driverName: o.Driver_Name,
+                    truckPlate: o.Truck_Plate,
+                    transportCompany: o.Transport_Company,
+                    estimatedDelivery: o.Estimated_Delivery
                 }));
-                
-                clientsData = (data.clients || []).map(client => ({
-                    clientID: client.Client_ID || client.clientID,
-                    clientName: client.Client_Name || client.clientName,
-                    city: client.City,
-                    address: client.Address,
-                    phone: client.Phone,
-                    email: client.Email
+
+                clientsData = (data.clients || []).map(c => ({
+                    clientID: c.Client_ID,
+                    clientName: c.Client_Name,
+                    city: c.City,
+                    address: c.Address,
+                    phone: c.Phone
                 }));
-                
-                console.log(`📊 Normalized - Users: ${usersData.length}, Orders: ${ordersData.length}, Clients: ${clientsData.length}`);
-                
+
+                console.log(`Users: ${usersData.length}, Orders: ${ordersData.length}, Clients: ${clientsData.length}`);
                 return data;
             } catch (error) {
-                console.error('❌ Error loading data:', error);
-                alert('Error loading data: ' + error.message + '\n\nPlease check:\n1. Apps Script URL is correct\n2. Apps Script is deployed as Web App\n3. Access is set to "Anyone"');
+                console.error('❌ Error:', error);
+                alert('Error loading data. Please refresh.');
                 throw error;
             }
         }
 
-        // ========================================
-        // DATE FILTERING
-        // ========================================
         function setDateFilter(period) {
             const today = new Date();
-            let fromDate = new Date();
+            let from = new Date();
             
-            switch(period) {
-                case 'today':
-                    fromDate = today;
-                    break;
-                case 'last7days':
-                    fromDate.setDate(today.getDate() - 7);
-                    break;
-                case 'last30days':
-                    fromDate.setDate(today.getDate() - 30);
-                    break;
-                case 'allTime':
-                    document.getElementById('filterFromDate').value = '';
-                    document.getElementById('filterToDate').value = '';
-                    dateFilterFrom = null;
-                    dateFilterTo = null;
-                    loadDashboard();
-                    return;
+            if (period === 'today') from = today;
+            else if (period === 'last7days') from.setDate(today.getDate() - 7);
+            else if (period === 'last30days') from.setDate(today.getDate() - 30);
+            else if (period === 'allTime') {
+                document.getElementById('filterFromDate').value = '';
+                document.getElementById('filterToDate').value = '';
+                dateFilterFrom = null;
+                dateFilterTo = null;
+                loadDashboard();
+                return;
             }
             
-            document.getElementById('filterFromDate').value = fromDate.toISOString().split('T')[0];
+            document.getElementById('filterFromDate').value = from.toISOString().split('T')[0];
             document.getElementById('filterToDate').value = today.toISOString().split('T')[0];
             applyDateFilter();
         }
 
         function applyDateFilter() {
-            const fromDate = document.getElementById('filterFromDate').value;
-            const toDate = document.getElementById('filterToDate').value;
-            
-            dateFilterFrom = fromDate || null;
-            dateFilterTo = toDate || null;
-            
+            dateFilterFrom = document.getElementById('filterFromDate').value || null;
+            dateFilterTo = document.getElementById('filterToDate').value || null;
             loadDashboard();
         }
 
         function filterOrdersByDate(orders) {
-            if (!dateFilterFrom && !dateFilterTo) {
-                return orders;
-            }
+            if (!dateFilterFrom && !dateFilterTo) return orders;
             
             return orders.filter(order => {
                 const orderDate = new Date(order.orderDate);
-                
                 if (dateFilterFrom && dateFilterTo) {
                     const from = new Date(dateFilterFrom);
                     const to = new Date(dateFilterTo);
-                    to.setHours(23, 59, 59, 999);
+                    to.setHours(23, 59, 59);
                     return orderDate >= from && orderDate <= to;
-                } else if (dateFilterFrom) {
-                    return orderDate >= new Date(dateFilterFrom);
-                } else if (dateFilterTo) {
+                }
+                if (dateFilterFrom) return orderDate >= new Date(dateFilterFrom);
+                if (dateFilterTo) {
                     const to = new Date(dateFilterTo);
-                    to.setHours(23, 59, 59, 999);
+                    to.setHours(23, 59, 59);
                     return orderDate <= to;
                 }
-                
                 return true;
             });
         }
 
-        // ========================================
-        // AUTHENTICATION
-        // ========================================
-async function initializeLogin() {
-            console.log('🔐 Initializing login...');
-            
+        async function initializeLogin() {
             await loadData();
-            
-            const userSelect = document.getElementById('userSelect');
-            userSelect.innerHTML = '<option value="">-- Select User --</option>';
-            
+            const select = document.getElementById('userSelect');
+            select.innerHTML = '<option value="">-- Select User --</option>';
             usersData.forEach(user => {
-                const option = document.createElement('option');
-                option.value = user.userID;  // ✅ lowercase (normalized)
-                option.textContent = `${user.name} (${user.department})`;  // ✅ lowercase (normalized)
-                userSelect.appendChild(option);
+                const opt = document.createElement('option');
+                opt.value = user.userID;
+                opt.textContent = `${user.name} (${user.department})`;
+                select.appendChild(opt);
             });
         }
 
-document.getElementById('loginForm').addEventListener('submit', (e) => {
+        document.getElementById('loginForm').addEventListener('submit', (e) => {
             e.preventDefault();
             const userID = document.getElementById('userSelect').value;
+            if (!userID) return alert('Please select a user');
             
-            if (!userID) {
-                alert('Please select a user');
-                return;
-            }
-            
-            currentUser = usersData.find(u => u.userID === userID);  // ✅ lowercase (normalized)
-            
+            currentUser = usersData.find(u => u.userID === userID);
             if (currentUser) {
-                console.log('✅ Logged in as:', currentUser);
                 document.getElementById('loginScreen').classList.add('hidden');
                 document.getElementById('mainApp').classList.remove('hidden');
                 initializeApp();
@@ -1017,451 +756,180 @@ document.getElementById('loginForm').addEventListener('submit', (e) => {
         });
 
         function logout() {
-            if (confirm('Are you sure you want to logout?')) {
+            if (confirm('Logout?')) {
                 currentUser = null;
                 document.getElementById('mainApp').classList.add('hidden');
                 document.getElementById('loginScreen').classList.remove('hidden');
-                document.getElementById('loginForm').reset();
             }
         }
 
-        // ========================================
-        // APP INITIALIZATION
-        // ========================================
         function initializeApp() {
-            console.log('🚀 Initializing app for:', currentUser.department);
-            
-            // Update user display
-// Update user display
-            document.getElementById('currentUserDisplay').textContent = 
-                `${currentUser.name} (${currentUser.department})`;  // ✅ lowercase (normalized)
-            
-            // Generate navigation tabs
+            document.getElementById('currentUserDisplay').textContent = `${currentUser.name} (${currentUser.department})`;
             generateNavigationTabs();
-            
-            // Load client data for create order form
-            if (currentUser.department === 'Sales') {
-                loadClientDropdown();
-            }
-            
-            // Show dashboard by default
+            if (currentUser.department === 'Sales') loadClientDropdown();
             showView('dashboard');
         }
 
         function generateNavigationTabs() {
-            const navTabs = document.getElementById('navTabs');
+            const nav = document.getElementById('navTabs');
             let tabs = '<div class="nav-tab active" onclick="showView(\'dashboard\')">📊 Dashboard</div>';
-
+            
             if (currentUser.department === 'Sales') {
                 tabs += '<div class="nav-tab" onclick="showView(\'createOrder\')">➕ Create Order</div>';
             }
-
             if (currentUser.department === 'Management') {
                 tabs += '<div class="nav-tab" onclick="showView(\'approval\')">✅ Approvals</div>';
-                tabs += '<div class="nav-tab" onclick="showView(\'disputes\')">⚠️ Resolve Disputes</div>';
+                tabs += '<div class="nav-tab" onclick="showView(\'disputes\')">⚠️ Disputes</div>';
                 tabs += '<div class="nav-tab" onclick="showView(\'analytics\')">📊 Analytics</div>';
             }
-
             if (currentUser.department === 'Finance') {
-                tabs += '<div class="nav-tab" onclick="showView(\'proforma\')">🧾 Enter Proforma</div>';
-                tabs += '<div class="nav-tab" onclick="showView(\'invoice\')">📄 Enter Invoice</div>';
+                tabs += '<div class="nav-tab" onclick="showView(\'proforma\')">🧾 Proforma</div>';
+                tabs += '<div class="nav-tab" onclick="showView(\'invoice\')">📄 Invoice</div>';
             }
-
             if (currentUser.department === 'Transport') {
-                tabs += '<div class="nav-tab" onclick="showView(\'assignedTrucks\')">🚛 Assigned Trucks</div>';
+                tabs += '<div class="nav-tab" onclick="showView(\'assignedTrucks\')">🚛 Trucks</div>';
                 tabs += '<div class="nav-tab" onclick="showView(\'delivery\')">📦 Delivery</div>';
             }
-
             if (currentUser.department === 'Warehouse') {
                 tabs += '<div class="nav-tab" onclick="showView(\'warehouse\')">📦 Warehouse</div>';
             }
-
-            navTabs.innerHTML = tabs;
+            
+            nav.innerHTML = tabs;
         }
 
         function showView(viewName) {
-            console.log('🔄 Switching to view:', viewName);
+            document.querySelectorAll('.view-content').forEach(v => v.classList.add('hidden'));
+            document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
             
-            // Hide all views
-            document.querySelectorAll('.view-content').forEach(view => {
-                view.classList.add('hidden');
-            });
+            const views = {
+                dashboard: () => { document.getElementById('dashboardView').classList.remove('hidden'); loadDashboard(); },
+                createOrder: () => document.getElementById('createOrderView').classList.remove('hidden'),
+                approval: () => { document.getElementById('approvalView').classList.remove('hidden'); loadApprovals(); },
+                disputes: () => { document.getElementById('disputesView').classList.remove('hidden'); loadDisputesView(); },
+                proforma: () => { document.getElementById('proformaView').classList.remove('hidden'); loadProformaView(); },
+                invoice: () => { document.getElementById('invoiceView').classList.remove('hidden'); loadInvoiceView(); },
+                assignedTrucks: () => { document.getElementById('assignedTrucksView').classList.remove('hidden'); loadAssignedTrucksView(); },
+                delivery: () => { document.getElementById('deliveryView').classList.remove('hidden'); loadDeliveryView(); },
+                warehouse: () => { document.getElementById('warehouseView').classList.remove('hidden'); loadWarehouseDashboard(); },
+                analytics: () => { document.getElementById('analyticsView').classList.remove('hidden'); loadAnalytics(); }
+            };
             
-            // Remove active class from all tabs
+            if (views[viewName]) views[viewName]();
+            
             document.querySelectorAll('.nav-tab').forEach(tab => {
-                tab.classList.remove('active');
-            });
-            
-            // Show selected view
-            if (viewName === 'dashboard') {
-                document.getElementById('dashboardView').classList.remove('hidden');
-                loadDashboard();
-            } else if (viewName === 'createOrder') {
-                document.getElementById('createOrderView').classList.remove('hidden');
-            } else if (viewName === 'approval') {
-                document.getElementById('approvalView').classList.remove('hidden');
-                loadApprovals();
-            } else if (viewName === 'disputes') {
-                document.getElementById('disputesView').classList.remove('hidden');
-                loadDisputesView();
-            } else if (viewName === 'proforma') {
-                document.getElementById('proformaView').classList.remove('hidden');
-                loadProformaView();
-            } else if (viewName === 'invoice') {
-                document.getElementById('invoiceView').classList.remove('hidden');
-                loadInvoiceView();
-            } else if (viewName === 'assignedTrucks') {
-                document.getElementById('assignedTrucksView').classList.remove('hidden');
-                loadAssignedTrucksView();
-            } else if (viewName === 'delivery') {
-                document.getElementById('deliveryView').classList.remove('hidden');
-                loadDeliveryView();
-            } else if (viewName === 'warehouse') {
-                document.getElementById('warehouseView').classList.remove('hidden');
-                loadWarehouseDashboard();
-            } else if (viewName === 'analytics') {
-                document.getElementById('analyticsView').classList.remove('hidden');
-                loadAnalytics();
-            }
-            
-            // Highlight active tab
-            const tabs = document.querySelectorAll('.nav-tab');
-            tabs.forEach(tab => {
-                if (tab.textContent.toLowerCase().includes(viewName.toLowerCase().replace('View', ''))) {
+                if (tab.textContent.toLowerCase().includes(viewName.toLowerCase())) {
                     tab.classList.add('active');
                 }
             });
         }
-		// ========================================
-        // DASHBOARD & FILTER FUNCTIONS
-        // ========================================
-        function loadDashboard() {
-            console.log('📊 Loading dashboard...');
-            
-            // Load orders based on department
-            let myOrders = currentUser.department === 'Sales'
-                ? ordersData.filter(o => o.createdBy === currentUser.id)
-                : ordersData;
 
-            // Apply date filter
+        function loadDashboard() {
+            let myOrders = currentUser.department === 'Sales' 
+                ? ordersData.filter(o => o.createdBy === currentUser.userID)
+                : ordersData;
             myOrders = filterOrdersByDate(myOrders);
 
-            // Calculate filter counts for department-specific boxes
-            const filterCounts = {
+            const counts = {
                 pending: ordersData.filter(o => o.status === 'Pending Approval').length,
-                active: ordersData.filter(o => 
-                    o.status !== 'Pending Approval' && 
-                    o.status !== 'Delivered' && 
-                    o.status !== 'Disputed' &&
-                    o.status !== 'Resolved' && 
-                    o.status !== 'Rejected'
-                ).length,
+                active: ordersData.filter(o => !['Pending Approval', 'Delivered', 'Disputed', 'Resolved', 'Rejected'].includes(o.status)).length,
                 disputed: ordersData.filter(o => o.status === 'Disputed').length,
                 resolved: ordersData.filter(o => o.status === 'Resolved').length,
                 rejected: ordersData.filter(o => o.status === 'Rejected').length,
-                finished: ordersData.filter(o => o.status === 'Delivered' || o.status === 'Resolved').length,
-                
-                myOrders: currentUser.department === 'Sales' ? ordersData.filter(o => 
-                    o.createdBy === currentUser.id &&
-                    o.status !== 'Delivered' &&
-                    o.status !== 'Disputed' &&
-                    o.status !== 'Resolved' &&
-                    o.status !== 'Rejected'
-                ).length : 0,
-                
-                forAssigning: ordersData.filter(o => o.status === 'Approved' && !o.driverName).length,
-                assigned: ordersData.filter(o => 
-                    o.driverName && (
-                        o.status === 'Truck Assigned' ||
-                        o.status === 'In Warehouse' ||
-                        o.status === 'Loading' ||
-                        o.status === 'Left Warehouse'
-                    )
-                ).length,
-                
-                needsDocs: ordersData.filter(o => !o.proformaNumber || !o.invoiceNumber || (o.status !== 'Delivered' && o.status !== 'Resolved')).length,
-                completed: ordersData.filter(o => o.proformaNumber && o.invoiceNumber && (o.status === 'Delivered' || o.status === 'Resolved')).length,
-                
-                needsProcessing: ordersData.filter(o => o.status === 'Truck Assigned').length,
-                inProgress: ordersData.filter(o => o.status === 'In Warehouse' || o.status === 'Loading' || o.status === 'Left Warehouse').length
+                finished: ordersData.filter(o => ['Delivered', 'Resolved'].includes(o.status)).length
             };
-            
-            let statsHTML = '';
-            
+
+            let stats = '';
             if (currentUser.department === 'Management') {
-                statsHTML = `
+                stats = `
                     <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 0.75rem;">
-                        <div onclick="filterOrders('pendingApproval')" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); padding: 1rem; border-radius: 12px; text-align: center; cursor: pointer; box-shadow: 0 4px 6px rgba(0,0,0,0.1); transition: all 0.3s;" onmouseover="this.style.transform='translateY(-4px)'; this.style.boxShadow='0 8px 12px rgba(0,0,0,0.15)'" onmouseout="this.style.transform=''; this.style.boxShadow='0 4px 6px rgba(0,0,0,0.1)'">
-                            <div style="font-size: 2rem; font-weight: bold; color: white; line-height: 1;">${filterCounts.pending}</div>
-                            <div style="font-size: 0.75rem; color: rgba(255,255,255,0.95); margin-top: 0.5rem; font-weight: 500; text-transform: uppercase;">⏳ Pending</div>
+                        <div onclick="filterOrders('pending')" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); padding: 1rem; border-radius: 12px; text-align: center; cursor: pointer; box-shadow: 0 4px 6px rgba(0,0,0,0.1); transition: 0.3s;" onmouseover="this.style.transform='translateY(-4px)'" onmouseout="this.style.transform=''">
+                            <div style="font-size: 2rem; font-weight: bold; color: white;">${counts.pending}</div>
+                            <div style="font-size: 0.75rem; color: white; margin-top: 0.5rem; text-transform: uppercase;">⏳ Pending</div>
                         </div>
-                        <div onclick="filterOrders('activeOrders')" style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); padding: 1rem; border-radius: 12px; text-align: center; cursor: pointer; box-shadow: 0 4px 6px rgba(0,0,0,0.1); transition: all 0.3s;" onmouseover="this.style.transform='translateY(-4px)'; this.style.boxShadow='0 8px 12px rgba(0,0,0,0.15)'" onmouseout="this.style.transform=''; this.style.boxShadow='0 4px 6px rgba(0,0,0,0.1)'">
-                            <div style="font-size: 2rem; font-weight: bold; color: white; line-height: 1;">${filterCounts.active}</div>
-                            <div style="font-size: 0.75rem; color: rgba(255,255,255,0.95); margin-top: 0.5rem; font-weight: 500; text-transform: uppercase;">📋 Active</div>
+                        <div onclick="filterOrders('active')" style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); padding: 1rem; border-radius: 12px; text-align: center; cursor: pointer; box-shadow: 0 4px 6px rgba(0,0,0,0.1); transition: 0.3s;" onmouseover="this.style.transform='translateY(-4px)'" onmouseout="this.style.transform=''">
+                            <div style="font-size: 2rem; font-weight: bold; color: white;">${counts.active}</div>
+                            <div style="font-size: 0.75rem; color: white; margin-top: 0.5rem; text-transform: uppercase;">📋 Active</div>
                         </div>
-                        <div onclick="filterOrders('disputed')" style="background: linear-gradient(135deg, #ff9a56 0%, #ff6a88 100%); padding: 1rem; border-radius: 12px; text-align: center; cursor: pointer; box-shadow: 0 4px 6px rgba(0,0,0,0.1); transition: all 0.3s;" onmouseover="this.style.transform='translateY(-4px)'; this.style.boxShadow='0 8px 12px rgba(0,0,0,0.15)'" onmouseout="this.style.transform=''; this.style.boxShadow='0 4px 6px rgba(0,0,0,0.1)'">
-                            <div style="font-size: 2rem; font-weight: bold; color: white; line-height: 1;">${filterCounts.disputed}</div>
-                            <div style="font-size: 0.75rem; color: rgba(255,255,255,0.95); margin-top: 0.5rem; font-weight: 500; text-transform: uppercase;">⚠️ Disputed</div>
+                        <div onclick="filterOrders('disputed')" style="background: linear-gradient(135deg, #ff9a56 0%, #ff6a88 100%); padding: 1rem; border-radius: 12px; text-align: center; cursor: pointer; box-shadow: 0 4px 6px rgba(0,0,0,0.1); transition: 0.3s;" onmouseover="this.style.transform='translateY(-4px)'" onmouseout="this.style.transform=''">
+                            <div style="font-size: 2rem; font-weight: bold; color: white;">${counts.disputed}</div>
+                            <div style="font-size: 0.75rem; color: white; margin-top: 0.5rem; text-transform: uppercase;">⚠️ Disputed</div>
                         </div>
-                        <div onclick="filterOrders('resolved')" style="background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%); padding: 1rem; border-radius: 12px; text-align: center; cursor: pointer; box-shadow: 0 4px 6px rgba(0,0,0,0.1); transition: all 0.3s;" onmouseover="this.style.transform='translateY(-4px)'; this.style.boxShadow='0 8px 12px rgba(0,0,0,0.15)'" onmouseout="this.style.transform=''; this.style.boxShadow='0 4px 6px rgba(0,0,0,0.1)'">
-                            <div style="font-size: 2rem; font-weight: bold; color: white; line-height: 1;">${filterCounts.resolved}</div>
-                            <div style="font-size: 0.75rem; color: rgba(255,255,255,0.95); margin-top: 0.5rem; font-weight: 500; text-transform: uppercase;">✅ Resolved</div>
+                        <div onclick="filterOrders('resolved')" style="background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%); padding: 1rem; border-radius: 12px; text-align: center; cursor: pointer; box-shadow: 0 4px 6px rgba(0,0,0,0.1); transition: 0.3s;" onmouseover="this.style.transform='translateY(-4px)'" onmouseout="this.style.transform=''">
+                            <div style="font-size: 2rem; font-weight: bold; color: white;">${counts.resolved}</div>
+                            <div style="font-size: 0.75rem; color: white; margin-top: 0.5rem; text-transform: uppercase;">✅ Resolved</div>
                         </div>
-                        <div onclick="filterOrders('rejected')" style="background: linear-gradient(135deg, #868f96 0%, #596164 100%); padding: 1rem; border-radius: 12px; text-align: center; cursor: pointer; box-shadow: 0 4px 6px rgba(0,0,0,0.1); transition: all 0.3s;" onmouseover="this.style.transform='translateY(-4px)'; this.style.boxShadow='0 8px 12px rgba(0,0,0,0.15)'" onmouseout="this.style.transform=''; this.style.boxShadow='0 4px 6px rgba(0,0,0,0.1)'">
-                            <div style="font-size: 2rem; font-weight: bold; color: white; line-height: 1;">${filterCounts.rejected}</div>
-                            <div style="font-size: 0.75rem; color: rgba(255,255,255,0.95); margin-top: 0.5rem; font-weight: 500; text-transform: uppercase;">❌ Rejected</div>
+                        <div onclick="filterOrders('rejected')" style="background: linear-gradient(135deg, #868f96 0%, #596164 100%); padding: 1rem; border-radius: 12px; text-align: center; cursor: pointer; box-shadow: 0 4px 6px rgba(0,0,0,0.1); transition: 0.3s;" onmouseover="this.style.transform='translateY(-4px)'" onmouseout="this.style.transform=''">
+                            <div style="font-size: 2rem; font-weight: bold; color: white;">${counts.rejected}</div>
+                            <div style="font-size: 0.75rem; color: white; margin-top: 0.5rem; text-transform: uppercase;">❌ Rejected</div>
                         </div>
-                        <div onclick="filterOrders('finished')" style="background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%); padding: 1rem; border-radius: 12px; text-align: center; cursor: pointer; box-shadow: 0 4px 6px rgba(0,0,0,0.1); transition: all 0.3s;" onmouseover="this.style.transform='translateY(-4px)'; this.style.boxShadow='0 8px 12px rgba(0,0,0,0.15)'" onmouseout="this.style.transform=''; this.style.boxShadow='0 4px 6px rgba(0,0,0,0.1)'">
-                            <div style="font-size: 2rem; font-weight: bold; color: white; line-height: 1;">${filterCounts.finished}</div>
-                            <div style="font-size: 0.75rem; color: rgba(255,255,255,0.95); margin-top: 0.5rem; font-weight: 500; text-transform: uppercase;">🏁 Finished</div>
-                        </div>
-                    </div>
-                `;
-            } else if (currentUser.department === 'Sales') {
-                statsHTML = `
-                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 0.75rem;">
-                        <div onclick="filterOrders('myOrders')" style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); padding: 1rem; border-radius: 12px; text-align: center; cursor: pointer; box-shadow: 0 4px 6px rgba(0,0,0,0.1); transition: all 0.3s;" onmouseover="this.style.transform='translateY(-4px)'; this.style.boxShadow='0 8px 12px rgba(0,0,0,0.15)'" onmouseout="this.style.transform=''; this.style.boxShadow='0 4px 6px rgba(0,0,0,0.1)'">
-                            <div style="font-size: 2rem; font-weight: bold; color: white; line-height: 1;">${filterCounts.myOrders}</div>
-                            <div style="font-size: 0.75rem; color: rgba(255,255,255,0.95); margin-top: 0.5rem; font-weight: 500; text-transform: uppercase;">📋 My Orders</div>
-                        </div>
-                        <div onclick="filterOrders('disputed')" style="background: linear-gradient(135deg, #ff9a56 0%, #ff6a88 100%); padding: 1rem; border-radius: 12px; text-align: center; cursor: pointer; box-shadow: 0 4px 6px rgba(0,0,0,0.1); transition: all 0.3s;" onmouseover="this.style.transform='translateY(-4px)'; this.style.boxShadow='0 8px 12px rgba(0,0,0,0.15)'" onmouseout="this.style.transform=''; this.style.boxShadow='0 4px 6px rgba(0,0,0,0.1)'">
-                            <div style="font-size: 2rem; font-weight: bold; color: white; line-height: 1;">${filterCounts.disputed}</div>
-                            <div style="font-size: 0.75rem; color: rgba(255,255,255,0.95); margin-top: 0.5rem; font-weight: 500; text-transform: uppercase;">⚠️ Disputed</div>
-                        </div>
-                        <div onclick="filterOrders('rejected')" style="background: linear-gradient(135deg, #868f96 0%, #596164 100%); padding: 1rem; border-radius: 12px; text-align: center; cursor: pointer; box-shadow: 0 4px 6px rgba(0,0,0,0.1); transition: all 0.3s;" onmouseover="this.style.transform='translateY(-4px)'; this.style.boxShadow='0 8px 12px rgba(0,0,0,0.15)'" onmouseout="this.style.transform=''; this.style.boxShadow='0 4px 6px rgba(0,0,0,0.1)'">
-                            <div style="font-size: 2rem; font-weight: bold; color: white; line-height: 1;">${filterCounts.rejected}</div>
-                            <div style="font-size: 0.75rem; color: rgba(255,255,255,0.95); margin-top: 0.5rem; font-weight: 500; text-transform: uppercase;">❌ Rejected</div>
-                        </div>
-                        <div onclick="filterOrders('finished')" style="background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%); padding: 1rem; border-radius: 12px; text-align: center; cursor: pointer; box-shadow: 0 4px 6px rgba(0,0,0,0.1); transition: all 0.3s;" onmouseover="this.style.transform='translateY(-4px)'; this.style.boxShadow='0 8px 12px rgba(0,0,0,0.15)'" onmouseout="this.style.transform=''; this.style.boxShadow='0 4px 6px rgba(0,0,0,0.1)'">
-                            <div style="font-size: 2rem; font-weight: bold; color: white; line-height: 1;">${filterCounts.finished}</div>
-                            <div style="font-size: 0.75rem; color: rgba(255,255,255,0.95); margin-top: 0.5rem; font-weight: 500; text-transform: uppercase;">🏁 Finished</div>
-                        </div>
-                    </div>
-                `;
-            } else if (currentUser.department === 'Finance') {
-                statsHTML = `
-                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 0.75rem;">
-                        <div onclick="filterOrders('needsDocs')" style="background: linear-gradient(135deg, #fa709a 0%, #fee140 100%); padding: 1rem; border-radius: 12px; text-align: center; cursor: pointer; box-shadow: 0 4px 6px rgba(0,0,0,0.1); transition: all 0.3s;" onmouseover="this.style.transform='translateY(-4px)'; this.style.boxShadow='0 8px 12px rgba(0,0,0,0.15)'" onmouseout="this.style.transform=''; this.style.boxShadow='0 4px 6px rgba(0,0,0,0.1)'">
-                            <div style="font-size: 2rem; font-weight: bold; color: white; line-height: 1;">${filterCounts.needsDocs}</div>
-                            <div style="font-size: 0.75rem; color: rgba(255,255,255,0.95); margin-top: 0.5rem; font-weight: 500; text-transform: uppercase;">📝 Needs Docs</div>
-                        </div>
-                        <div onclick="filterOrders('completed')" style="background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%); padding: 1rem; border-radius: 12px; text-align: center; cursor: pointer; box-shadow: 0 4px 6px rgba(0,0,0,0.1); transition: all 0.3s;" onmouseover="this.style.transform='translateY(-4px)'; this.style.boxShadow='0 8px 12px rgba(0,0,0,0.15)'" onmouseout="this.style.transform=''; this.style.boxShadow='0 4px 6px rgba(0,0,0,0.1)'">
-                            <div style="font-size: 2rem; font-weight: bold; color: white; line-height: 1;">${filterCounts.completed}</div>
-                            <div style="font-size: 0.75rem; color: rgba(255,255,255,0.95); margin-top: 0.5rem; font-weight: 500; text-transform: uppercase;">✅ Completed</div>
-                        </div>
-                    </div>
-                `;
-            } else if (currentUser.department === 'Transport') {
-                statsHTML = `
-                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 0.75rem;">
-                        <div onclick="filterOrders('forAssigning')" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); padding: 1rem; border-radius: 12px; text-align: center; cursor: pointer; box-shadow: 0 4px 6px rgba(0,0,0,0.1); transition: all 0.3s;" onmouseover="this.style.transform='translateY(-4px)'; this.style.boxShadow='0 8px 12px rgba(0,0,0,0.15)'" onmouseout="this.style.transform=''; this.style.boxShadow='0 4px 6px rgba(0,0,0,0.1)'">
-                            <div style="font-size: 2rem; font-weight: bold; color: white; line-height: 1;">${filterCounts.forAssigning}</div>
-                            <div style="font-size: 0.75rem; color: rgba(255,255,255,0.95); margin-top: 0.5rem; font-weight: 500; text-transform: uppercase;">🚛 For Assigning</div>
-                        </div>
-                        <div onclick="filterOrders('assigned')" style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); padding: 1rem; border-radius: 12px; text-align: center; cursor: pointer; box-shadow: 0 4px 6px rgba(0,0,0,0.1); transition: all 0.3s;" onmouseover="this.style.transform='translateY(-4px)'; this.style.boxShadow='0 8px 12px rgba(0,0,0,0.15)'" onmouseout="this.style.transform=''; this.style.boxShadow='0 4px 6px rgba(0,0,0,0.1)'">
-                            <div style="font-size: 2rem; font-weight: bold; color: white; line-height: 1;">${filterCounts.assigned}</div>
-                            <div style="font-size: 0.75rem; color: rgba(255,255,255,0.95); margin-top: 0.5rem; font-weight: 500; text-transform: uppercase;">📋 Assigned</div>
-                        </div>
-                        <div onclick="filterOrders('disputed')" style="background: linear-gradient(135deg, #ff9a56 0%, #ff6a88 100%); padding: 1rem; border-radius: 12px; text-align: center; cursor: pointer; box-shadow: 0 4px 6px rgba(0,0,0,0.1); transition: all 0.3s;" onmouseover="this.style.transform='translateY(-4px)'; this.style.boxShadow='0 8px 12px rgba(0,0,0,0.15)'" onmouseout="this.style.transform=''; this.style.boxShadow='0 4px 6px rgba(0,0,0,0.1)'">
-                            <div style="font-size: 2rem; font-weight: bold; color: white; line-height: 1;">${filterCounts.disputed}</div>
-                            <div style="font-size: 0.75rem; color: rgba(255,255,255,0.95); margin-top: 0.5rem; font-weight: 500; text-transform: uppercase;">⚠️ Disputed</div>
-                        </div>
-                        <div onclick="filterOrders('finished')" style="background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%); padding: 1rem; border-radius: 12px; text-align: center; cursor: pointer; box-shadow: 0 4px 6px rgba(0,0,0,0.1); transition: all 0.3s;" onmouseover="this.style.transform='translateY(-4px)'; this.style.boxShadow='0 8px 12px rgba(0,0,0,0.15)'" onmouseout="this.style.transform=''; this.style.boxShadow='0 4px 6px rgba(0,0,0,0.1)'">
-                            <div style="font-size: 2rem; font-weight: bold; color: white; line-height: 1;">${filterCounts.finished}</div>
-                            <div style="font-size: 0.75rem; color: rgba(255,255,255,0.95); margin-top: 0.5rem; font-weight: 500; text-transform: uppercase;">🏁 Finished</div>
-                        </div>
-                    </div>
-                `;
-            } else if (currentUser.department === 'Warehouse') {
-                statsHTML = `
-                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 0.75rem;">
-                        <div onclick="filterOrders('needsProcessing')" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); padding: 1rem; border-radius: 12px; text-align: center; cursor: pointer; box-shadow: 0 4px 6px rgba(0,0,0,0.1); transition: all 0.3s;" onmouseover="this.style.transform='translateY(-4px)'; this.style.boxShadow='0 8px 12px rgba(0,0,0,0.15)'" onmouseout="this.style.transform=''; this.style.boxShadow='0 4px 6px rgba(0,0,0,0.1)'">
-                            <div style="font-size: 2rem; font-weight: bold; color: white; line-height: 1;">${filterCounts.needsProcessing}</div>
-                            <div style="font-size: 0.75rem; color: rgba(255,255,255,0.95); margin-top: 0.5rem; font-weight: 500; text-transform: uppercase;">📦 Needs Processing</div>
-                        </div>
-                        <div onclick="filterOrders('inProgress')" style="background: linear-gradient(135deg, #fa709a 0%, #fee140 100%); padding: 1rem; border-radius: 12px; text-align: center; cursor: pointer; box-shadow: 0 4px 6px rgba(0,0,0,0.1); transition: all 0.3s;" onmouseover="this.style.transform='translateY(-4px)'; this.style.boxShadow='0 8px 12px rgba(0,0,0,0.15)'" onmouseout="this.style.transform=''; this.style.boxShadow='0 4px 6px rgba(0,0,0,0.1)'">
-                            <div style="font-size: 2rem; font-weight: bold; color: white; line-height: 1;">${filterCounts.inProgress}</div>
-                            <div style="font-size: 0.75rem; color: rgba(255,255,255,0.95); margin-top: 0.5rem; font-weight: 500; text-transform: uppercase;">⏳ In Progress</div>
-                        </div>
-                        <div onclick="filterOrders('finished')" style="background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%); padding: 1rem; border-radius: 12px; text-align: center; cursor: pointer; box-shadow: 0 4px 6px rgba(0,0,0,0.1); transition: all 0.3s;" onmouseover="this.style.transform='translateY(-4px)'; this.style.boxShadow='0 8px 12px rgba(0,0,0,0.15)'" onmouseout="this.style.transform=''; this.style.boxShadow='0 4px 6px rgba(0,0,0,0.1)'">
-                            <div style="font-size: 2rem; font-weight: bold; color: white; line-height: 1;">${filterCounts.finished}</div>
-                            <div style="font-size: 0.75rem; color: rgba(255,255,255,0.95); margin-top: 0.5rem; font-weight: 500; text-transform: uppercase;">🏁 Finished</div>
+                        <div onclick="filterOrders('finished')" style="background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%); padding: 1rem; border-radius: 12px; text-align: center; cursor: pointer; box-shadow: 0 4px 6px rgba(0,0,0,0.1); transition: 0.3s;" onmouseover="this.style.transform='translateY(-4px)'" onmouseout="this.style.transform=''">
+                            <div style="font-size: 2rem; font-weight: bold; color: white;">${counts.finished}</div>
+                            <div style="font-size: 0.75rem; color: white; margin-top: 0.5rem; text-transform: uppercase;">🏁 Finished</div>
                         </div>
                     </div>
                 `;
             }
 
-            document.getElementById('statsGrid').innerHTML = statsHTML;
-
-            // Load orders table
+            document.getElementById('statsGrid').innerHTML = stats;
             loadOrdersTable(myOrders);
         }
 
-        function filterOrders(filterType) {
-            console.log('🔍 Filtering orders:', filterType);
+        function filterOrders(type) {
+            let filtered = [];
+            if (type === 'pending') filtered = ordersData.filter(o => o.status === 'Pending Approval');
+            else if (type === 'active') filtered = ordersData.filter(o => !['Pending Approval', 'Delivered', 'Disputed', 'Resolved', 'Rejected'].includes(o.status));
+            else if (type === 'disputed') filtered = ordersData.filter(o => o.status === 'Disputed');
+            else if (type === 'resolved') filtered = ordersData.filter(o => o.status === 'Resolved');
+            else if (type === 'rejected') filtered = ordersData.filter(o => o.status === 'Rejected');
+            else if (type === 'finished') filtered = ordersData.filter(o => ['Delivered', 'Resolved'].includes(o.status));
             
-            let filteredOrders = [];
-            
-            if (currentUser.department === 'Management') {
-                if (filterType === 'pendingApproval') {
-                    filteredOrders = ordersData.filter(o => o.status === 'Pending Approval');
-                } else if (filterType === 'activeOrders') {
-                    filteredOrders = ordersData.filter(o => 
-                        o.status !== 'Pending Approval' && 
-                        o.status !== 'Delivered' && 
-                        o.status !== 'Disputed' &&
-                        o.status !== 'Resolved' && 
-                        o.status !== 'Rejected'
-                    );
-                } else if (filterType === 'disputed') {
-                    filteredOrders = ordersData.filter(o => o.status === 'Disputed');
-                } else if (filterType === 'resolved') {
-                    filteredOrders = ordersData.filter(o => o.status === 'Resolved');
-                } else if (filterType === 'rejected') {
-                    filteredOrders = ordersData.filter(o => o.status === 'Rejected');
-                } else if (filterType === 'finished') {
-                    filteredOrders = ordersData.filter(o => o.status === 'Delivered' || o.status === 'Resolved');
-                }
-            } else if (currentUser.department === 'Sales') {
-                if (filterType === 'myOrders') {
-                    filteredOrders = ordersData.filter(o => 
-                        o.createdBy === currentUser.id &&
-                        o.status !== 'Delivered' &&
-                        o.status !== 'Disputed' &&
-                        o.status !== 'Resolved' &&
-                        o.status !== 'Rejected'
-                    );
-                } else if (filterType === 'disputed') {
-                    filteredOrders = ordersData.filter(o => o.createdBy === currentUser.id && o.status === 'Disputed');
-                } else if (filterType === 'rejected') {
-                    filteredOrders = ordersData.filter(o => o.createdBy === currentUser.id && o.status === 'Rejected');
-                } else if (filterType === 'finished') {
-                    filteredOrders = ordersData.filter(o => o.createdBy === currentUser.id && (o.status === 'Delivered' || o.status === 'Resolved'));
-                }
-            } else if (currentUser.department === 'Finance') {
-                if (filterType === 'needsDocs') {
-                    filteredOrders = ordersData.filter(o => !o.proformaNumber || !o.invoiceNumber || (o.status !== 'Delivered' && o.status !== 'Resolved'));
-                } else if (filterType === 'completed') {
-                    filteredOrders = ordersData.filter(o => o.proformaNumber && o.invoiceNumber && (o.status === 'Delivered' || o.status === 'Resolved'));
-                }
-            } else if (currentUser.department === 'Transport') {
-                if (filterType === 'forAssigning') {
-                    filteredOrders = ordersData.filter(o => o.status === 'Approved' && !o.driverName);
-                } else if (filterType === 'assigned') {
-                    filteredOrders = ordersData.filter(o => 
-                        o.driverName && (
-                            o.status === 'Truck Assigned' ||
-                            o.status === 'In Warehouse' ||
-                            o.status === 'Loading' ||
-                            o.status === 'Left Warehouse'
-                        )
-                    );
-                } else if (filterType === 'disputed') {
-                    filteredOrders = ordersData.filter(o => o.status === 'Disputed' && o.driverName);
-                } else if (filterType === 'finished') {
-                    filteredOrders = ordersData.filter(o => o.driverName && (o.status === 'Delivered' || o.status === 'Resolved'));
-                }
-            } else if (currentUser.department === 'Warehouse') {
-                if (filterType === 'needsProcessing') {
-                    filteredOrders = ordersData.filter(o => o.status === 'Truck Assigned');
-                } else if (filterType === 'inProgress') {
-                    filteredOrders = ordersData.filter(o => o.status === 'In Warehouse' || o.status === 'Loading' || o.status === 'Left Warehouse');
-                } else if (filterType === 'finished') {
-                    filteredOrders = ordersData.filter(o => o.status === 'Delivered' || o.status === 'Resolved');
-                }
-            }
-            
-            // Apply date filter
-            filteredOrders = filterOrdersByDate(filteredOrders);
-            
-            // Load filtered orders into table
-            loadOrdersTable(filteredOrders);
+            loadOrdersTable(filterOrdersByDate(filtered));
         }
 
         function loadOrdersTable(orders) {
             const container = document.getElementById('ordersTableContainer');
-            
             if (orders.length === 0) {
                 container.innerHTML = '<p style="text-align:center; padding: 2rem; color: #6B7280;">No orders found</p>';
                 return;
             }
 
-            let html = '<table><thead><tr>';
-            html += '<th>Order ID</th>';
-            html += '<th>Date</th>';
-            html += '<th>Client</th>';
-            html += '<th>Product</th>';
-            html += '<th>Quantity</th>';
-            html += '<th>Status</th>';
-            html += '<th>Priority</th>';
-            html += '<th>Actions</th>';
-            html += '</tr></thead><tbody>';
-
-            orders.forEach(order => {
-                html += '<tr>';
-                html += `<td>${order.orderID}</td>`;
-                html += `<td>${formatDate(order.orderDate)}</td>`;
-                html += `<td>${order.clientName}</td>`;
-                html += `<td>${order.productType}</td>`;
-                html += `<td>${order.quantity} ${order.unit}</td>`;
-                html += `<td><span class="status-badge ${getStatusClass(order.status)}">${order.status}</span></td>`;
-                html += `<td><span class="${getPriorityClass(order.priority)}">${order.priority}</span></td>`;
-                html += `<td><button class="btn btn-primary" onclick="viewOrderDetails('${order.orderID}')">View</button></td>`;
-                html += '</tr>';
+            let html = '<table><thead><tr><th>Order ID</th><th>Date</th><th>Client</th><th>Product</th><th>Quantity</th><th>Status</th><th>Priority</th><th>Actions</th></tr></thead><tbody>';
+            orders.forEach(o => {
+                html += `<tr>
+                    <td>${o.orderID}</td>
+                    <td>${formatDate(o.orderDate)}</td>
+                    <td>${o.clientName}</td>
+                    <td>${o.productType}</td>
+                    <td>${o.quantity} ${o.unit}</td>
+                    <td><span class="status-badge ${getStatusClass(o.status)}">${o.status}</span></td>
+                    <td><span class="${getPriorityClass(o.priority)}">${o.priority}</span></td>
+                    <td><button class="btn btn-primary" onclick="viewOrderDetails('${o.orderID}')">View</button></td>
+                </tr>`;
             });
-
             html += '</tbody></table>';
             container.innerHTML = html;
         }
-		// ========================================
-        // ORDER ACTIONS
-        // ========================================
+
         function loadClientDropdown() {
-            const clientSelect = document.getElementById('clientSelect');
-            clientSelect.innerHTML = '<option value="">-- Select Client --</option>';
-            
-            clientsData.forEach(client => {
-                const option = document.createElement('option');
-                option.value = client.clientID;
-                option.textContent = `${client.clientName} - ${client.city}`;
-                clientSelect.appendChild(option);
+            const select = document.getElementById('clientSelect');
+            select.innerHTML = '<option value="">-- Select Client --</option>';
+            clientsData.forEach(c => {
+                const opt = document.createElement('option');
+                opt.value = c.clientID;
+                opt.textContent = `${c.clientName} - ${c.city}`;
+                select.appendChild(opt);
             });
         }
 
-        // Create Order Form Handler
         document.getElementById('createOrderForm').addEventListener('submit', async (e) => {
-            document.getElementById('createOrderForm').addEventListener('submit', async (e) => {
             e.preventDefault();
             
-            // DEBUG: Log everything
-            console.log('🔵 Form submitted!');
-            console.log('🔵 Current user:', currentUser);
-            console.log('🔵 Apps Script URL:', APPS_SCRIPT_URL);
-			e.preventDefault();
-
-            // Get form data
             const clientID = document.getElementById('clientSelect').value;
             const client = clientsData.find(c => c.clientID === clientID);
             
-            // Generate Order ID
-            const today = new Date();
-            const year = today.getFullYear();
-            const month = String(today.getMonth() + 1).padStart(2, '0');
-            const day = String(today.getDate()).padStart(2, '0');
-            
-            const todayString = `${year}-${month}-${day}`;
-            const todayOrders = ordersData.filter(o => 
-                o.orderDate === todayString && o.createdBy === currentUser.id
-            ).length;
-            
-            const orderNumber = String(todayOrders + 1).padStart(5, '0');
-            const orderID = `ORD${orderNumber}-${year}${month}${day}`;
-            
             const orderData = {
                 action: 'createOrder',
-                orderID: orderID,
-                orderDate: today.toISOString().split('T')[0],
-                createdBy: currentUser.id,
+                createdBy: currentUser.userID,
                 clientID: clientID,
                 clientName: client ? client.clientName : '',
                 productType: document.getElementById('productTypeSelect').value,
@@ -1477,908 +945,164 @@ document.getElementById('loginForm').addEventListener('submit', (e) => {
                 noGulfBrand: document.getElementById('noGulfBrandCheck').checked,
                 notes: document.getElementById('orderNotesInput').value || ''
             };
-            
-            console.log('📤 Sending order data:', orderData);
-            
-            // Show loading
-            const submitBtn = e.target.querySelector('button[type="submit"]');
-            const originalText = submitBtn.textContent;
-            submitBtn.textContent = 'Creating...';
-            submitBtn.disabled = true;
-            
+
+            console.log('Creating order:', orderData);
+
             try {
-                const response = await fetch(APPS_SCRIPT_URL, {
+                await fetch(APPS_SCRIPT_URL, {
                     method: 'POST',
                     mode: 'no-cors',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
+                    headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(orderData)
                 });
-                
-                alert(`✅ Order ${orderData.orderID} created successfully!`);
+
+                alert('✅ Order created successfully!');
                 document.getElementById('createOrderForm').reset();
-                
                 await loadData();
                 showView('dashboard');
-                
             } catch (error) {
                 console.error('Error:', error);
-                alert('❌ Error creating order: ' + error.message);
-            } finally {
-                submitBtn.textContent = originalText;
-                submitBtn.disabled = false;
+                alert('❌ Error creating order');
             }
         });
 
-        async function approveOrder(orderID) {
-            if (!confirm(`Approve order ${orderID}?`)) return;
-            
-            const note = prompt('Add approval note (optional):') || 'Approved';
-            
-            try {
-                const response = await fetch(APPS_SCRIPT_URL, {
-                    method: 'POST',
-                    mode: 'no-cors',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({
-                        action: 'approveOrder',
-                        orderID: orderID,
-                        approverID: currentUser.id,
-                        note: note
-                    })
-                });
-                
-                alert(`✅ Order ${orderID} approved!`);
-                
-                await loadData();
-                loadApprovals();
-                
-            } catch (error) {
-                console.error('Error:', error);
-                alert('❌ Error approving order: ' + error.message);
-            }
-        }
-
-        async function rejectOrder(orderID) {
-            const reason = prompt('Enter rejection reason:');
-            if (!reason) return;
-            
-            try {
-                const response = await fetch(APPS_SCRIPT_URL, {
-                    method: 'POST',
-                    mode: 'no-cors',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({
-                        action: 'rejectOrder',
-                        orderID: orderID,
-                        rejecterID: currentUser.id,
-                        reason: reason
-                    })
-                });
-                
-                alert(`❌ Order ${orderID} rejected.`);
-                
-                await loadData();
-                loadApprovals();
-                
-            } catch (error) {
-                console.error('Error:', error);
-                alert('❌ Error rejecting order: ' + error.message);
-            }
-        }
-
-        // ========================================
-        // APPROVALS VIEW
-        // ========================================
         function loadApprovals() {
-            console.log('Loading approvals...');
-            console.log('Total orders:', ordersData.length);
-            
-            let pendingOrders = ordersData.filter(o => o.status === 'Pending Approval');
-            console.log('Pending orders found:', pendingOrders.length);
-            
-            pendingOrders = filterOrdersByDate(pendingOrders);
-            console.log('After date filter:', pendingOrders.length);
-            
+            let pending = ordersData.filter(o => o.status === 'Pending Approval');
+            pending = filterOrdersByDate(pending);
             const container = document.getElementById('pendingApprovalsList');
-
-            if (pendingOrders.length === 0) {
+            
+            if (pending.length === 0) {
                 container.innerHTML = '<p style="text-align:center; padding: 2rem; color: #6B7280;">No pending approvals</p>';
                 return;
             }
 
             let html = '';
-            pendingOrders.forEach(order => {
+            pending.forEach(o => {
                 html += `
                     <div class="card">
-                        <div style="display: flex; justify-content: space-between; align-items: start; gap: 1rem;">
-                            <div style="flex: 1;">
-                                <h3 style="margin-bottom: 0.5rem;">${order.orderID} - ${order.clientName}</h3>
-                                <p style="color: #6B7280; margin-bottom: 1rem;">
-                                    ${order.quantity} ${order.unit} of ${order.productType} |
-                                    Delivery: ${formatDate(order.requestedDeliveryDate)} |
-                                    <span class="${getPriorityClass(order.priority)}">${order.priority}</span>
-                                </p>
-                                <div style="display: flex; gap: 1rem;">
-                                    <button class="btn btn-success" onclick="approveOrder('${order.orderID}')">✓ Approve</button>
-                                    <button class="btn btn-danger" onclick="rejectOrder('${order.orderID}')">✗ Reject</button>
-                                    <button class="btn btn-secondary" onclick="viewOrderDetails('${order.orderID}')">View Details</button>
-                                </div>
-                            </div>
+                        <h3>${o.orderID} - ${o.clientName}</h3>
+                        <p style="color: #6B7280;">${o.quantity} ${o.unit} of ${o.productType} | ${formatDate(o.requestedDeliveryDate)}</p>
+                        <div style="display: flex; gap: 1rem; margin-top: 1rem;">
+                            <button class="btn btn-success" onclick="approveOrder('${o.orderID}')">✓ Approve</button>
+                            <button class="btn btn-danger" onclick="rejectOrder('${o.orderID}')">✗ Reject</button>
+                            <button class="btn btn-secondary" onclick="viewOrderDetails('${o.orderID}')">View</button>
                         </div>
                     </div>
                 `;
             });
-
-            console.log('HTML generated, length:', html.length);
             container.innerHTML = html;
         }
 
-        // ========================================
-        // DISPUTES VIEW (MANAGEMENT)
-        // ========================================
+        async function approveOrder(orderID) {
+            if (!confirm(`Approve ${orderID}?`)) return;
+            try {
+                await fetch(APPS_SCRIPT_URL, {
+                    method: 'POST',
+                    mode: 'no-cors',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ action: 'approveOrder', orderID, approverID: currentUser.userID })
+                });
+                alert('✅ Approved!');
+                await loadData();
+                loadApprovals();
+            } catch (error) {
+                alert('❌ Error approving');
+            }
+        }
+
+        async function rejectOrder(orderID) {
+            const reason = prompt('Rejection reason:');
+            if (!reason) return;
+            try {
+                await fetch(APPS_SCRIPT_URL, {
+                    method: 'POST',
+                    mode: 'no-cors',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ action: 'rejectOrder', orderID, rejecterID: currentUser.userID, reason })
+                });
+                alert('❌ Rejected');
+                await loadData();
+                loadApprovals();
+            } catch (error) {
+                alert('❌ Error rejecting');
+            }
+        }
+
         function loadDisputesView() {
-            let disputedOrders = ordersData.filter(o => o.status === 'Disputed');
-            disputedOrders = filterOrdersByDate(disputedOrders);
-
+            let disputed = ordersData.filter(o => o.status === 'Disputed');
+            disputed = filterOrdersByDate(disputed);
             const container = document.getElementById('disputesList');
-
-            if (disputedOrders.length === 0) {
+            
+            if (disputed.length === 0) {
                 container.innerHTML = '<p style="text-align:center; padding: 2rem; color: #6B7280;">No disputed orders</p>';
                 return;
             }
 
             let html = '';
-            disputedOrders.forEach(order => {
+            disputed.forEach(o => {
                 html += `
                     <div class="card" style="border-left: 4px solid var(--warning);">
-                        <div style="display: grid; gap: 1rem;">
-                            <div style="display: flex; justify-content: space-between; align-items: start;">
-                                <div style="flex: 1;">
-                                    <h3 style="margin-bottom: 0.5rem;">${order.orderID} - ${order.clientName}</h3>
-                                    <p style="color: #6B7280; margin-bottom: 0.5rem;">
-                                        ${order.quantity} ${order.unit} of ${order.productType}
-                                    </p>
-                                    ${order.driverName ? `
-                                    <p style="color: #065F46; margin-bottom: 0.5rem;">
-                                        🚛 Driver: <strong>${order.driverName}</strong> | Truck: <strong>${order.truckPlate}</strong>
-                                    </p>
-                                    ` : ''}
-                                    <p style="color: #D97706; font-weight: 500;">
-                                        ⚠️ Dispute Reason: ${order.rejectionReason || 'Not specified'}
-                                    </p>
-                                </div>
-                                <span class="status-badge status-disputed">${order.status}</span>
-                            </div>
-                            <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
-                                <button class="btn btn-success" onclick="resolveDispute('${order.orderID}')">✅ Mark as Resolved</button>
-                                <button class="btn btn-secondary" onclick="viewOrderDetails('${order.orderID}')">View Details</button>
-                            </div>
+                        <h3>${o.orderID} - ${o.clientName}</h3>
+                        <p style="color: #D97706;">⚠️ ${o.rejectionReason || 'No reason given'}</p>
+                        <div style="display: flex; gap: 1rem; margin-top: 1rem;">
+                            <button class="btn btn-success" onclick="resolveDispute('${o.orderID}')">✅ Resolve</button>
+                            <button class="btn btn-secondary" onclick="viewOrderDetails('${o.orderID}')">View</button>
                         </div>
                     </div>
                 `;
             });
-
             container.innerHTML = html;
         }
 
         async function resolveDispute(orderID) {
-            const resolution = prompt('Enter resolution details:');
+            const resolution = prompt('Resolution details:');
             if (!resolution) return;
-
             try {
-                const response = await fetch(APPS_SCRIPT_URL, {
+                await fetch(APPS_SCRIPT_URL, {
                     method: 'POST',
                     mode: 'no-cors',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({
-                        action: 'resolveDispute',
-                        orderID: orderID,
-                        resolverID: currentUser.id,
-                        resolution: resolution
-                    })
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ action: 'resolveDispute', orderID, resolverID: currentUser.userID, resolution })
                 });
-
-                alert(`✅ Dispute for order ${orderID} marked as RESOLVED!`);
-
+                alert('✅ Resolved!');
                 await loadData();
                 loadDisputesView();
-
             } catch (error) {
-                console.error('Error:', error);
-                alert('❌ Error resolving dispute');
+                alert('❌ Error resolving');
             }
         }
 
-        // ========================================
-        // PROFORMA VIEW (FINANCE)
-        // ========================================
-        function loadProformaView() {
-            let proformaOrders = ordersData.filter(o => 
-                o.status !== 'Pending Approval' && 
-                o.status !== 'Rejected' &&
-                !o.proformaNumber
-            );
-            proformaOrders = filterOrdersByDate(proformaOrders);
+        function loadProformaView() { document.getElementById('proformaOrdersList').innerHTML = '<p style="padding: 2rem;">Proforma view - Coming soon</p>'; }
+        function loadInvoiceView() { document.getElementById('invoiceOrdersList').innerHTML = '<p style="padding: 2rem;">Invoice view - Coming soon</p>'; }
+        function loadAssignedTrucksView() { document.getElementById('assignedTrucksList').innerHTML = '<p style="padding: 2rem;">Assigned trucks view - Coming soon</p>'; }
+        function loadDeliveryView() { document.getElementById('deliveryOrdersList').innerHTML = '<p style="padding: 2rem;">Delivery view - Coming soon</p>'; }
+        function loadWarehouseDashboard() { document.getElementById('warehouseOrdersList').innerHTML = '<p style="padding: 2rem;">Warehouse view - Coming soon</p>'; }
+        function loadAnalytics() { document.getElementById('analyticsContent').innerHTML = '<p style="padding: 2rem;">Analytics view - Coming soon</p>'; }
+        function exportToExcel() { alert('Export feature - Coming soon'); }
 
-            const container = document.getElementById('proformaOrdersList');
-
-            if (proformaOrders.length === 0) {
-                container.innerHTML = '<p style="text-align:center; padding: 2rem; color: #6B7280;">No orders need proforma</p>';
-                return;
-            }
-
-            let html = '';
-            proformaOrders.forEach(order => {
-                html += `
-                    <div class="card">
-                        <div style="display: grid; gap: 1rem;">
-                            <div style="display: flex; justify-content: space-between; align-items: start;">
-                                <div style="flex: 1;">
-                                    <h3 style="margin-bottom: 0.5rem;">${order.orderID} - ${order.clientName}</h3>
-                                    <p style="color: #6B7280; margin-bottom: 0.5rem;">
-                                        ${order.quantity} ${order.unit} of ${order.productType}
-                                    </p>
-                                    <p style="color: #059669;">
-                                        💰 Margin: <strong>${order.margin} MKD</strong>
-                                    </p>
-                                </div>
-                                <span class="status-badge ${getStatusClass(order.status)}">${order.status}</span>
-                            </div>
-                            <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
-                                <button class="btn btn-primary" onclick="showProformaForm('${order.orderID}')">🧾 Enter Proforma Number</button>
-                                <button class="btn btn-secondary" onclick="viewOrderDetails('${order.orderID}')">View Details</button>
-                            </div>
-                        </div>
-                    </div>
-                `;
-            });
-
-            container.innerHTML = html;
-        }
-
-        function showProformaForm(orderID) {
-            const proformaNumber = prompt('Enter Proforma Number:');
-            if (!proformaNumber) return;
-
-            enterProforma(orderID, proformaNumber);
-        }
-
-        async function enterProforma(orderID, proformaNumber) {
-            try {
-                const response = await fetch(APPS_SCRIPT_URL, {
-                    method: 'POST',
-                    mode: 'no-cors',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({
-                        action: 'enterProforma',
-                        orderID: orderID,
-                        proformaNumber: proformaNumber,
-                        financeUserID: currentUser.id
-                    })
-                });
-
-                alert(`✅ Proforma ${proformaNumber} entered for order ${orderID}!`);
-
-                await loadData();
-                loadProformaView();
-
-            } catch (error) {
-                console.error('Error:', error);
-                alert('❌ Error entering proforma');
-            }
-        }
-
-        // ========================================
-        // INVOICE VIEW (FINANCE)
-        // ========================================
-        function loadInvoiceView() {
-            let invoiceOrders = ordersData.filter(o => 
-                o.proformaNumber && !o.invoiceNumber
-            );
-            invoiceOrders = filterOrdersByDate(invoiceOrders);
-
-            const container = document.getElementById('invoiceOrdersList');
-
-            if (invoiceOrders.length === 0) {
-                container.innerHTML = '<p style="text-align:center; padding: 2rem; color: #6B7280;">No orders need invoice</p>';
-                return;
-            }
-
-            let html = '';
-            invoiceOrders.forEach(order => {
-                html += `
-                    <div class="card">
-                        <div style="display: grid; gap: 1rem;">
-                            <div style="display: flex; justify-content: space-between; align-items: start;">
-                                <div style="flex: 1;">
-                                    <h3 style="margin-bottom: 0.5rem;">${order.orderID} - ${order.clientName}</h3>
-                                    <p style="color: #6B7280; margin-bottom: 0.5rem;">
-                                        ${order.quantity} ${order.unit} of ${order.productType}
-                                    </p>
-                                    <p style="color: #065F46; margin-bottom: 0.5rem;">
-                                        🧾 Proforma: <strong>${order.proformaNumber}</strong>
-                                    </p>
-                                </div>
-                                <span class="status-badge ${getStatusClass(order.status)}">${order.status}</span>
-                            </div>
-                            <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
-                                <button class="btn btn-success" onclick="showInvoiceForm('${order.orderID}')">📄 Enter Invoice Number</button>
-                                <button class="btn btn-secondary" onclick="viewOrderDetails('${order.orderID}')">View Details</button>
-                            </div>
-                        </div>
-                    </div>
-                `;
-            });
-
-            container.innerHTML = html;
-        }
-
-        function showInvoiceForm(orderID) {
-            const invoiceNumber = prompt('Enter Invoice Number:');
-            if (!invoiceNumber) return;
-
-            enterInvoice(orderID, invoiceNumber);
-        }
-
-        async function enterInvoice(orderID, invoiceNumber) {
-            try {
-                const response = await fetch(APPS_SCRIPT_URL, {
-                    method: 'POST',
-                    mode: 'no-cors',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({
-                        action: 'enterInvoice',
-                        orderID: orderID,
-                        invoiceNumber: invoiceNumber,
-                        financeUserID: currentUser.id
-                    })
-                });
-
-                alert(`✅ Invoice ${invoiceNumber} entered for order ${orderID}!`);
-
-                await loadData();
-                loadInvoiceView();
-
-            } catch (error) {
-                console.error('Error:', error);
-                alert('❌ Error entering invoice');
-            }
-        }
-		// ========================================
-        // TRANSPORT FUNCTIONS
-        // ========================================
-        function loadAssignedTrucksView() {
-            // Show orders with drivers that are still in warehouse process
-            let assignedOrders = ordersData.filter(o => 
-                o.driverName && (
-                    o.status === 'Truck Assigned' ||
-                    o.status === 'In Warehouse' ||
-                    o.status === 'Loading'
-                )
-            );
-            assignedOrders = filterOrdersByDate(assignedOrders);
-
-            const container = document.getElementById('assignedTrucksList');
-
-            if (assignedOrders.length === 0) {
-                container.innerHTML = '<p style="text-align:center; padding: 2rem; color: #6B7280;">No assigned trucks in warehouse</p>';
-                return;
-            }
-
-            let html = '';
-            assignedOrders.forEach(order => {
-                html += `
-                    <div class="card">
-                        <div style="display: grid; gap: 1rem;">
-                            <div style="display: flex; justify-content: space-between; align-items: start;">
-                                <div style="flex: 1;">
-                                    <h3 style="margin-bottom: 0.5rem;">${order.orderID} - ${order.clientName}</h3>
-                                    <p style="color: #6B7280; margin-bottom: 0.5rem;">
-                                        ${order.quantity} ${order.unit} of ${order.productType} |
-                                        Warehouse: ${order.warehouse}
-                                    </p>
-                                    <p style="color: #065F46; margin-bottom: 0.5rem;">
-                                        🚛 Driver: <strong>${order.driverName}</strong> |
-                                        Truck: <strong>${order.truckPlate}</strong> |
-                                        Company: <strong>${order.transportCompany}</strong>
-                                    </p>
-                                    <p style="color: #059669; margin-bottom: 0.25rem;">
-                                        ⏰ Est. Delivery: <strong>${order.estimatedDelivery || 'N/A'}</strong>
-                                    </p>
-                                </div>
-                                <span class="status-badge ${getStatusClass(order.status)}">${order.status}</span>
-                            </div>
-                            <button class="btn btn-secondary" onclick="viewOrderDetails('${order.orderID}')">View Full Details</button>
-                        </div>
-                    </div>
-                `;
-            });
-
-            container.innerHTML = html;
-        }
-
-        function loadDeliveryView() {
-            // Show orders that LEFT warehouse - Transport needs to mark as Delivered or Disputed
-            let deliveryOrders = ordersData.filter(o => 
-                o.status === 'Left Warehouse'
-            );
-            deliveryOrders = filterOrdersByDate(deliveryOrders);
-
-            const container = document.getElementById('deliveryOrdersList');
-
-            if (deliveryOrders.length === 0) {
-                container.innerHTML = '<p style="text-align:center; padding: 2rem; color: #6B7280;">No orders ready for delivery confirmation</p>';
-                return;
-            }
-
-            let html = '';
-            deliveryOrders.forEach(order => {
-                html += `
-                    <div class="card">
-                        <div style="display: grid; gap: 1rem;">
-                            <div style="display: flex; justify-content: space-between; align-items: start;">
-                                <div style="flex: 1;">
-                                    <h3 style="margin-bottom: 0.5rem;">${order.orderID} - ${order.clientName}</h3>
-                                    <p style="color: #6B7280; margin-bottom: 0.5rem;">
-                                        ${order.quantity} ${order.unit} of ${order.productType}
-                                    </p>
-                                    <p style="color: #065F46; margin-bottom: 0.5rem;">
-                                        🚛 Driver: <strong>${order.driverName}</strong> |
-                                        Truck: <strong>${order.truckPlate}</strong>
-                                    </p>
-                                    <p style="color: #059669;">
-                                        📍 Delivery Address: <strong>${order.clientName}</strong>
-                                    </p>
-                                </div>
-                                <span class="status-badge" style="background: #DBEAFE; color: #1E40AF;">${order.status}</span>
-                            </div>
-                            <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
-                                <button class="btn btn-success" onclick="markAsDelivered('${order.orderID}')">✅ Mark as Delivered</button>
-                                <button class="btn btn-danger" onclick="markAsDisputed('${order.orderID}')">⚠️ Mark as Disputed</button>
-                                <button class="btn btn-secondary" onclick="viewOrderDetails('${order.orderID}')">View Details</button>
-                            </div>
-                        </div>
-                    </div>
-                `;
-            });
-
-            container.innerHTML = html;
-        }
-
-        async function markAsDelivered(orderID) {
-            if (!confirm(`Mark order ${orderID} as DELIVERED?`)) return;
-
-            const deliveryNote = prompt('Add delivery note (optional):') || 'Delivered successfully';
-
-            try {
-                const response = await fetch(APPS_SCRIPT_URL, {
-                    method: 'POST',
-                    mode: 'no-cors',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({
-                        action: 'markAsDelivered',
-                        orderID: orderID,
-                        transportUserID: currentUser.id,
-                        note: deliveryNote
-                    })
-                });
-
-                alert(`✅ Order ${orderID} marked as DELIVERED!`);
-
-                // Reload data and refresh view
-                await loadData();
-                loadDeliveryView();
-
-            } catch (error) {
-                console.error('Error:', error);
-                alert('❌ Error marking order as delivered');
-            }
-        }
-
-        async function markAsDisputed(orderID) {
-            const reason = prompt('Enter dispute reason:');
-            if (!reason) return;
-
-            try {
-                const response = await fetch(APPS_SCRIPT_URL, {
-                    method: 'POST',
-                    mode: 'no-cors',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({
-                        action: 'markAsDisputed',
-                        orderID: orderID,
-                        transportUserID: currentUser.id,
-                        reason: reason
-                    })
-                });
-
-                alert(`⚠️ Order ${orderID} marked as DISPUTED!`);
-
-                // Reload data and refresh view
-                await loadData();
-                loadDeliveryView();
-
-            } catch (error) {
-                console.error('Error:', error);
-                alert('❌ Error marking order as disputed');
-            }
-        }
-
-        // ========================================
-        // WAREHOUSE FUNCTIONS
-        // ========================================
-        function loadWarehouseDashboard() {
-            let warehouseOrders = ordersData.filter(o => 
-                o.status === 'Truck Assigned' || 
-                o.status === 'In Warehouse' || 
-                o.status === 'Loading' || 
-                o.status === 'Left Warehouse'
-            );
-            warehouseOrders = filterOrdersByDate(warehouseOrders);
-
-            const container = document.getElementById('warehouseOrdersList');
-
-            if (warehouseOrders.length === 0) {
-                container.innerHTML = '<p style="text-align:center; padding: 2rem; color: #6B7280;">No orders in warehouse</p>';
-                return;
-            }
-
-            let html = '';
-            warehouseOrders.forEach(order => {
-                const canProgress = order.status !== 'Left Warehouse';
-                
-                html += `
-                    <div class="card">
-                        <div style="display: grid; gap: 1rem;">
-                            <div style="display: flex; justify-content: space-between; align-items: start;">
-                                <div style="flex: 1;">
-                                    <h3 style="margin-bottom: 0.5rem;">${order.orderID} - ${order.clientName}</h3>
-                                    <p style="color: #6B7280; margin-bottom: 0.5rem;">
-                                        ${order.quantity} ${order.unit} of ${order.productType}
-                                    </p>
-                                    ${order.driverName ? `
-                                    <p style="color: #065F46; margin-bottom: 0.5rem;">
-                                        🚛 Driver: <strong>${order.driverName}</strong> |
-                                        Truck: <strong>${order.truckPlate}</strong>
-                                    </p>
-                                    ` : ''}
-                                </div>
-                                <span class="status-badge ${getStatusClass(order.status)}">${order.status}</span>
-                            </div>
-                            ${canProgress ? `
-                            <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
-                                ${order.status === 'Truck Assigned' ? `
-                                <button class="btn btn-primary" onclick="updateWarehouseStatus('${order.orderID}', 'In Warehouse')">📦 Mark In Warehouse</button>
-                                ` : ''}
-                                ${order.status === 'In Warehouse' ? `
-                                <button class="btn btn-warning" onclick="updateWarehouseStatus('${order.orderID}', 'Loading')">⏳ Start Loading</button>
-                                ` : ''}
-                                ${order.status === 'Loading' ? `
-                                <button class="btn btn-success" onclick="updateWarehouseStatus('${order.orderID}', 'Left Warehouse')">🚚 Truck Left</button>
-                                ` : ''}
-                                <button class="btn btn-secondary" onclick="viewOrderDetails('${order.orderID}')">View Details</button>
-                            </div>
-                            ` : `
-                            <div style="display: flex; gap: 1rem;">
-                                <button class="btn btn-secondary" onclick="viewOrderDetails('${order.orderID}')">View Details</button>
-                            </div>
-                            `}
-                        </div>
-                    </div>
-                `;
-            });
-
-            container.innerHTML = html;
-        }
-
-        async function updateWarehouseStatus(orderID, newStatus) {
-            if (!confirm(`Update order ${orderID} to status: ${newStatus}?`)) return;
-
-            try {
-                const response = await fetch(APPS_SCRIPT_URL, {
-                    method: 'POST',
-                    mode: 'no-cors',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({
-                        action: 'updateWarehouseStatus',
-                        orderID: orderID,
-                        status: newStatus,
-                        warehouseUserID: currentUser.id
-                    })
-                });
-
-                alert(`✅ Order ${orderID} updated to: ${newStatus}!`);
-
-                await loadData();
-                loadWarehouseDashboard();
-
-            } catch (error) {
-                console.error('Error:', error);
-                alert('❌ Error updating warehouse status');
-            }
-        }
-
-        // Warehouse refresh button
-        document.getElementById('refreshWarehouseBtn')?.addEventListener('click', loadWarehouseDashboard);
-		// ========================================
-        // ANALYTICS FUNCTIONS
-        // ========================================
-        function loadAnalytics() {
-            const container = document.getElementById('analyticsContent');
-            
-            // Calculate analytics
-            const totalOrders = ordersData.length;
-            const pendingOrders = ordersData.filter(o => o.status === 'Pending Approval').length;
-            const approvedOrders = ordersData.filter(o => o.status === 'Approved').length;
-            const deliveredOrders = ordersData.filter(o => o.status === 'Delivered').length;
-            const disputedOrders = ordersData.filter(o => o.status === 'Disputed').length;
-            const rejectedOrders = ordersData.filter(o => o.status === 'Rejected').length;
-            
-            // Calculate by product type
-            const productStats = {};
-            ordersData.forEach(order => {
-                if (!productStats[order.productType]) {
-                    productStats[order.productType] = { count: 0, totalQuantity: 0 };
-                }
-                productStats[order.productType].count++;
-                productStats[order.productType].totalQuantity += parseFloat(order.quantity) || 0;
-            });
-            
-            let html = `
-                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 2rem;">
-                    <div class="card" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white;">
-                        <h3 style="font-size: 2rem; margin-bottom: 0.5rem;">${totalOrders}</h3>
-                        <p style="opacity: 0.9;">Total Orders</p>
-                    </div>
-                    <div class="card" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); color: white;">
-                        <h3 style="font-size: 2rem; margin-bottom: 0.5rem;">${pendingOrders}</h3>
-                        <p style="opacity: 0.9;">Pending Approval</p>
-                    </div>
-                    <div class="card" style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); color: white;">
-                        <h3 style="font-size: 2rem; margin-bottom: 0.5rem;">${approvedOrders}</h3>
-                        <p style="opacity: 0.9;">Approved</p>
-                    </div>
-                    <div class="card" style="background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%); color: white;">
-                        <h3 style="font-size: 2rem; margin-bottom: 0.5rem;">${deliveredOrders}</h3>
-                        <p style="opacity: 0.9;">Delivered</p>
-                    </div>
-                    <div class="card" style="background: linear-gradient(135deg, #ff9a56 0%, #ff6a88 100%); color: white;">
-                        <h3 style="font-size: 2rem; margin-bottom: 0.5rem;">${disputedOrders}</h3>
-                        <p style="opacity: 0.9;">Disputed</p>
-                    </div>
-                    <div class="card" style="background: linear-gradient(135deg, #868f96 0%, #596164 100%); color: white;">
-                        <h3 style="font-size: 2rem; margin-bottom: 0.5rem;">${rejectedOrders}</h3>
-                        <p style="opacity: 0.9;">Rejected</p>
-                    </div>
-                </div>
-                
-                <div class="card">
-                    <h3 class="card-title">📊 Orders by Product Type</h3>
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>Product Type</th>
-                                <th>Number of Orders</th>
-                                <th>Total Quantity</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-            `;
-            
-            for (const [product, stats] of Object.entries(productStats)) {
-                html += `
-                    <tr>
-                        <td>${product}</td>
-                        <td>${stats.count}</td>
-                        <td>${stats.totalQuantity.toLocaleString()} L</td>
-                    </tr>
-                `;
-            }
-            
-            html += `
-                        </tbody>
-                    </table>
-                </div>
-            `;
-            
-            container.innerHTML = html;
-        }
-
-        function exportToExcel() {
-            // Create CSV content
-            let csv = 'Order ID,Date,Client,Product,Unit,Quantity,Status,Priority,Created By,Warehouse\n';
-            
-            ordersData.forEach(order => {
-                csv += `${order.orderID},${order.orderDate},${order.clientName},${order.productType},${order.unit},${order.quantity},${order.status},${order.priority},${order.createdBy},${order.warehouse}\n`;
-            });
-            
-            // Create download link
-            const blob = new Blob([csv], { type: 'text/csv' });
-            const url = window.URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = `orders_export_${new Date().toISOString().split('T')[0]}.csv`;
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
-            window.URL.revokeObjectURL(url);
-            
-            alert('✅ Orders exported to CSV!');
-        }
-
-        // ========================================
-        // ORDER DETAILS MODAL
-        // ========================================
         function viewOrderDetails(orderID) {
             const order = ordersData.find(o => o.orderID === orderID);
-            
-            if (!order) {
-                alert('Order not found');
-                return;
-            }
+            if (!order) return alert('Order not found');
             
             const modal = document.getElementById('orderDetailsModal');
             const content = document.getElementById('orderDetailsContent');
             
-            let html = `
-                <h2 style="margin-bottom: 1.5rem; color: var(--primary);">📋 Order Details: ${order.orderID}</h2>
-                
-                <div style="display: grid; gap: 1.5rem;">
-                    <div class="card" style="background: var(--bg-gray);">
-                        <h3 style="margin-bottom: 1rem; font-size: 1.1rem;">📊 Order Information</h3>
-                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem;">
-                            <div>
-                                <p style="color: var(--secondary); font-size: 0.875rem;">Order ID</p>
-                                <p style="font-weight: 600;">${order.orderID}</p>
-                            </div>
-                            <div>
-                                <p style="color: var(--secondary); font-size: 0.875rem;">Date</p>
-                                <p style="font-weight: 600;">${formatDate(order.orderDate)}</p>
-                            </div>
-                            <div>
-                                <p style="color: var(--secondary); font-size: 0.875rem;">Status</p>
-                                <p><span class="status-badge ${getStatusClass(order.status)}">${order.status}</span></p>
-                            </div>
-                            <div>
-                                <p style="color: var(--secondary); font-size: 0.875rem;">Priority</p>
-                                <p><span class="${getPriorityClass(order.priority)}">${order.priority}</span></p>
-                            </div>
-                        </div>
+            content.innerHTML = `
+                <h2>📋 ${order.orderID}</h2>
+                <div class="card" style="margin-top: 1rem;">
+                    <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 1rem;">
+                        <div><strong>Client:</strong> ${order.clientName}</div>
+                        <div><strong>Date:</strong> ${formatDate(order.orderDate)}</div>
+                        <div><strong>Product:</strong> ${order.productType}</div>
+                        <div><strong>Quantity:</strong> ${order.quantity} ${order.unit}</div>
+                        <div><strong>Warehouse:</strong> ${order.warehouse}</div>
+                        <div><strong>Status:</strong> <span class="status-badge ${getStatusClass(order.status)}">${order.status}</span></div>
+                        <div><strong>Priority:</strong> ${order.priority}</div>
+                        <div><strong>Delivery:</strong> ${formatDate(order.requestedDeliveryDate)}</div>
                     </div>
-                    
-                    <div class="card" style="background: var(--bg-gray);">
-                        <h3 style="margin-bottom: 1rem; font-size: 1.1rem;">👤 Client Information</h3>
-                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem;">
-                            <div>
-                                <p style="color: var(--secondary); font-size: 0.875rem;">Client Name</p>
-                                <p style="font-weight: 600;">${order.clientName}</p>
-                            </div>
-                            <div>
-                                <p style="color: var(--secondary); font-size: 0.875rem;">Client ID</p>
-                                <p style="font-weight: 600;">${order.clientID}</p>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div class="card" style="background: var(--bg-gray);">
-                        <h3 style="margin-bottom: 1rem; font-size: 1.1rem;">📦 Product Information</h3>
-                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem;">
-                            <div>
-                                <p style="color: var(--secondary); font-size: 0.875rem;">Product Type</p>
-                                <p style="font-weight: 600;">${order.productType}</p>
-                            </div>
-                            <div>
-                                <p style="color: var(--secondary); font-size: 0.875rem;">Quantity</p>
-                                <p style="font-weight: 600;">${order.quantity} ${order.unit}</p>
-                            </div>
-                            <div>
-                                <p style="color: var(--secondary); font-size: 0.875rem;">Warehouse</p>
-                                <p style="font-weight: 600;">${order.warehouse}</p>
-                            </div>
-                            <div>
-                                <p style="color: var(--secondary); font-size: 0.875rem;">Margin</p>
-                                <p style="font-weight: 600;">${order.margin} MKD</p>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div class="card" style="background: var(--bg-gray);">
-                        <h3 style="margin-bottom: 1rem; font-size: 1.1rem;">🚚 Delivery Information</h3>
-                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem;">
-                            <div>
-                                <p style="color: var(--secondary); font-size: 0.875rem;">Requested Delivery</p>
-                                <p style="font-weight: 600;">${formatDate(order.requestedDeliveryDate)}</p>
-                            </div>
-                            <div>
-                                <p style="color: var(--secondary); font-size: 0.875rem;">Preferred Time</p>
-                                <p style="font-weight: 600;">${order.preferredTime || 'N/A'}</p>
-                            </div>
-                            <div>
-                                <p style="color: var(--secondary); font-size: 0.875rem;">Payment Terms</p>
-                                <p style="font-weight: 600;">${order.paymentTerms}</p>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    ${order.driverName ? `
-                    <div class="card" style="background: var(--bg-gray);">
-                        <h3 style="margin-bottom: 1rem; font-size: 1.1rem;">🚛 Transport Information</h3>
-                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem;">
-                            <div>
-                                <p style="color: var(--secondary); font-size: 0.875rem;">Driver Name</p>
-                                <p style="font-weight: 600;">${order.driverName}</p>
-                            </div>
-                            <div>
-                                <p style="color: var(--secondary); font-size: 0.875rem;">Truck Plate</p>
-                                <p style="font-weight: 600;">${order.truckPlate}</p>
-                            </div>
-                            <div>
-                                <p style="color: var(--secondary); font-size: 0.875rem;">Transport Company</p>
-                                <p style="font-weight: 600;">${order.transportCompany || 'N/A'}</p>
-                            </div>
-                            <div>
-                                <p style="color: var(--secondary); font-size: 0.875rem;">Est. Delivery</p>
-                                <p style="font-weight: 600;">${order.estimatedDelivery || 'N/A'}</p>
-                            </div>
-                        </div>
-                    </div>
-                    ` : ''}
-                    
-                    ${order.proformaNumber || order.invoiceNumber ? `
-                    <div class="card" style="background: var(--bg-gray);">
-                        <h3 style="margin-bottom: 1rem; font-size: 1.1rem;">💰 Financial Information</h3>
-                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem;">
-                            ${order.proformaNumber ? `
-                            <div>
-                                <p style="color: var(--secondary); font-size: 0.875rem;">Proforma Number</p>
-                                <p style="font-weight: 600;">${order.proformaNumber}</p>
-                            </div>
-                            ` : ''}
-                            ${order.invoiceNumber ? `
-                            <div>
-                                <p style="color: var(--secondary); font-size: 0.875rem;">Invoice Number</p>
-                                <p style="font-weight: 600;">${order.invoiceNumber}</p>
-                            </div>
-                            ` : ''}
-                        </div>
-                    </div>
-                    ` : ''}
-                    
-                    ${order.notes ? `
-                    <div class="card" style="background: var(--bg-gray);">
-                        <h3 style="margin-bottom: 1rem; font-size: 1.1rem;">📝 Notes</h3>
-                        <p>${order.notes}</p>
-                    </div>
-                    ` : ''}
-                    
-                    ${order.rejectionReason ? `
-                    <div class="card" style="background: #FEF3C7; border-left: 4px solid var(--warning);">
-                        <h3 style="margin-bottom: 1rem; font-size: 1.1rem; color: var(--warning);">⚠️ Rejection/Dispute Reason</h3>
-                        <p>${order.rejectionReason}</p>
-                    </div>
-                    ` : ''}
+                    ${order.notes ? `<p style="margin-top: 1rem;"><strong>Notes:</strong> ${order.notes}</p>` : ''}
                 </div>
             `;
-            
-            content.innerHTML = html;
             modal.style.display = 'block';
         }
 
@@ -2386,23 +1110,12 @@ document.getElementById('loginForm').addEventListener('submit', (e) => {
             document.getElementById('orderDetailsModal').style.display = 'none';
         }
 
-        // Close modal on outside click
         window.onclick = function(event) {
             const modal = document.getElementById('orderDetailsModal');
-            if (event.target === modal) {
-                closeModal();
-            }
+            if (event.target === modal) closeModal();
         }
 
-        // ========================================
-        // PAGE INITIALIZATION
-        // ========================================
-        window.addEventListener('DOMContentLoaded', () => {
-            console.log('🚀 Application starting...');
-            initializeLogin();
-        });
-
-        console.log('✅ Gulf Order Management System loaded');
+        window.addEventListener('DOMContentLoaded', initializeLogin);
     </script>
 </body>
 </html>
