@@ -934,30 +934,32 @@ async function loadData() {
         // ========================================
         // AUTHENTICATION
         // ========================================
-        async function initializeLogin() {
-            console.log('🔐 Initializing login...');
-            
-            await loadData();
-            
-            const userSelect = document.getElementById('userSelect');
-            userSelect.innerHTML = '<option value="">-- Select User --</option>';
-            
-            usersData.forEach(user => {
-                const option = document.createElement('option');
-                option.value = user.userID;
-                option.textContent = `${user.name} (${user.department})`;
-                userSelect.appendChild(option);
-            });
-        }
+async function initializeLogin() {
+    console.log('🔐 Initializing login...');
+    
+    await loadData();
+    
+    const userSelect = document.getElementById('userSelect');
+    userSelect.innerHTML = '<option value="">-- Select User --</option>';
+    
+    usersData.forEach(user => {
+        const option = document.createElement('option');
+        option.value = user.UserID;  // ✅ Capital U, capital ID
+        option.textContent = `${user.Full_Name} (${user.Department})`;  // ✅ Full_Name with underscore
+        userSelect.appendChild(option);
+    });
+}
 
-        document.getElementById('loginForm').addEventListener('submit', (e) => {
-            e.preventDefault();
-            const userID = document.getElementById('userSelect').value;
-            
-            if (!userID) {
-                alert('Please select a user');
-                return;
-            }
+document.getElementById('loginForm').addEventListener('submit', (e) => {
+    e.preventDefault();
+    const userID = document.getElementById('userSelect').value;
+    
+    if (!userID) {
+        alert('Please select a user');
+        return;
+    }
+    
+    currentUser = usersData.find(u => u.UserID === userID);  // ✅ Capital U, capital ID
             
             currentUser = usersData.find(u => u.userID === userID);
             
@@ -985,8 +987,9 @@ async function loadData() {
             console.log('🚀 Initializing app for:', currentUser.department);
             
             // Update user display
-            document.getElementById('currentUserDisplay').textContent = 
-                `${currentUser.name} (${currentUser.department})`;
+// Update user display
+document.getElementById('currentUserDisplay').textContent = 
+    `${currentUser.Full_Name} (${currentUser.Department})`;  // ✅ Correct field names
             
             // Generate navigation tabs
             generateNavigationTabs();
