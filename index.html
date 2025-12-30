@@ -1045,7 +1045,7 @@ if (currentUser.department === 'Transport') {
         } else if (viewName === 'disputes') {
             document.getElementById('disputesView').classList.remove('hidden');
             loadDisputesView();
-        } else if (viewName === 'analytics') {
+        } else if (viewName === 'proforma') {
             document.getElementById('proformaView').classList.remove('hidden');
             loadProformaView();
         } else if (viewName === 'invoice') {
@@ -2340,34 +2340,37 @@ document.getElementById('createOrderForm').addEventListener('submit', async (e) 
         }
 
         async function showProformaForm(orderID, quantity, unit) {
-            const order = ordersData.find(o => o.orderID === orderID);
-            
-            const proformaNumber = prompt(`Enter Proforma Number (from your CRM):`);
+            const proformaNumber = prompt(`Enter Proforma Number for order ${orderID}:`);
             if (!proformaNumber) return;
             
-            const litres = prompt(`Enter Litres/Quantity:`, quantity) || quantity;
-            const margin = prompt(`Enter Margin (MKD):`, order ? order.margin : '') || (order ? order.margin : '');
-            const totalPrice = prompt(`Enter Total Price (MKD):`) || '';
-            const note = prompt('Additional note (optional):') || '';
-            
             try {
-await fetch(APPS_SCRIPT_URL, {
+                await fetch(APPS_SCRIPT_URL, {
                     method: 'POST',
                     mode: 'no-cors',
                     headers: {
                         'Content-Type': 'application/json',
                     },
                     body: JSON.stringify({
-                        action: 'createOrder',
-                        ...orderData  // ✅ Spread the data at the top level
+                        action: 'enterProforma',
+                        orderID: orderID,
+                        proformaNumber: proformaNumber,
+                        financeUserID: currentUser.id
                     })
                 });
                 
-                alert(`✅ Proforma details saved for order ${orderID}!`);
+                console.log('✅ Proforma entered:', proformaNumber);
+                alert(`✅ Proforma ${proformaNumber} saved for order ${orderID}!`);
                 
-                // Reload data
+                // Wait and reload data
+                await new Promise(resolve => setTimeout(resolve, 1500));
                 await loadData();
-                loadFinanceDashboard();
+                
+                // Reload current view
+                if (currentView === 'proforma') {
+                    loadProformaView();
+                } else {
+                    loadFinanceDashboard();
+                }
                 
             } catch (error) {
                 console.error('Error:', error);
@@ -2376,15 +2379,8 @@ await fetch(APPS_SCRIPT_URL, {
         }
 
         async function showInvoiceForm(orderID, quantity, unit) {
-            const order = ordersData.find(o => o.orderID === orderID);
-            
-            const invoiceNumber = prompt(`Enter Invoice Number (from your CRM):`);
+            const invoiceNumber = prompt(`Enter Invoice Number for order ${orderID}:`);
             if (!invoiceNumber) return;
-            
-            const litres = prompt(`Enter Litres/Quantity:`, quantity) || quantity;
-            const margin = prompt(`Enter Margin (MKD):`, order ? order.margin : '') || (order ? order.margin : '');
-            const totalPrice = prompt(`Enter Total Price (MKD):`) || '';
-            const note = prompt('Additional note (optional):') || '';
             
             try {
                 await fetch(APPS_SCRIPT_URL, {
@@ -2396,20 +2392,24 @@ await fetch(APPS_SCRIPT_URL, {
                     body: JSON.stringify({
                         action: 'enterInvoice',
                         orderID: orderID,
-                        financeUserID: currentUser.id,
                         invoiceNumber: invoiceNumber,
-                        litres: litres,
-                        margin: margin,
-                        totalPrice: totalPrice,
-                        note: note
+                        financeUserID: currentUser.id
                     })
                 });
                 
-                alert(`✅ Invoice details saved for order ${orderID}!`);
+                console.log('✅ Invoice entered:', invoiceNumber);
+                alert(`✅ Invoice ${invoiceNumber} saved for order ${orderID}!`);
                 
-                // Reload data
+                // Wait and reload data
+                await new Promise(resolve => setTimeout(resolve, 1500));
                 await loadData();
-                loadFinanceDashboard();
+                
+                // Reload current view
+                if (currentView === 'invoice') {
+                    loadInvoiceView();
+                } else {
+                    loadFinanceDashboard();
+                }
                 
             } catch (error) {
                 console.error('Error:', error);
