@@ -837,7 +837,6 @@ async function loadData() {
             try {
                 console.log('📥 Loading data from server...');
                 
-                // Use GET request for fetching data
                 const url = `${APPS_SCRIPT_URL}?action=getAllData&timestamp=${Date.now()}`;
                 console.log('📡 Fetching from:', url);
                 
@@ -851,11 +850,59 @@ async function loadData() {
                 
                 console.log('✅ Data loaded:', data);
                 
-                usersData = data.users || [];
-                ordersData = data.orders || [];
-                clientsData = data.clients || [];
+                // NORMALIZE FIELD NAMES
+                usersData = (data.users || []).map(user => ({
+                    userID: user.UserID,
+                    name: user.Full_Name,
+                    email: user.Email,
+                    department: user.Department,
+                    role: user.Role,
+                    active: user.Active
+                }));
                 
-                console.log(`📊 Orders: ${ordersData.length}, Clients: ${clientsData.length}, Users: ${usersData.length}`);
+                ordersData = (data.orders || []).map(order => ({
+                    orderID: order.OrderID || order.Order_ID,
+                    orderDate: order.Order_Date || order.orderDate,
+                    createdBy: order.Created_By || order.createdBy,
+                    clientID: order.Client_ID || order.clientID,
+                    clientName: order.Client_Name || order.clientName,
+                    productType: order.Product_Type || order.productType,
+                    unit: order.Unit,
+                    quantity: order.Quantity,
+                    margin: order.Margin_MKD || order.margin,
+                    warehouse: order.Warehouse,
+                    requestedDeliveryDate: order.Requested_Delivery_Date || order.requestedDeliveryDate,
+                    preferredTime: order.Preferred_Time || order.preferredTime,
+                    avoidAfterwork: order.Avoid_Afterwork || order.avoidAfterwork,
+                    paymentTerms: order.Payment_Terms || order.paymentTerms,
+                    priority: order.Priority,
+                    noGulfBrand: order.No_Gulf_Brand || order.noGulfBrand,
+                    notes: order.Notes,
+                    internalNotes: order.Internal_Notes || order.internalNotes,
+                    rejectionReason: order.Rejection_Reason || order.rejectionReason,
+                    status: order.Status,
+                    approvedBy: order.Approved_By || order.approvedBy,
+                    approvalDate: order.Approval_Date || order.approvalDate,
+                    proformaNumber: order.Proforma_Number || order.proformaNumber,
+                    proformaDate: order.Proforma_Date || order.proformaDate,
+                    invoiceNumber: order.Invoice_Number || order.invoiceNumber,
+                    invoiceDate: order.Invoice_Date || order.invoiceDate,
+                    driverName: order.Driver_Name || order.driverName,
+                    truckPlate: order.Truck_Plate || order.truckPlate,
+                    transportCompany: order.Transport_Company || order.transportCompany,
+                    estimatedDelivery: order.Estimated_Delivery || order.estimatedDelivery
+                }));
+                
+                clientsData = (data.clients || []).map(client => ({
+                    clientID: client.Client_ID || client.clientID,
+                    clientName: client.Client_Name || client.clientName,
+                    city: client.City,
+                    address: client.Address,
+                    phone: client.Phone,
+                    email: client.Email
+                }));
+                
+                console.log(`📊 Normalized - Users: ${usersData.length}, Orders: ${ordersData.length}, Clients: ${clientsData.length}`);
                 
                 return data;
             } catch (error) {
