@@ -811,6 +811,19 @@
                 </div>
             </div>
 
+            <!-- Transport View -->
+            <div id="transportView" class="view-content hidden">
+                <div class="card">
+                    <div class="card-header">
+                        <h2 class="card-title">🚛 Assign Transport</h2>
+                        <button class="btn btn-secondary" onclick="loadTransportDashboard()">Refresh</button>
+                    </div>
+                    <div id="transportOrdersList">
+                        <!-- Orders waiting for transport assignment -->
+                    </div>
+                </div>
+            </div>
+
 <!-- Assigned Trucks View -->
             <div id="assignedTrucksView" class="view-content hidden">
                 <div class="card">
@@ -998,7 +1011,8 @@ if (currentUser.department === 'Finance') {
         }
             
 if (currentUser.department === 'Transport') {
-            tabs += '<div class="nav-tab" onclick="showView(\'assignedTrucks\')">🚛 Assigned Trucks</div>';
+            tabs += '<div class="nav-tab" onclick="showView(\'transport\')">🚛 Assign Transport</div>';
+            tabs += '<div class="nav-tab" onclick="showView(\'assignedTrucks\')">📋 Assigned Trucks</div>';
             tabs += '<div class="nav-tab" onclick="showView(\'delivery\')">📦 Delivery</div>';
         }
             
@@ -1037,7 +1051,10 @@ if (currentUser.department === 'Transport') {
         } else if (viewName === 'invoice') {
             document.getElementById('invoiceView').classList.remove('hidden');
             loadInvoiceView();
-} else if (viewName === 'assignedTrucks') {
+} else if (viewName === 'transport') {
+            document.getElementById('transportView').classList.remove('hidden');
+            loadTransportDashboard();
+        } else if (viewName === 'assignedTrucks') {
             document.getElementById('assignedTrucksView').classList.remove('hidden');
             loadAssignedTrucksView();
         } else if (viewName === 'delivery') {
@@ -1852,11 +1869,25 @@ function loadApprovals() {
     }
         
         function loadTransportDashboard() {
+            console.log('🚛 Loading Transport Dashboard...');
+            console.log('Total orders:', ordersData.length);
+            
+            // Debug: Show all approved orders
+            const approvedOrders = ordersData.filter(o => o.status === 'Approved');
+            console.log('Approved orders:', approvedOrders.length);
+            approvedOrders.forEach(o => {
+                console.log(`  - ${o.orderID}: driverName="${o.driverName}" (type: ${typeof o.driverName})`);
+            });
+            
             // Only show Approved orders that don't have transport assigned yet
             let transportOrders = ordersData.filter(o => 
-                o.status === 'Approved' && !o.driverName
+                o.status === 'Approved' && (!o.driverName || o.driverName === '' || o.driverName === null || o.driverName === undefined)
             );
+            
+            console.log('Transport orders (no driver):', transportOrders.length);
+            
             transportOrders = filterOrdersByDate(transportOrders);
+            console.log('After date filter:', transportOrders.length);
             
             const container = document.getElementById('transportOrdersList');
 
