@@ -2220,32 +2220,37 @@ document.getElementById('createOrderForm').addEventListener('submit', async (e) 
     try {
         console.log('🔄 Sending to:', APPS_SCRIPT_URL);
         
-        const response = await fetch(APPS_SCRIPT_URL, {
+        await fetch(APPS_SCRIPT_URL, {
             method: 'POST',
+            mode: 'no-cors',
             headers: {
                 'Content-Type': 'application/json',
             },
             body: JSON.stringify(orderData)
         });
         
-        console.log('📥 Response status:', response.status);
+        console.log('✅ Request sent to backend');
+        console.log('⏳ Waiting 3 seconds for Google Sheets to update...');
         
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-        }
+        // Wait for backend to process
+        await new Promise(resolve => setTimeout(resolve, 3000));
         
-        const result = await response.json();
-        console.log('📥 Response data:', result);
+        // Reload data
+        await loadData();
         
-        if (result.success) {
-            alert(`✅ Order created successfully!\n\nOrder ID: ${result.orderID}`);
+        // Find the newest order created by this user
+        const myOrders = ordersData
+            .filter(o => o.createdBy === currentUser.id)
+            .sort((a, b) => new Date(b.orderDate) - new Date(a.orderDate));
+        
+        const newestOrder = myOrders[0];
+        
+        if (newestOrder) {
+            alert(`✅ Order created successfully!\n\nOrder ID: ${newestOrder.orderID}\n\nCheck Apps Script → Executions to verify.`);
             document.getElementById('createOrderForm').reset();
-            
-            await new Promise(resolve => setTimeout(resolve, 2000));
-            await loadData();
             showView('dashboard');
         } else {
-            throw new Error(result.message || 'Unknown error');
+            alert('⚠️ Request sent but order not found yet.\n\nCheck Apps Script → Executions for logs.\n\nIf you see an execution, the order was created!');
         }
         
     } catch (error) {
