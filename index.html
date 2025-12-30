@@ -982,33 +982,31 @@ async function loadData() {
         // AUTHENTICATION
         // ========================================
 async function initializeLogin() {
-    console.log('🔐 Initializing login...');
-    
-    await loadData();
-    
-    const userSelect = document.getElementById('userSelect');
-    userSelect.innerHTML = '<option value="">-- Select User --</option>';
-    
-    usersData.forEach(user => {
-        const option = document.createElement('option');
-        option.value = user.UserID;  // ✅ Capital U, capital ID
-        option.textContent = `${user.Full_Name} (${user.Department})`;  // ✅ Full_Name with underscore
-        userSelect.appendChild(option);
-    });
-}
+            console.log('🔐 Initializing login...');
+            
+            await loadData();
+            
+            const userSelect = document.getElementById('userSelect');
+            userSelect.innerHTML = '<option value="">-- Select User --</option>';
+            
+            usersData.forEach(user => {
+                const option = document.createElement('option');
+                option.value = user.userID;  // ✅ lowercase (normalized)
+                option.textContent = `${user.name} (${user.department})`;  // ✅ lowercase (normalized)
+                userSelect.appendChild(option);
+            });
+        }
 
 document.getElementById('loginForm').addEventListener('submit', (e) => {
-    e.preventDefault();
-    const userID = document.getElementById('userSelect').value;
-    
-    if (!userID) {
-        alert('Please select a user');
-        return;
-    }
-    
-    currentUser = usersData.find(u => u.UserID === userID);  // ✅ Capital U, capital ID
+            e.preventDefault();
+            const userID = document.getElementById('userSelect').value;
             
-            currentUser = usersData.find(u => u.userID === userID);
+            if (!userID) {
+                alert('Please select a user');
+                return;
+            }
+            
+            currentUser = usersData.find(u => u.userID === userID);  // ✅ lowercase (normalized)
             
             if (currentUser) {
                 console.log('✅ Logged in as:', currentUser);
@@ -1035,8 +1033,8 @@ document.getElementById('loginForm').addEventListener('submit', (e) => {
             
             // Update user display
 // Update user display
-document.getElementById('currentUserDisplay').textContent = 
-    `${currentUser.Full_Name} (${currentUser.Department})`;  // ✅ Correct field names
+            document.getElementById('currentUserDisplay').textContent = 
+                `${currentUser.name} (${currentUser.department})`;  // ✅ lowercase (normalized)
             
             // Generate navigation tabs
             generateNavigationTabs();
