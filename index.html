@@ -785,28 +785,15 @@
                 </div>
             </div>
 
-<!-- Assigned Trucks View -->
-            <div id="assignedTrucksView" class="view-content hidden">
+            <!-- Transport View -->
+            <div id="transportView" class="view-content hidden">
                 <div class="card">
                     <div class="card-header">
-                        <h2 class="card-title">🚛 Assigned Trucks</h2>
-                        <button class="btn btn-secondary" onclick="loadAssignedTrucksView()">Refresh</button>
+                        <h2 class="card-title">🚛 Transport Dashboard</h2>
+                        <button class="btn btn-secondary" id="refreshTransportBtn">Refresh</button>
                     </div>
-                    <div id="assignedTrucksList">
-                        <!-- Assigned trucks will be shown here -->
-                    </div>
-                </div>
-            </div>
-
-            <!-- Delivery View -->
-            <div id="deliveryView" class="view-content hidden">
-                <div class="card">
-                    <div class="card-header">
-                        <h2 class="card-title">📦 Delivery - Mark Orders</h2>
-                        <button class="btn btn-secondary" onclick="loadDeliveryView()">Refresh</button>
-                    </div>
-                    <div id="deliveryOrdersList">
-                        <!-- Delivery orders will be shown here -->
+                    <div id="transportOrdersList">
+                        <!-- Transport orders will be shown here -->
                     </div>
                 </div>
             </div>
@@ -969,10 +956,9 @@
                 tabs += '<div class="nav-tab" onclick="showView(\'finance\')">💰 Finance</div>';
             }
             
-if (currentUser.department === 'Transport') {
-            tabs += '<div class="nav-tab" onclick="showView(\'assignedTrucks\')">🚛 Assigned Trucks</div>';
-            tabs += '<div class="nav-tab" onclick="showView(\'delivery\')">📦 Delivery</div>';
-        }
+            if (currentUser.department === 'Transport') {
+                tabs += '<div class="nav-tab" onclick="showView(\'transport\')">🚛 Transport</div>';
+            }
             
             if (currentUser.department === 'Warehouse') {
                 tabs += '<div class="nav-tab" onclick="showView(\'warehouse\')">📦 Warehouse</div>';
@@ -1003,12 +989,9 @@ if (currentUser.department === 'Transport') {
             } else if (viewName === 'finance') {
                 document.getElementById('financeView').classList.remove('hidden');
                 loadFinanceDashboard();
-} else if (viewName === 'assignedTrucks') {
-            document.getElementById('assignedTrucksView').classList.remove('hidden');
-            loadAssignedTrucksView();
-        } else if (viewName === 'delivery') {
-            document.getElementById('deliveryView').classList.remove('hidden');
-            loadDeliveryView();
+            } else if (viewName === 'transport') {
+                document.getElementById('transportView').classList.remove('hidden');
+                loadTransportDashboard();
             } else if (viewName === 'warehouse') {
                 document.getElementById('warehouseView').classList.remove('hidden');
                 loadWarehouseDashboard();
@@ -1611,167 +1594,6 @@ if (currentUser.department === 'Transport') {
 
             container.innerHTML = html;
         }
-		
-		function loadAssignedTrucksView() {
-        // Show orders with drivers that are still in warehouse process
-        let assignedOrders = ordersData.filter(o => 
-            o.driverName && (
-                o.status === 'Truck Assigned' ||
-                o.status === 'In Warehouse' ||
-                o.status === 'Loading'
-            )
-        );
-        assignedOrders = filterOrdersByDate(assignedOrders);
-
-        const container = document.getElementById('assignedTrucksList');
-
-        if (assignedOrders.length === 0) {
-            container.innerHTML = '<p style="text-align:center; padding: 2rem; color: #6B7280;">No assigned trucks in warehouse</p>';
-            return;
-        }
-
-        let html = '';
-        assignedOrders.forEach(order => {
-            html += `
-                <div class="card">
-                    <div style="display: grid; gap: 1rem;">
-                        <div style="display: flex; justify-content: space-between; align-items: start;">
-                            <div style="flex: 1;">
-                                <h3 style="margin-bottom: 0.5rem;">${order.orderID} - ${order.clientName}</h3>
-                                <p style="color: #6B7280; margin-bottom: 0.5rem;">
-                                    ${order.quantity} ${order.unit} of ${order.productType} |
-                                    Warehouse: ${order.warehouse}
-                                </p>
-                                <p style="color: #065F46; margin-bottom: 0.5rem;">
-                                    🚛 Driver: <strong>${order.driverName}</strong> |
-                                    Truck: <strong>${order.truckPlate}</strong> |
-                                    Company: <strong>${order.transportCompany}</strong>
-                                </p>
-                                <p style="color: #059669; margin-bottom: 0.25rem;">
-                                    ⏰ Est. Delivery: <strong>${order.estimatedDelivery}</strong>
-                                </p>
-                            </div>
-                            <span class="status-badge ${getStatusClass(order.status)}">${order.status}</span>
-                        </div>
-                        <button class="btn btn-secondary" onclick="viewOrderDetails('${order.orderID}')">View Full Details</button>
-                    </div>
-                </div>
-            `;
-        });
-
-        container.innerHTML = html;
-    }
-
-    function loadDeliveryView() {
-        // Show orders that LEFT warehouse - Transport needs to mark as Delivered or Disputed
-        let deliveryOrders = ordersData.filter(o => 
-            o.status === 'Left Warehouse'
-        );
-        deliveryOrders = filterOrdersByDate(deliveryOrders);
-
-        const container = document.getElementById('deliveryOrdersList');
-
-        if (deliveryOrders.length === 0) {
-            container.innerHTML = '<p style="text-align:center; padding: 2rem; color: #6B7280;">No orders ready for delivery confirmation</p>';
-            return;
-        }
-
-        let html = '';
-        deliveryOrders.forEach(order => {
-            html += `
-                <div class="card">
-                    <div style="display: grid; gap: 1rem;">
-                        <div style="display: flex; justify-content: space-between; align-items: start;">
-                            <div style="flex: 1;">
-                                <h3 style="margin-bottom: 0.5rem;">${order.orderID} - ${order.clientName}</h3>
-                                <p style="color: #6B7280; margin-bottom: 0.5rem;">
-                                    ${order.quantity} ${order.unit} of ${order.productType}
-                                </p>
-                                <p style="color: #065F46; margin-bottom: 0.5rem;">
-                                    🚛 Driver: <strong>${order.driverName}</strong> |
-                                    Truck: <strong>${order.truckPlate}</strong>
-                                </p>
-                                <p style="color: #059669;">
-                                    📍 Delivery Address: <strong>${order.clientName}</strong>
-                                </p>
-                            </div>
-                            <span class="status-badge" style="background: #DBEAFE; color: #1E40AF;">${order.status}</span>
-                        </div>
-                        <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
-                            <button class="btn btn-success" onclick="markAsDelivered('${order.orderID}')">✅ Mark as Delivered</button>
-                            <button class="btn btn-danger" onclick="markAsDisputed('${order.orderID}')">⚠️ Mark as Disputed</button>
-                            <button class="btn btn-secondary" onclick="viewOrderDetails('${order.orderID}')">View Details</button>
-                        </div>
-                    </div>
-                </div>
-            `;
-        });
-
-        container.innerHTML = html;
-    }
-
-    async function markAsDelivered(orderID) {
-        if (!confirm(`Mark order ${orderID} as DELIVERED?`)) return;
-
-        const deliveryNote = prompt('Add delivery note (optional):') || 'Delivered successfully';
-
-        try {
-            const response = await fetch(APPS_SCRIPT_URL, {
-                method: 'POST',
-                mode: 'no-cors',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    action: 'markAsDelivered',
-                    orderID: orderID,
-                    transportUserID: currentUser.id,
-                    note: deliveryNote
-                })
-            });
-
-            alert(`✅ Order ${orderID} marked as DELIVERED!`);
-
-            // Reload data and refresh view
-            await loadData();
-            loadDeliveryView();
-
-        } catch (error) {
-            console.error('Error:', error);
-            alert('❌ Error marking order as delivered');
-        }
-    }
-
-    async function markAsDisputed(orderID) {
-        const reason = prompt('Enter dispute reason:');
-        if (!reason) return;
-
-        try {
-            const response = await fetch(APPS_SCRIPT_URL, {
-                method: 'POST',
-                mode: 'no-cors',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    action: 'markAsDisputed',
-                    orderID: orderID,
-                    transportUserID: currentUser.id,
-                    reason: reason
-                })
-            });
-
-            alert(`⚠️ Order ${orderID} marked as DISPUTED!`);
-
-            // Reload data and refresh view
-            await loadData();
-            loadDeliveryView();
-
-        } catch (error) {
-            console.error('Error:', error);
-            alert('❌ Error marking order as disputed');
-        }
-    }
         
         function loadWarehouseDashboard() {
             console.log('=== LOADING WAREHOUSE DASHBOARD ===');
