@@ -1614,9 +1614,10 @@ function loadApprovals() {
         if (!resolution) return;
 
         try {
-            const response = await fetch(APPS_SCRIPT_URL, {
-                method: 'POST',
-                headers: {
+            await fetch(APPS_SCRIPT_URL, {
+                    method: 'POST',
+                    mode: 'no-cors',
+                    headers: {
                     'Content-Type': 'application/json',
                 },
                 body: JSON.stringify({
@@ -1690,9 +1691,10 @@ function loadApprovals() {
         if (!resolution) return;
 
         try {
-            const response = await fetch(APPS_SCRIPT_URL, {
-                method: 'POST',
-                headers: {
+            await fetch(APPS_SCRIPT_URL, {
+                    method: 'POST',
+                    mode: 'no-cors',
+                    headers: {
                     'Content-Type': 'application/json',
                 },
                 body: JSON.stringify({
@@ -1998,9 +2000,10 @@ function loadApprovals() {
         const deliveryNote = prompt('Add delivery note (optional):') || 'Delivered successfully';
 
         try {
-            const response = await fetch(APPS_SCRIPT_URL, {
-                method: 'POST',
-                headers: {
+            await fetch(APPS_SCRIPT_URL, {
+                    method: 'POST',
+                    mode: 'no-cors',
+                    headers: {
                     'Content-Type': 'application/json',
                 },
                 body: JSON.stringify({
@@ -2028,9 +2031,10 @@ function loadApprovals() {
         if (!reason) return;
 
         try {
-            const response = await fetch(APPS_SCRIPT_URL, {
-                method: 'POST',
-                headers: {
+            await fetch(APPS_SCRIPT_URL, {
+                    method: 'POST',
+                    mode: 'no-cors',
+                    headers: {
                     'Content-Type': 'application/json',
                 },
                 body: JSON.stringify({
@@ -2247,8 +2251,9 @@ document.getElementById('createOrderForm').addEventListener('submit', async (e) 
             const note = prompt('Add approval note (optional):') || 'Approved';
             
             try {
-                const response = await fetch(APPS_SCRIPT_URL, {
+                await fetch(APPS_SCRIPT_URL, {
                     method: 'POST',
+                    mode: 'no-cors',
                     headers: {
                         'Content-Type': 'application/json',
                     },
@@ -2277,8 +2282,9 @@ document.getElementById('createOrderForm').addEventListener('submit', async (e) 
             if (!reason) return;
             
             try {
-                const response = await fetch(APPS_SCRIPT_URL, {
+                await fetch(APPS_SCRIPT_URL, {
                     method: 'POST',
+                    mode: 'no-cors',
                     headers: {
                         'Content-Type': 'application/json',
                     },
@@ -2314,8 +2320,9 @@ document.getElementById('createOrderForm').addEventListener('submit', async (e) 
             const note = prompt('Additional note (optional):') || '';
             
             try {
-const response = await fetch(APPS_SCRIPT_URL, {
+await fetch(APPS_SCRIPT_URL, {
                     method: 'POST',
+                    mode: 'no-cors',
                     headers: {
                         'Content-Type': 'application/json',
                     },
@@ -2349,8 +2356,9 @@ const response = await fetch(APPS_SCRIPT_URL, {
             const note = prompt('Additional note (optional):') || '';
             
             try {
-                const response = await fetch(APPS_SCRIPT_URL, {
+                await fetch(APPS_SCRIPT_URL, {
                     method: 'POST',
+                    mode: 'no-cors',
                     headers: {
                         'Content-Type': 'application/json',
                     },
@@ -2669,8 +2677,9 @@ const response = await fetch(APPS_SCRIPT_URL, {
         
         async function deleteDocumentFromOrder(orderID, fileId) {
             try {
-                const response = await fetch(APPS_SCRIPT_URL, {
+                await fetch(APPS_SCRIPT_URL, {
                     method: 'POST',
+                    mode: 'no-cors',
                     headers: {
                         'Content-Type': 'application/json',
                     },
@@ -2728,9 +2737,10 @@ const response = await fetch(APPS_SCRIPT_URL, {
                         size: file.size
                     });
                     
-                    const response = await fetch(APPS_SCRIPT_URL, {
-                        method: 'POST',
-                        headers: {
+                    await fetch(APPS_SCRIPT_URL, {
+                    method: 'POST',
+                    mode: 'no-cors',
+                    headers: {
                             'Content-Type': 'application/json',
                         },
                         body: JSON.stringify({
@@ -2768,31 +2778,46 @@ const response = await fetch(APPS_SCRIPT_URL, {
             }
         }
 
-        // Refresh buttons
-        document.getElementById('refreshOrdersBtn').addEventListener('click', () => {
-            loadData();
-            loadDashboard();
-        });
+        // Refresh buttons - only add listeners if elements exist
+        const refreshOrdersBtn = document.getElementById('refreshOrdersBtn');
+        if (refreshOrdersBtn) {
+            refreshOrdersBtn.addEventListener('click', () => {
+                loadData();
+                loadDashboard();
+            });
+        }
 
-        document.getElementById('refreshApprovalsBtn').addEventListener('click', () => {
-            loadData();
-            loadApprovals();
-        });
+        const refreshApprovalsBtn = document.getElementById('refreshApprovalsBtn');
+        if (refreshApprovalsBtn) {
+            refreshApprovalsBtn.addEventListener('click', () => {
+                loadData();
+                loadApprovals();
+            });
+        }
 
-        document.getElementById('refreshFinanceBtn').addEventListener('click', () => {
-            loadData();
-            loadFinanceDashboard();
-        });
+        const refreshFinanceBtn = document.getElementById('refreshFinanceBtn');
+        if (refreshFinanceBtn) {
+            refreshFinanceBtn.addEventListener('click', () => {
+                loadData();
+                loadFinanceDashboard();
+            });
+        }
 
-        document.getElementById('refreshTransportBtn').addEventListener('click', () => {
-            loadData();
-            loadTransportDashboard();
-        });
+        const refreshTransportBtn = document.getElementById('refreshTransportBtn');
+        if (refreshTransportBtn) {
+            refreshTransportBtn.addEventListener('click', () => {
+                loadData();
+                loadTransportDashboard();
+            });
+        }
 
-        document.getElementById('refreshWarehouseBtn').addEventListener('click', () => {
-            loadData();
-            loadWarehouseDashboard();
-        });
+        const refreshWarehouseBtn = document.getElementById('refreshWarehouseBtn');
+        if (refreshWarehouseBtn) {
+            refreshWarehouseBtn.addEventListener('click', () => {
+                loadData();
+                loadWarehouseDashboard();
+            });
+        }
         
         // ===== WAREHOUSE STATUS UPDATE =====
         
@@ -3374,8 +3399,9 @@ const response = await fetch(APPS_SCRIPT_URL, {
             console.log('Updating warehouse status:', {orderID, newStatus, note});
             
             try {
-                const response = await fetch(APPS_SCRIPT_URL, {
+                await fetch(APPS_SCRIPT_URL, {
                     method: 'POST',
+                    mode: 'no-cors',
                     headers: {
                         'Content-Type': 'application/json',
                     },
@@ -3506,8 +3532,9 @@ const response = await fetch(APPS_SCRIPT_URL, {
             }
             
             try {
-                const response = await fetch(APPS_SCRIPT_URL, {
+                await fetch(APPS_SCRIPT_URL, {
                     method: 'POST',
+                    mode: 'no-cors',
                     headers: {
                         'Content-Type': 'application/json',
                     },
