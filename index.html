@@ -1637,7 +1637,6 @@ function loadApprovals() {
         try {
             const response = await fetch(APPS_SCRIPT_URL, {
                 method: 'POST',
-                mode: 'no-cors',
                 headers: {
                     'Content-Type': 'application/json',
                 },
@@ -1714,7 +1713,6 @@ function loadApprovals() {
         try {
             const response = await fetch(APPS_SCRIPT_URL, {
                 method: 'POST',
-                mode: 'no-cors',
                 headers: {
                     'Content-Type': 'application/json',
                 },
@@ -2023,7 +2021,6 @@ function loadApprovals() {
         try {
             const response = await fetch(APPS_SCRIPT_URL, {
                 method: 'POST',
-                mode: 'no-cors',
                 headers: {
                     'Content-Type': 'application/json',
                 },
@@ -2054,7 +2051,6 @@ function loadApprovals() {
         try {
             const response = await fetch(APPS_SCRIPT_URL, {
                 method: 'POST',
-                mode: 'no-cors',
                 headers: {
                     'Content-Type': 'application/json',
                 },
@@ -2190,28 +2186,12 @@ function loadApprovals() {
 document.getElementById('createOrderForm').addEventListener('submit', async (e) => {
     e.preventDefault();
 
-    // Generate Order ID
-    const today = new Date();
-    const year = today.getFullYear();
-    const month = String(today.getMonth() + 1).padStart(2, '0');
-    const day = String(today.getDate()).padStart(2, '0');
-    
-    const todayString = `${year}-${month}-${day}`;
-    const todayOrders = ordersData.filter(o => 
-        o.orderDate === todayString && o.createdBy === currentUser.id
-    ).length;
-    
-    const orderNumber = String(todayOrders + 1).padStart(5, '0');
-    const orderID = `ORD${orderNumber}-${year}${month}${day}`;
-    
-    // Get form data
+    // Get form data (Backend will generate Order ID!)
     const clientID = document.getElementById('clientSelect').value;
     const client = clientsData.find(c => c.clientID === clientID);
     
     const orderData = {
-        action: 'createOrder',  // ✅ ADD THIS LINE
-        orderID: orderID,
-        orderDate: today.toISOString().split('T')[0],
+        action: 'createOrder',
         createdBy: currentUser.id,
         clientID: clientID,
         clientName: client ? client.clientName : '',
@@ -2229,7 +2209,7 @@ document.getElementById('createOrderForm').addEventListener('submit', async (e) 
         notes: document.getElementById('orderNotesInput').value || ''
     };
     
-    console.log('📤 Sending order data:', orderData);  // ✅ Debug log
+    console.log('📤 Sending order data:', orderData);
     
     // Show loading
     const submitBtn = e.target.querySelector('button[type="submit"]');
@@ -2238,24 +2218,39 @@ document.getElementById('createOrderForm').addEventListener('submit', async (e) 
     submitBtn.disabled = true;
     
     try {
+        console.log('🔄 Sending to:', APPS_SCRIPT_URL);
+        
         const response = await fetch(APPS_SCRIPT_URL, {
             method: 'POST',
-            mode: 'no-cors',
             headers: {
                 'Content-Type': 'application/json',
             },
-            body: JSON.stringify(orderData)  // ✅ Send directly
+            body: JSON.stringify(orderData)
         });
         
-        alert(`✅ Order ${orderData.orderID} created successfully!`);
-        document.getElementById('createOrderForm').reset();
+        console.log('📥 Response status:', response.status);
         
-        await loadData();
-        showView('dashboard');
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        
+        const result = await response.json();
+        console.log('📥 Response data:', result);
+        
+        if (result.success) {
+            alert(`✅ Order created successfully!\n\nOrder ID: ${result.orderID}`);
+            document.getElementById('createOrderForm').reset();
+            
+            await new Promise(resolve => setTimeout(resolve, 2000));
+            await loadData();
+            showView('dashboard');
+        } else {
+            throw new Error(result.message || 'Unknown error');
+        }
         
     } catch (error) {
-        console.error('Error:', error);
-        alert('❌ Error creating order: ' + error.message);
+        console.error('❌ Error:', error);
+        alert('❌ Error creating order: ' + error.message + '\n\nCheck console (F12) for details.');
     } finally {
         submitBtn.textContent = originalText;
         submitBtn.disabled = false;
@@ -2270,7 +2265,6 @@ document.getElementById('createOrderForm').addEventListener('submit', async (e) 
             try {
                 const response = await fetch(APPS_SCRIPT_URL, {
                     method: 'POST',
-                    mode: 'no-cors',
                     headers: {
                         'Content-Type': 'application/json',
                     },
@@ -2301,7 +2295,6 @@ document.getElementById('createOrderForm').addEventListener('submit', async (e) 
             try {
                 const response = await fetch(APPS_SCRIPT_URL, {
                     method: 'POST',
-                    mode: 'no-cors',
                     headers: {
                         'Content-Type': 'application/json',
                     },
@@ -2339,7 +2332,6 @@ document.getElementById('createOrderForm').addEventListener('submit', async (e) 
             try {
 const response = await fetch(APPS_SCRIPT_URL, {
                     method: 'POST',
-                    mode: 'no-cors',
                     headers: {
                         'Content-Type': 'application/json',
                     },
@@ -2375,7 +2367,6 @@ const response = await fetch(APPS_SCRIPT_URL, {
             try {
                 const response = await fetch(APPS_SCRIPT_URL, {
                     method: 'POST',
-                    mode: 'no-cors',
                     headers: {
                         'Content-Type': 'application/json',
                     },
@@ -2696,7 +2687,6 @@ const response = await fetch(APPS_SCRIPT_URL, {
             try {
                 const response = await fetch(APPS_SCRIPT_URL, {
                     method: 'POST',
-                    mode: 'no-cors',
                     headers: {
                         'Content-Type': 'application/json',
                     },
@@ -2756,7 +2746,6 @@ const response = await fetch(APPS_SCRIPT_URL, {
                     
                     const response = await fetch(APPS_SCRIPT_URL, {
                         method: 'POST',
-                        mode: 'no-cors',
                         headers: {
                             'Content-Type': 'application/json',
                         },
@@ -3403,7 +3392,6 @@ const response = await fetch(APPS_SCRIPT_URL, {
             try {
                 const response = await fetch(APPS_SCRIPT_URL, {
                     method: 'POST',
-                    mode: 'no-cors',
                     headers: {
                         'Content-Type': 'application/json',
                     },
@@ -3536,7 +3524,6 @@ const response = await fetch(APPS_SCRIPT_URL, {
             try {
                 const response = await fetch(APPS_SCRIPT_URL, {
                     method: 'POST',
-                    mode: 'no-cors',
                     headers: {
                         'Content-Type': 'application/json',
                     },
