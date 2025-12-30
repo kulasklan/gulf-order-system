@@ -1430,7 +1430,14 @@ document.getElementById('loginForm').addEventListener('submit', (e) => {
 
         // Create Order Form Handler
         document.getElementById('createOrderForm').addEventListener('submit', async (e) => {
+            document.getElementById('createOrderForm').addEventListener('submit', async (e) => {
             e.preventDefault();
+            
+            // DEBUG: Log everything
+            console.log('🔵 Form submitted!');
+            console.log('🔵 Current user:', currentUser);
+            console.log('🔵 Apps Script URL:', APPS_SCRIPT_URL);
+			e.preventDefault();
 
             // Get form data
             const clientID = document.getElementById('clientSelect').value;
