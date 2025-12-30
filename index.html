@@ -1063,7 +1063,7 @@ if (currentUser.department === 'Transport') {
             
             try {
                 // Load Orders from Google Sheets
-                const ordersUrl = `https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_ID}/values/Orders!A2:AZ1000?key=${API_KEY}`;
+                const ordersUrl = `https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_ID}/values/Orders!A2:AZ1000?key=${API_KEY}&t=${Date.now()}`;
                 const ordersResponse = await fetch(ordersUrl);
                 const ordersJson = await ordersResponse.json();
                 
@@ -1107,7 +1107,7 @@ if (currentUser.department === 'Transport') {
                 }
                 
                 // Load Clients from Google Sheets
-                const clientsUrl = `https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_ID}/values/Clients!A2:I100?key=${API_KEY}`;
+                const clientsUrl = `https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_ID}/values/Clients!A2:I100?key=${API_KEY}&t=${Date.now()}`;
                 const clientsResponse = await fetch(clientsUrl);
                 const clientsJson = await clientsResponse.json();
                 
@@ -1122,7 +1122,7 @@ if (currentUser.department === 'Transport') {
                 }
                 
                 // Load Drivers from Google Sheets
-                const driversUrl = `https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_ID}/values/Drivers!A2:D100?key=${API_KEY}`;
+                const driversUrl = `https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_ID}/values/Drivers!A2:D100?key=${API_KEY}&t=${Date.now()}`;
                 const driversResponse = await fetch(driversUrl);
                 const driversJson = await driversResponse.json();
                 
@@ -1137,7 +1137,7 @@ if (currentUser.department === 'Transport') {
                 }
                 
                 // Load Transport Companies from Google Sheets
-                const companiesUrl = `https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_ID}/values/TransportCompanies!A2:C100?key=${API_KEY}`;
+                const companiesUrl = `https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_ID}/values/TransportCompanies!A2:C100?key=${API_KEY}&t=${Date.now()}`;
                 const companiesResponse = await fetch(companiesUrl);
                 const companiesJson = await companiesResponse.json();
                 
@@ -1152,7 +1152,7 @@ if (currentUser.department === 'Transport') {
                 
                 // Load Documents from Google Sheets
                 try {
-                    const documentsUrl = `https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_ID}/values/Documents!A2:H1000?key=${API_KEY}`;
+                    const documentsUrl = `https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_ID}/values/Documents!A2:H1000?key=${API_KEY}&t=${Date.now()}`;
                     const documentsResponse = await fetch(documentsUrl);
                     const documentsJson = await documentsResponse.json();
                     
