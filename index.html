@@ -1108,13 +1108,13 @@ if (currentUser.department === 'Transport') {
                         status: row[19] || '',
                         approvedBy: row[20] || '',
                         approvalDate: row[21] || '',
-                        rejectionReason: row[22] || '',
-                        proformaNumber: row[33] || '',
-                        invoiceNumber: row[34] || '',
-                        driverName: row[39] || '',      // Column AN (40th column, index 39)
-                        truckPlate: row[40] || '',      // Column AO (41st column, index 40)
-                        transportCompany: row[41] || '', // Column AP (42nd column, index 41)
-                        estimatedDelivery: row[42] || '' // Column AQ (43rd column, index 42)
+                        rejectionReason: row[18] || '',
+                        proformaNumber: row[22] || '',
+                        invoiceNumber: row[24] || '',
+                        driverName: row[40] || '',           // Column AO (Driver_Name)
+                        truckPlate: row[41] || '',           // Column AP (Truck_Plate)
+                        transportCompany: row[42] || '',     // Column AQ (Transport_Company)
+                        estimatedDelivery: row[43] || ''     // Column AR (Estimated_Delivery)
                     }));
                     console.log('✅ Loaded', ordersData.length, 'orders from Google Sheets');
                     console.log('Order statuses:', ordersData.map(o => `${o.orderID}: ${o.status}`));
