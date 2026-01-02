@@ -1000,7 +1000,7 @@
             }
 
 if (currentUser.department === 'Management') {
-            tabs += '<div class="nav-tab" onclick="showView(\'approval\')">✅ Approvals</div>';
+            tabs += '<div class="nav-tab" onclick="showView(\'approval\')">✅ For Approval</div>';
             tabs += '<div class="nav-tab" onclick="showView(\'disputes\')">⚠️ Resolve Disputes</div>';
             tabs += '<div class="nav-tab" onclick="showView(\'analytics\')">📊 Analytics</div>';
         }
@@ -1108,13 +1108,13 @@ if (currentUser.department === 'Transport') {
                         status: row[19] || '',
                         approvedBy: row[20] || '',
                         approvalDate: row[21] || '',
-                        rejectionReason: row[18] || '',
-                        proformaNumber: row[22] || '',
-                        invoiceNumber: row[24] || '',
-                        driverName: row[40] || '',           // Column AO (Driver_Name)
-                        truckPlate: row[41] || '',           // Column AP (Truck_Plate)
-                        transportCompany: row[42] || '',     // Column AQ (Transport_Company)
-                        estimatedDelivery: row[43] || ''     // Column AR (Estimated_Delivery)
+                        rejectionReason: row[22] || '',
+                        proformaNumber: row[34] || '',     // Column AI
+                        invoiceNumber: row[35] || '',      // Column AJ
+                        driverName: row[39] || '',         // Column AN
+                        truckPlate: row[40] || '',         // Column AO
+                        transportCompany: row[41] || '',   // Column AP
+                        estimatedDelivery: row[42] || ''   // Column AQ
                     }));
                     console.log('✅ Loaded', ordersData.length, 'orders from Google Sheets');
                     console.log('Order statuses:', ordersData.map(o => `${o.orderID}: ${o.status}`));
@@ -2343,6 +2343,8 @@ document.getElementById('createOrderForm').addEventListener('submit', async (e) 
             const proformaNumber = prompt(`Enter Proforma Number for order ${orderID}:`);
             if (!proformaNumber) return;
             
+            const proformaTotalAmount = prompt(`Enter Proforma Total Amount (MKD) - optional:`) || '';
+            
             try {
                 await fetch(APPS_SCRIPT_URL, {
                     method: 'POST',
@@ -2354,6 +2356,7 @@ document.getElementById('createOrderForm').addEventListener('submit', async (e) 
                         action: 'enterProforma',
                         orderID: orderID,
                         proformaNumber: proformaNumber,
+                        proformaTotalAmount: proformaTotalAmount,
                         financeUserID: currentUser.id
                     })
                 });
@@ -2382,6 +2385,8 @@ document.getElementById('createOrderForm').addEventListener('submit', async (e) 
             const invoiceNumber = prompt(`Enter Invoice Number for order ${orderID}:`);
             if (!invoiceNumber) return;
             
+            const invoiceTotalAmount = prompt(`Enter Invoice Total Amount (MKD) - optional:`) || '';
+            
             try {
                 await fetch(APPS_SCRIPT_URL, {
                     method: 'POST',
@@ -2393,6 +2398,7 @@ document.getElementById('createOrderForm').addEventListener('submit', async (e) 
                         action: 'enterInvoice',
                         orderID: orderID,
                         invoiceNumber: invoiceNumber,
+                        invoiceTotalAmount: invoiceTotalAmount,
                         financeUserID: currentUser.id
                     })
                 });
