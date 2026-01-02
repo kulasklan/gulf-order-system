@@ -2500,6 +2500,8 @@ document.getElementById('createOrderForm').addEventListener('submit', async (e) 
             
             const proformaTotalAmount = prompt(`Enter Proforma Total Amount (MKD) - optional:`) || '';
             
+            const note = prompt(`Add note about this proforma (optional):`) || '';
+            
             showLoading('Saving proforma...');
             
             try {
@@ -2514,7 +2516,8 @@ document.getElementById('createOrderForm').addEventListener('submit', async (e) 
                         orderID: orderID,
                         proformaNumber: proformaNumber,
                         proformaTotalAmount: proformaTotalAmount,
-                        financeUserID: currentUser.id
+                        financeUserID: currentUser.id,
+                        note: note
                     })
                 });
                 
@@ -2547,6 +2550,8 @@ document.getElementById('createOrderForm').addEventListener('submit', async (e) 
             
             const invoiceTotalAmount = prompt(`Enter Invoice Total Amount (MKD) - optional:`) || '';
             
+            const note = prompt(`Add note about this invoice (optional):`) || '';
+            
             showLoading('Saving invoice...');
             
             try {
@@ -2561,7 +2566,8 @@ document.getElementById('createOrderForm').addEventListener('submit', async (e) 
                         orderID: orderID,
                         invoiceNumber: invoiceNumber,
                         invoiceTotalAmount: invoiceTotalAmount,
-                        financeUserID: currentUser.id
+                        financeUserID: currentUser.id,
+                        note: note
                     })
                 });
                 
@@ -2980,11 +2986,8 @@ document.getElementById('createOrderForm').addEventListener('submit', async (e) 
                         <div style="flex: 1;">
                             <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.25rem;">
                                 <a href="${doc.fileUrl}" target="_blank" style="color: var(--primary); text-decoration: none; font-weight: 500;">
-                                    📄 ${doc.fileName}
+                                    📄 ${doc.documentType} - ${doc.fileName}
                                 </a>
-                                <span style="background: #DBEAFE; color: #1E40AF; padding: 0.125rem 0.5rem; border-radius: 12px; font-size: 0.75rem;">
-                                    ${doc.documentType}
-                                </span>
                             </div>
                             <div style="font-size: 0.75rem; color: #6B7280;">
                                 Uploaded by ${doc.uploadedBy} • ${uploadDate}
