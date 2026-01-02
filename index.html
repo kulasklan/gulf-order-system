@@ -2369,11 +2369,8 @@ document.getElementById('createOrderForm').addEventListener('submit', async (e) 
     
     console.log('📤 Sending order data:', orderData);
     
-    // Show loading
-    const submitBtn = e.target.querySelector('button[type="submit"]');
-    const originalText = submitBtn.textContent;
-    submitBtn.textContent = 'Creating...';
-    submitBtn.disabled = true;
+    // Show loading overlay
+    showLoading('Creating order...');
     
     try {
         console.log('🔄 Sending to:', APPS_SCRIPT_URL);
@@ -2403,6 +2400,8 @@ document.getElementById('createOrderForm').addEventListener('submit', async (e) 
         
         const newestOrder = myOrders[0];
         
+        hideLoading();
+        
         if (newestOrder) {
             alert(`✅ Order created successfully!\n\nOrder ID: ${newestOrder.orderID}\n\nCheck Apps Script → Executions to verify.`);
             document.getElementById('createOrderForm').reset();
@@ -2412,11 +2411,9 @@ document.getElementById('createOrderForm').addEventListener('submit', async (e) 
         }
         
     } catch (error) {
+        hideLoading();
         console.error('❌ Error:', error);
         alert('❌ Error creating order: ' + error.message + '\n\nCheck console (F12) for details.');
-    } finally {
-        submitBtn.textContent = originalText;
-        submitBtn.disabled = false;
     }
 });
 
@@ -2503,6 +2500,8 @@ document.getElementById('createOrderForm').addEventListener('submit', async (e) 
             
             const proformaTotalAmount = prompt(`Enter Proforma Total Amount (MKD) - optional:`) || '';
             
+            showLoading('Saving proforma...');
+            
             try {
                 await fetch(APPS_SCRIPT_URL, {
                     method: 'POST',
@@ -2520,11 +2519,13 @@ document.getElementById('createOrderForm').addEventListener('submit', async (e) 
                 });
                 
                 console.log('✅ Proforma entered:', proformaNumber);
-                alert(`✅ Proforma ${proformaNumber} saved for order ${orderID}!`);
                 
                 // Wait and reload data
                 await new Promise(resolve => setTimeout(resolve, 1500));
                 await loadData();
+                
+                hideLoading();
+                alert(`✅ Proforma ${proformaNumber} saved for order ${orderID}!`);
                 
                 // Reload current view
                 if (currentView === 'proforma') {
@@ -2534,6 +2535,7 @@ document.getElementById('createOrderForm').addEventListener('submit', async (e) 
                 }
                 
             } catch (error) {
+                hideLoading();
                 console.error('Error:', error);
                 alert('❌ Error saving proforma: ' + error.message);
             }
@@ -2544,6 +2546,8 @@ document.getElementById('createOrderForm').addEventListener('submit', async (e) 
             if (!invoiceNumber) return;
             
             const invoiceTotalAmount = prompt(`Enter Invoice Total Amount (MKD) - optional:`) || '';
+            
+            showLoading('Saving invoice...');
             
             try {
                 await fetch(APPS_SCRIPT_URL, {
@@ -2562,11 +2566,13 @@ document.getElementById('createOrderForm').addEventListener('submit', async (e) 
                 });
                 
                 console.log('✅ Invoice entered:', invoiceNumber);
-                alert(`✅ Invoice ${invoiceNumber} saved for order ${orderID}!`);
                 
                 // Wait and reload data
                 await new Promise(resolve => setTimeout(resolve, 1500));
                 await loadData();
+                
+                hideLoading();
+                alert(`✅ Invoice ${invoiceNumber} saved for order ${orderID}!`);
                 
                 // Reload current view
                 if (currentView === 'invoice') {
@@ -2576,6 +2582,7 @@ document.getElementById('createOrderForm').addEventListener('submit', async (e) 
                 }
                 
             } catch (error) {
+                hideLoading();
                 console.error('Error:', error);
                 alert('❌ Error saving invoice: ' + error.message);
             }
@@ -2877,6 +2884,8 @@ document.getElementById('createOrderForm').addEventListener('submit', async (e) 
                 return;
             }
             
+            showLoading('Adding note...');
+            
             try {
                 await fetch(APPS_SCRIPT_URL, {
                     method: 'POST',
@@ -2893,14 +2902,17 @@ document.getElementById('createOrderForm').addEventListener('submit', async (e) 
                 });
                 
                 console.log('✅ Note added');
-                alert('✅ Note added successfully!');
                 textarea.value = '';
                 
                 // Wait and reload notes
                 await new Promise(resolve => setTimeout(resolve, 2000));
                 await loadOrderNotes(orderID);
                 
+                hideLoading();
+                alert('✅ Note added successfully!');
+                
             } catch (error) {
+                hideLoading();
                 console.error('Error adding note:', error);
                 alert('❌ Error adding note. Please try again.');
             }
@@ -4232,6 +4244,8 @@ window.onclick = function(event) {
                 return;
             }
             
+            showLoading('Saving regulatory prices...');
+            
             try {
                 await fetch(APPS_SCRIPT_URL, {
                     method: 'POST',
@@ -4244,13 +4258,15 @@ window.onclick = function(event) {
                     })
                 });
                 
-                alert('✅ Regulatory prices updated successfully!');
-                
                 // Reload to show updated info
                 await new Promise(resolve => setTimeout(resolve, 1500));
                 loadRegulatoryPrices();
                 
+                hideLoading();
+                alert('✅ Regulatory prices updated successfully!');
+                
             } catch (error) {
+                hideLoading();
                 console.error('Error saving prices:', error);
                 alert('❌ Error saving prices. Please try again.');
             }
