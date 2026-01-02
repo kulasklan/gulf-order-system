@@ -811,6 +811,55 @@
                 </div>
             </div>
 
+            <!-- Regulatory Prices View (Finance Only) -->
+            <div id="regulatoryPricesView" class="view-content hidden">
+                <div class="card">
+                    <div class="card-header">
+                        <h2 class="card-title">📊 Daily Regulatory Prices</h2>
+                        <button class="btn btn-secondary" onclick="loadRegulatoryPrices()">Refresh</button>
+                    </div>
+                    <div class="card-body">
+                        <p style="color: #6b7280; margin-bottom: 1rem;">
+                            Enter today's regulatory fuel prices from 
+                            <a href="https://www.erc.org.mk/page.aspx?id=290" target="_blank" style="color: #3b82f6;">ERC Website</a>
+                        </p>
+                        <form onsubmit="saveRegulatoryPrices(event)">
+                            <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 1rem;">
+                                <div class="form-group">
+                                    <label>Eurodiesel (MKD/L)</label>
+                                    <input type="number" step="0.01" id="price_eurodiesel" class="form-control">
+                                </div>
+                                <div class="form-group">
+                                    <label>Eurosuper 98 BS (MKD/L)</label>
+                                    <input type="number" step="0.01" id="price_eurosuper98BS" class="form-control">
+                                </div>
+                                <div class="form-group">
+                                    <label>GeForce 95 Plus (MKD/L)</label>
+                                    <input type="number" step="0.01" id="price_geForce95Plus" class="form-control">
+                                </div>
+                                <div class="form-group">
+                                    <label>Extreme Diesel (MKD/L)</label>
+                                    <input type="number" step="0.01" id="price_extremeDiesel" class="form-control">
+                                </div>
+                                <div class="form-group">
+                                    <label>Extra Lesno (MKD/L)</label>
+                                    <input type="number" step="0.01" id="price_extraLesno" class="form-control">
+                                </div>
+                                <div class="form-group">
+                                    <label>Mazut (MKD/L)</label>
+                                    <input type="number" step="0.01" id="price_mazut" class="form-control">
+                                </div>
+                            </div>
+                            <button type="submit" class="btn btn-primary" style="margin-top: 1rem;">Save Prices</button>
+                        </form>
+                        <div id="currentPrices" style="margin-top: 2rem; padding: 1rem; background: #f9fafb; border-radius: 8px;">
+                            <h4>Current Prices</h4>
+                            <p id="pricesDisplay">Loading...</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             <!-- Transport View -->
             <div id="transportView" class="view-content hidden">
                 <div class="card">
@@ -928,6 +977,13 @@
         // ===== STATE =====
         let currentUser = null;
         let currentView = 'dashboard';
+        
+        // Helper function to check if user can see financial information
+        function canSeeFinancialInfo() {
+            return currentUser.department === 'Sales' || 
+                   currentUser.department === 'Management' || 
+                   currentUser.department === 'Finance';
+        }
         let ordersData = [];
         let clientsData = [];
         let logsData = [];
@@ -1006,6 +1062,7 @@ if (currentUser.department === 'Management') {
         }
 
 if (currentUser.department === 'Finance') {
+            tabs += '<div class="nav-tab" onclick="showView(\'regulatoryPrices\')">📊 Regulatory Prices</div>';
             tabs += '<div class="nav-tab" onclick="showView(\'proforma\')">🧾 Enter Proforma</div>';
             tabs += '<div class="nav-tab" onclick="showView(\'invoice\')">📄 Enter Invoice</div>';
         }
@@ -1051,6 +1108,9 @@ if (currentUser.department === 'Transport') {
         } else if (viewName === 'invoice') {
             document.getElementById('invoiceView').classList.remove('hidden');
             loadInvoiceView();
+        } else if (viewName === 'regulatoryPrices') {
+            document.getElementById('regulatoryPricesView').classList.remove('hidden');
+            loadRegulatoryPrices();
 } else if (viewName === 'transport') {
             document.getElementById('transportView').classList.remove('hidden');
             loadTransportDashboard();
@@ -2279,7 +2339,7 @@ document.getElementById('createOrderForm').addEventListener('submit', async (e) 
         async function approveOrder(orderID) {
             if (!confirm(`Approve order ${orderID}?`)) return;
             
-            const note = prompt('Add approval note (optional):') || 'Approved';
+            const note = prompt('Add approval note (optional):') || '';
             
             try {
                 await fetch(APPS_SCRIPT_URL, {
@@ -2298,7 +2358,8 @@ document.getElementById('createOrderForm').addEventListener('submit', async (e) 
                 
                 alert(`✅ Order ${orderID} approved!`);
                 
-                // Reload data and refresh view
+                // Wait for backend processing and reload
+                await new Promise(resolve => setTimeout(resolve, 1500));
                 await loadData();
                 loadApprovals();
                 
@@ -2457,11 +2518,18 @@ document.getElementById('createOrderForm').addEventListener('submit', async (e) 
                         <div><strong>Client:</strong> ${order.clientName}</div>
                         <div><strong>Product:</strong> ${order.productType}</div>
                         <div><strong>Quantity:</strong> ${order.quantity} ${order.unit}</div>
-                        <div><strong>Margin:</strong> ${order.margin} MKD</div>
+                        ${canSeeFinancialInfo() ? `
+                            <div><strong>Margin:</strong> ${order.margin} MKD</div>
+                        ` : ''}
                         <div><strong>Warehouse:</strong> ${order.warehouse}</div>
-                        <div><strong>Payment Terms:</strong> ${order.paymentTerms}</div>
+                        ${canSeeFinancialInfo() ? `
+                            <div><strong>Payment Terms:</strong> ${order.paymentTerms}</div>
+                        ` : ''}
                         <div><strong>Requested Delivery:</strong> ${order.requestedDeliveryDate}</div>
                         <div><strong>Preferred Time:</strong> ${order.preferredDeliveryTime || 'Not specified'}</div>
+                        ${canSeeFinancialInfo() && order.totalAmount ? `
+                            <div><strong>Total Amount:</strong> ${order.totalAmount} MKD</div>
+                        ` : ''}
                         <div><strong>Avoid Afterwork:</strong> ${order.avoidAfterwork === 'Yes' ? '✓ Yes' : '✗ No'}</div>
                         <div><strong>No Gulf Brand:</strong> ${order.noGulfBrand === 'Yes' ? '✓ Yes' : '✗ No'}</div>
                         <div><strong>Priority:</strong> <span class="${getPriorityClass(order.priority)}">${order.priority}</span></div>
@@ -2606,16 +2674,139 @@ document.getElementById('createOrderForm').addEventListener('submit', async (e) 
                         Documents for this order: <span id="debugOrderDocs">0</span>
                     </div>
                 </div>
+                
+                <div style="margin-top: 2rem; border-top: 2px solid #e5e7eb; padding-top: 1.5rem;">
+                    <h3 style="color: var(--secondary); border-bottom: 2px solid var(--border); padding-bottom: 0.5rem; margin-bottom: 1rem;">📝 Order Notes</h3>
+                    
+                    <!-- Display existing notes -->
+                    <div id="orderNotesList_${order.orderID}" style="max-height: 300px; overflow-y: auto; margin-bottom: 1rem; background: #f9fafb; padding: 1rem; border-radius: 8px;">
+                        <p style="color: #6b7280; text-align: center;">Loading notes...</p>
+                    </div>
+                    
+                    <!-- Add new note -->
+                    <div style="margin-top: 1rem;">
+                        <label style="display: block; margin-bottom: 0.5rem; font-weight: 600; color: #374151;">Add Your Note:</label>
+                        <textarea 
+                            id="newNoteText_${order.orderID}" 
+                            placeholder="Add your comment or note here..." 
+                            style="width: 100%; min-height: 80px; padding: 0.75rem; border: 2px solid #d1d5db; border-radius: 8px; font-family: inherit; font-size: 0.95rem; resize: vertical;"
+                        ></textarea>
+                        <button 
+                            onclick="addOrderNote('${order.orderID}')" 
+                            class="btn btn-primary" 
+                            style="margin-top: 0.75rem; width: 100%;"
+                        >
+                            💬 Add Note
+                        </button>
+                    </div>
+                </div>
             `;
 
             modal.classList.add('active');
             
             // Load documents list
             loadDocumentsList(orderID);
+            
+            // Load notes for this order
+            setTimeout(() => loadOrderNotes(order.orderID), 500);
         }
 
         function closeModal() {
             document.getElementById('orderDetailsModal').classList.remove('active');
+        }
+        
+        // ===== ORDER NOTES SYSTEM =====
+        
+        // Load and display order notes
+        async function loadOrderNotes(orderID) {
+            try {
+                console.log('Loading notes for order:', orderID);
+                
+                // Fetch notes from Google Sheets API directly
+                const notesUrl = `https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_ID}/values/OrderNotes!A2:F1000?key=${API_KEY}&t=${Date.now()}`;
+                const response = await fetch(notesUrl);
+                const data = await response.json();
+                
+                const container = document.getElementById(`orderNotesList_${orderID}`);
+                if (!container) return;
+                
+                if (data.values) {
+                    const orderNotes = data.values.filter(row => row[0] === orderID);
+                    
+                    if (orderNotes.length === 0) {
+                        container.innerHTML = '<p style="color: #6b7280; text-align: center; font-style: italic; padding: 1rem;">No notes yet. Be the first to add one!</p>';
+                        return;
+                    }
+                    
+                    let notesHTML = '';
+                    orderNotes.forEach(note => {
+                        const timestamp = note[1] || '';
+                        const userName = note[3] || note[2] || 'Unknown';
+                        const department = note[4] || '';
+                        const noteText = note[5] || '';
+                        
+                        notesHTML += `
+                            <div style="margin-bottom: 1rem; padding: 0.75rem; background: white; border-left: 4px solid #3b82f6; border-radius: 4px; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
+                                <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
+                                    <strong style="color: #1f2937;">${userName} (${department})</strong>
+                                    <span style="color: #6b7280; font-size: 0.875rem;">${new Date(timestamp).toLocaleString()}</span>
+                                </div>
+                                <p style="margin: 0; color: #4b5563;">${noteText}</p>
+                            </div>
+                        `;
+                    });
+                    
+                    container.innerHTML = notesHTML;
+                } else {
+                    container.innerHTML = '<p style="color: #6b7280; text-align: center; font-style: italic; padding: 1rem;">No notes yet.</p>';
+                }
+                
+            } catch (error) {
+                console.error('Error loading notes:', error);
+                const container = document.getElementById(`orderNotesList_${orderID}`);
+                if (container) {
+                    container.innerHTML = '<p style="color: #ef4444; padding: 1rem;">Error loading notes. Please refresh.</p>';
+                }
+            }
+        }
+
+        // Add a new order note
+        async function addOrderNote(orderID) {
+            const textarea = document.getElementById(`newNoteText_${orderID}`);
+            const noteText = textarea.value.trim();
+            
+            if (!noteText) {
+                alert('Please enter a note');
+                return;
+            }
+            
+            try {
+                await fetch(APPS_SCRIPT_URL, {
+                    method: 'POST',
+                    mode: 'no-cors',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        action: 'addOrderNote',
+                        orderID: orderID,
+                        note: noteText,
+                        userID: currentUser.id,
+                        userName: currentUser.name,
+                        userDepartment: currentUser.department
+                    })
+                });
+                
+                console.log('✅ Note added');
+                alert('✅ Note added successfully!');
+                textarea.value = '';
+                
+                // Wait and reload notes
+                await new Promise(resolve => setTimeout(resolve, 2000));
+                await loadOrderNotes(orderID);
+                
+            } catch (error) {
+                console.error('Error adding note:', error);
+                alert('❌ Error adding note. Please try again.');
+            }
         }
         
         // ===== DOCUMENT MANAGEMENT =====
@@ -3882,6 +4073,84 @@ window.onclick = function(event) {
         };
         
         console.log('✅ Tab navigation system loaded');
+        
+        // ===== REGULATORY PRICES MANAGEMENT (FINANCE) =====
+        
+        async function loadRegulatoryPrices() {
+            try {
+                console.log('Loading regulatory prices...');
+                
+                // Load from RegulatoryPrices sheet
+                const pricesUrl = `https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_ID}/values/RegulatoryPrices!A2:H1000?key=${API_KEY}&t=${Date.now()}`;
+                const response = await fetch(pricesUrl);
+                const data = await response.json();
+                
+                if (data.values && data.values.length > 0) {
+                    // Get last row (most recent prices)
+                    const lastRow = data.values[data.values.length - 1];
+                    
+                    document.getElementById('price_eurodiesel').value = lastRow[1] || '';
+                    document.getElementById('price_eurosuper98BS').value = lastRow[2] || '';
+                    document.getElementById('price_geForce95Plus').value = lastRow[3] || '';
+                    document.getElementById('price_extremeDiesel').value = lastRow[4] || '';
+                    document.getElementById('price_extraLesno').value = lastRow[5] || '';
+                    document.getElementById('price_mazut').value = lastRow[6] || '';
+                    
+                    document.getElementById('pricesDisplay').innerHTML = `
+                        <p><strong>Last updated:</strong> ${new Date(lastRow[0]).toLocaleDateString()}</p>
+                        <p><strong>By:</strong> ${lastRow[7] || 'Unknown'}</p>
+                    `;
+                } else {
+                    document.getElementById('pricesDisplay').innerHTML = '<p style="color: #6b7280;">No prices entered yet. Enter the first set of prices below.</p>';
+                }
+            } catch (error) {
+                console.error('Error loading prices:', error);
+                document.getElementById('pricesDisplay').innerHTML = '<p style="color: #ef4444;">Error loading prices. Please refresh the page.</p>';
+            }
+        }
+
+        async function saveRegulatoryPrices(event) {
+            event.preventDefault();
+            
+            const prices = {
+                eurodiesel: document.getElementById('price_eurodiesel').value,
+                eurosuper98BS: document.getElementById('price_eurosuper98BS').value,
+                geForce95Plus: document.getElementById('price_geForce95Plus').value,
+                extremeDiesel: document.getElementById('price_extremeDiesel').value,
+                extraLesno: document.getElementById('price_extraLesno').value,
+                mazut: document.getElementById('price_mazut').value
+            };
+            
+            // Check if at least one price is entered
+            if (!Object.values(prices).some(p => p)) {
+                alert('⚠️ Please enter at least one price');
+                return;
+            }
+            
+            try {
+                await fetch(APPS_SCRIPT_URL, {
+                    method: 'POST',
+                    mode: 'no-cors',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        action: 'updateRegulatoryPrices',
+                        prices: prices,
+                        updatedBy: currentUser.id
+                    })
+                });
+                
+                alert('✅ Regulatory prices updated successfully!');
+                
+                // Reload to show updated info
+                await new Promise(resolve => setTimeout(resolve, 1500));
+                loadRegulatoryPrices();
+                
+            } catch (error) {
+                console.error('Error saving prices:', error);
+                alert('❌ Error saving prices. Please try again.');
+            }
+        }
+        
     </script>
 </body>
 </html>
