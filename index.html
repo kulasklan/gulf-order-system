@@ -1307,12 +1307,12 @@ if (currentUser.department === 'Transport') {
                         documentsData = documentsJson.values.map(row => ({
                             orderID: row[0] || '',
                             fileName: row[1] || '',
-                            fileType: row[2] || '',
-                            documentType: row[3] || '',
-                            fileId: row[4] || '',
-                            fileUrl: row[5] || '',
+                            documentType: row[2] || '',
+                            fileId: row[3] || '',
+                            fileUrl: row[4] || '',
+                            uploadedDate: row[5] || '',
                             uploadedBy: row[6] || '',
-                            uploadedDate: row[7] || ''
+                            folderUrl: row[7] || ''
                         }));
                         console.log('✅ Loaded', documentsData.length, 'documents from Google Sheets');
                         console.log('Documents data:', documentsData);
@@ -2977,16 +2977,45 @@ document.getElementById('createOrderForm').addEventListener('submit', async (e) 
             // Display documents list
             let html = '<div style="display: grid; gap: 0.5rem;">';
             
+            // Group documents by type to handle duplicates
+            const docsByType = {};
             orderDocuments.forEach(doc => {
+                if (!docsByType[doc.documentType]) {
+                    docsByType[doc.documentType] = [];
+                }
+                docsByType[doc.documentType].push(doc);
+            });
+            
+            orderDocuments.forEach((doc, index) => {
                 const uploadDate = doc.uploadedDate ? new Date(doc.uploadedDate).toLocaleString() : '';
                 const canDelete = (currentUser.department === 'Warehouse' || currentUser.department === 'Transport');
+                
+                // Create display name
+                let displayName = doc.fileName;
+                
+                // Shorten if too long (keep first 30 chars + extension)
+                if (displayName.length > 40) {
+                    const parts = displayName.split('.');
+                    const ext = parts.length > 1 ? '.' + parts[parts.length - 1] : '';
+                    const nameWithoutExt = parts.slice(0, -1).join('.');
+                    displayName = nameWithoutExt.substring(0, 30) + '...' + ext;
+                }
+                
+                // Add type prefix and numbering if multiple files of same type
+                const typeFiles = docsByType[doc.documentType] || [];
+                if (typeFiles.length > 1) {
+                    const fileIndex = typeFiles.indexOf(doc) + 1;
+                    displayName = `${doc.documentType} ${fileIndex} - ${displayName}`;
+                } else {
+                    displayName = `${doc.documentType} - ${displayName}`;
+                }
                 
                 html += `
                     <div style="display: flex; justify-content: space-between; align-items: center; padding: 0.75rem; background: white; border: 1px solid #E5E7EB; border-radius: 4px;">
                         <div style="flex: 1;">
                             <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.25rem;">
                                 <a href="${doc.fileUrl}" target="_blank" style="color: var(--primary); text-decoration: none; font-weight: 500;">
-                                    📄 ${doc.documentType} - ${doc.fileName}
+                                    📄 ${displayName}
                                 </a>
                             </div>
                             <div style="font-size: 0.75rem; color: #6B7280;">
