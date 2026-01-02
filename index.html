@@ -562,11 +562,66 @@
             border-radius: 4px;
             margin-bottom: 1rem;
         }
+        
+        /* Loading Overlay */
+        .loading-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            z-index: 10000;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .loading-overlay.active {
+            display: flex;
+        }
+        
+        .loading-content {
+            background: white;
+            padding: 2rem 3rem;
+            border-radius: 12px;
+            text-align: center;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+        }
+        
+        .loading-spinner {
+            width: 50px;
+            height: 50px;
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #0066cc;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 1rem;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .loading-text {
+            color: #333;
+            font-size: 1.1rem;
+            font-weight: 600;
+        }
     </style>
 </head>
     </style>
 </head>
 <body>
+    <!-- Loading Overlay -->
+    <div class="loading-overlay" id="loadingOverlay">
+        <div class="loading-content">
+            <div class="loading-spinner"></div>
+            <div class="loading-text">Saving changes...</div>
+        </div>
+    </div>
+    
     <!-- Header -->
     <div class="header">
         <div class="header-content">
@@ -983,6 +1038,19 @@
             return currentUser.department === 'Sales' || 
                    currentUser.department === 'Management' || 
                    currentUser.department === 'Finance';
+        }
+        
+        // Loading overlay helpers
+        function showLoading(message = 'Saving changes...') {
+            const overlay = document.getElementById('loadingOverlay');
+            const text = overlay.querySelector('.loading-text');
+            text.textContent = message;
+            overlay.classList.add('active');
+        }
+        
+        function hideLoading() {
+            const overlay = document.getElementById('loadingOverlay');
+            overlay.classList.remove('active');
         }
         let ordersData = [];
         let clientsData = [];
@@ -2088,7 +2156,9 @@ function loadApprovals() {
     async function markAsDelivered(orderID) {
         if (!confirm(`Mark order ${orderID} as DELIVERED?`)) return;
 
-        const deliveryNote = prompt('Add delivery note (optional):') || 'Delivered successfully';
+        const deliveryNote = prompt('Add delivery note (optional):') || '';
+
+        showLoading('Marking as delivered...');
 
         try {
             await fetch(APPS_SCRIPT_URL, {
@@ -2105,13 +2175,19 @@ function loadApprovals() {
                 })
             });
 
-            alert(`✅ Order ${orderID} marked as DELIVERED!`);
+            // Wait for backend processing
+            await new Promise(resolve => setTimeout(resolve, 1500));
 
             // Reload data and refresh view
             await loadData();
+            
+            hideLoading();
+            alert(`✅ Order ${orderID} marked as DELIVERED!`);
+            
             loadDeliveryView();
 
         } catch (error) {
+            hideLoading();
             console.error('Error:', error);
             alert('❌ Error marking order as delivered');
         }
@@ -2120,6 +2196,8 @@ function loadApprovals() {
     async function markAsDisputed(orderID) {
         const reason = prompt('Enter dispute reason:');
         if (!reason) return;
+
+        showLoading('Marking as disputed...');
 
         try {
             await fetch(APPS_SCRIPT_URL, {
@@ -2136,13 +2214,19 @@ function loadApprovals() {
                 })
             });
 
-            alert(`⚠️ Order ${orderID} marked as DISPUTED!`);
+            // Wait for backend processing
+            await new Promise(resolve => setTimeout(resolve, 1500));
 
             // Reload data and refresh view
             await loadData();
+            
+            hideLoading();
+            alert(`⚠️ Order ${orderID} marked as DISPUTED!`);
+            
             loadDeliveryView();
 
         } catch (error) {
+            hideLoading();
             console.error('Error:', error);
             alert('❌ Error marking order as disputed');
         }
@@ -2341,6 +2425,8 @@ document.getElementById('createOrderForm').addEventListener('submit', async (e) 
             
             const note = prompt('Add approval note (optional):') || '';
             
+            showLoading('Approving order...');
+            
             try {
                 await fetch(APPS_SCRIPT_URL, {
                     method: 'POST',
@@ -2356,14 +2442,17 @@ document.getElementById('createOrderForm').addEventListener('submit', async (e) 
                     })
                 });
                 
-                alert(`✅ Order ${orderID} approved!`);
-                
                 // Wait for backend processing and reload
                 await new Promise(resolve => setTimeout(resolve, 1500));
                 await loadData();
+                
+                hideLoading();
+                alert(`✅ Order ${orderID} approved!`);
+                
                 loadApprovals();
                 
             } catch (error) {
+                hideLoading();
                 console.error('Error:', error);
                 alert('❌ Error approving order: ' + error.message);
             }
@@ -2372,6 +2461,8 @@ document.getElementById('createOrderForm').addEventListener('submit', async (e) 
         async function rejectOrder(orderID) {
             const reason = prompt('Enter rejection reason:');
             if (!reason) return;
+            
+            showLoading('Rejecting order...');
             
             try {
                 await fetch(APPS_SCRIPT_URL, {
@@ -2388,13 +2479,19 @@ document.getElementById('createOrderForm').addEventListener('submit', async (e) 
                     })
                 });
                 
-                alert(`❌ Order ${orderID} rejected.`);
+                // Wait for backend processing
+                await new Promise(resolve => setTimeout(resolve, 1500));
                 
                 // Reload data and refresh view
                 await loadData();
+                
+                hideLoading();
+                alert(`❌ Order ${orderID} rejected.`);
+                
                 loadApprovals();
                 
             } catch (error) {
+                hideLoading();
                 console.error('Error:', error);
                 alert('❌ Error rejecting order: ' + error.message);
             }
@@ -3626,6 +3723,8 @@ document.getElementById('createOrderForm').addEventListener('submit', async (e) 
             
             console.log('Updating warehouse status:', {orderID, newStatus, note});
             
+            showLoading(`Updating to "${newStatus}"...`);
+            
             try {
                 await fetch(APPS_SCRIPT_URL, {
                     method: 'POST',
@@ -3650,12 +3749,14 @@ document.getElementById('createOrderForm').addEventListener('submit', async (e) 
                 // Force reload all data from scratch
                 await loadData();
                 
+                hideLoading();
                 alert(`✅ Status updated to "${newStatus}"!`);
                 
                 // Refresh warehouse view
                 loadWarehouseDashboard();
                 
             } catch (error) {
+                hideLoading();
                 console.error('Error updating status:', error);
                 alert('❌ Error updating status: ' + error.message);
                 checkbox.checked = false;
@@ -3759,6 +3860,8 @@ document.getElementById('createOrderForm').addEventListener('submit', async (e) 
                 return;
             }
             
+            showLoading('Assigning transport...');
+            
             try {
                 await fetch(APPS_SCRIPT_URL, {
                     method: 'POST',
@@ -3778,8 +3881,6 @@ document.getElementById('createOrderForm').addEventListener('submit', async (e) 
                     })
                 });
                 
-                alert(`✅ Transport assigned to order ${orderID}!\n\nDriver: ${driverName}\nTruck: ${truckPlate}\nCompany: ${transportCompany}\nEst. Delivery: ${estimatedDelivery}`);
-                
                 console.log('Transport assigned, waiting for Apps Script to update...');
                 
                 // Wait for Apps Script to finish processing
@@ -3788,6 +3889,9 @@ document.getElementById('createOrderForm').addEventListener('submit', async (e) 
                 // Reload data and close modal
                 await loadData();
                 closeModal();
+                hideLoading();
+                
+                alert(`✅ Transport assigned to order ${orderID}!\n\nDriver: ${driverName}\nTruck: ${truckPlate}\nCompany: ${transportCompany}\nEst. Delivery: ${estimatedDelivery}`);
                 
                 // Refresh current view
                 if (currentView === 'transport') {
@@ -3797,6 +3901,7 @@ document.getElementById('createOrderForm').addEventListener('submit', async (e) 
                 }
                 
             } catch (error) {
+                hideLoading();
                 console.error('Error:', error);
                 alert('❌ Error assigning transport: ' + error.message);
             }
