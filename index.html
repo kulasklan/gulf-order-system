@@ -1690,6 +1690,26 @@ if (currentUser.department === 'Transport') {
             // Set minimum date to today
             const today = new Date().toISOString().split('T')[0];
             document.getElementById('deliveryDateInput').setAttribute('min', today);
+            
+            // Attach availability check event listeners
+            const productSelect = document.getElementById('productTypeSelect');
+            const deliveryDateInput = document.getElementById('deliveryDateInput');
+            
+            if (productSelect) {
+                // Remove old listener if exists
+                productSelect.removeEventListener('change', checkAvailability);
+                // Add new listener
+                productSelect.addEventListener('change', checkAvailability);
+                console.log('✅ Product select listener attached');
+            }
+            
+            if (deliveryDateInput) {
+                // Remove old listener if exists
+                deliveryDateInput.removeEventListener('change', checkAvailability);
+                // Add new listener
+                deliveryDateInput.addEventListener('change', checkAvailability);
+                console.log('✅ Delivery date listener attached');
+            }
         }
 
 function loadApprovals() {
@@ -2435,19 +2455,6 @@ function loadApprovals() {
         }
         
         // Add event listeners for availability check
-        document.addEventListener('DOMContentLoaded', function() {
-            const productSelect = document.getElementById('productTypeSelect');
-            const deliveryDateInput = document.getElementById('deliveryDateInput');
-            
-            if (productSelect) {
-                productSelect.addEventListener('change', checkAvailability);
-            }
-            
-            if (deliveryDateInput) {
-                deliveryDateInput.addEventListener('change', checkAvailability);
-            }
-        });
-
         // ===== ORDER ACTIONS =====
 document.getElementById('createOrderForm').addEventListener('submit', async (e) => {
     e.preventDefault();
