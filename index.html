@@ -736,14 +736,42 @@
                                 <label>Product Type *</label>
                                 <select id="productTypeSelect" required>
                                     <option value="">-- Select Product --</option>
-                                    <option value="Eurodiesel">Eurodiesel</option>
-                                    <option value="Eurosuper 95 BS">Eurosuper 95 BS</option>
-                                    <option value="GeForce 95 Plus">GeForce 95 Plus</option>
-                                    <option value="Extreme Diesel">Extreme Diesel</option>
-                                    <option value="Ekstra Lesno">Ekstra Lesno</option>
+                                    <option value="Diesel">Diesel</option>
+                                    <option value="Gasoline 95">Gasoline 95</option>
+                                    <option value="Gasoline 98">Gasoline 98</option>
+                                    <option value="LPG">LPG</option>
                                     <option value="Mazut">Mazut</option>
                                 </select>
                             </div>
+                            
+                            <!-- AVAILABILITY DISPLAY -->
+                            <div id="availabilityDisplay" style="display: none; padding: 1rem; background: #F0F9FF; border: 1px solid #0284C7; border-radius: 4px; margin-bottom: 1rem;">
+                                <div style="font-weight: 600; color: #0369A1; margin-bottom: 0.5rem;">
+                                    📊 Stock Availability
+                                </div>
+                                <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 0.75rem; font-size: 0.9rem;">
+                                    <div>
+                                        <div style="color: #64748B; font-size: 0.75rem;">On Hand</div>
+                                        <div id="availOnHand" style="font-weight: 600; color: #0F172A;">-</div>
+                                    </div>
+                                    <div>
+                                        <div style="color: #64748B; font-size: 0.75rem;">Incoming</div>
+                                        <div id="availInbound" style="font-weight: 600; color: #059669;">-</div>
+                                    </div>
+                                    <div>
+                                        <div style="color: #64748B; font-size: 0.75rem;">Reserved</div>
+                                        <div id="availReserved" style="font-weight: 600; color: #DC2626;">-</div>
+                                    </div>
+                                </div>
+                                <div style="margin-top: 0.75rem; padding-top: 0.75rem; border-top: 1px solid #BAE6FD;">
+                                    <div style="color: #64748B; font-size: 0.75rem;">Available to Sell</div>
+                                    <div id="availTotal" style="font-size: 1.5rem; font-weight: 700; color: #0369A1;">-</div>
+                                </div>
+                                <div id="availWarning" style="display: none; margin-top: 0.75rem; padding: 0.5rem; background: #FEF3C7; border-radius: 4px; color: #92400E; font-size: 0.85rem;">
+                                    ⚠️ Limited stock - confirm delivery date with management
+                                </div>
+                            </div>
+                            
                             <div class="form-group">
                                 <label>Unit *</label>
                                 <select id="unitSelect" required>
@@ -2339,6 +2367,86 @@ function loadApprovals() {
 
             container.innerHTML = html;
         }
+
+        // ===== AVAILABILITY CHECK =====
+        
+        // Check availability when product type or delivery date changes
+        async function checkAvailability() {
+            const productSelect = document.getElementById('productTypeSelect');
+            const deliveryDateInput = document.getElementById('deliveryDateInput');
+            const availabilityDisplay = document.getElementById('availabilityDisplay');
+            
+            const productType = productSelect.value;
+            const deliveryDate = deliveryDateInput.value;
+            
+            // Hide if no product selected
+            if (!productType) {
+                availabilityDisplay.style.display = 'none';
+                return;
+            }
+            
+            // Show loading state
+            availabilityDisplay.style.display = 'block';
+            document.getElementById('availTotal').textContent = 'Loading...';
+            
+            try {
+                const response = await fetch(APPS_SCRIPT_URL, {
+                    method: 'POST',
+                    mode: 'no-cors',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        action: 'getAvailability',
+                        productType: productType,
+                        deliveryDate: deliveryDate || null
+                    })
+                });
+                
+                // Since mode is no-cors, we can't read response directly
+                // Wait a moment then fetch from a GET endpoint
+                // For now, we'll use a workaround with localStorage or just show a message
+                console.log('Availability check sent for:', productType);
+                
+                // Temporary: Show a placeholder until we implement proper response handling
+                setTimeout(() => {
+                    // This will be replaced with actual data once backend is integrated
+                    displayAvailabilityPlaceholder(productType);
+                }, 500);
+                
+            } catch (error) {
+                console.error('Error checking availability:', error);
+                document.getElementById('availTotal').textContent = 'Error loading';
+            }
+        }
+        
+        // Temporary placeholder display (will be replaced with real data)
+        function displayAvailabilityPlaceholder(productType) {
+            document.getElementById('availOnHand').textContent = 'Loading...';
+            document.getElementById('availInbound').textContent = 'Loading...';
+            document.getElementById('availReserved').textContent = 'Loading...';
+            document.getElementById('availTotal').textContent = 'Check inventory sheet';
+            document.getElementById('availWarning').style.display = 'none';
+            
+            // Add note
+            const warning = document.getElementById('availWarning');
+            warning.textContent = '💡 Availability calculation active - check Apps Script logs for details';
+            warning.style.background = '#DBEAFE';
+            warning.style.color = '#1E40AF';
+            warning.style.display = 'block';
+        }
+        
+        // Add event listeners for availability check
+        document.addEventListener('DOMContentLoaded', function() {
+            const productSelect = document.getElementById('productTypeSelect');
+            const deliveryDateInput = document.getElementById('deliveryDateInput');
+            
+            if (productSelect) {
+                productSelect.addEventListener('change', checkAvailability);
+            }
+            
+            if (deliveryDateInput) {
+                deliveryDateInput.addEventListener('change', checkAvailability);
+            }
+        });
 
         // ===== ORDER ACTIONS =====
 document.getElementById('createOrderForm').addEventListener('submit', async (e) => {
