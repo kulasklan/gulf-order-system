@@ -2415,34 +2415,37 @@ function loadApprovals() {
             try {
                 console.log('🔍 Checking availability for:', productType, 'on', deliveryDate || 'any date');
                 
-                // Build GET URL with parameters
+                // WORKAROUND: Use script tag injection (JSONP-style) to bypass CORS
+                const callbackName = 'availabilityCallback_' + Date.now();
+                
+                window[callbackName] = function(data) {
+                    console.log('✅ Availability data received via callback:', data);
+                    if (data.success) {
+                        displayAvailabilityData(data);
+                    } else {
+                        throw new Error(data.error || 'Failed to get availability');
+                    }
+                    // Cleanup
+                    delete window[callbackName];
+                    document.body.removeChild(script);
+                };
+                
+                // Create script tag
+                const script = document.createElement('script');
                 const params = new URLSearchParams({
                     action: 'getAvailability',
                     productType: productType,
-                    deliveryDate: deliveryDate || ''
+                    deliveryDate: deliveryDate || '',
+                    callback: callbackName
                 });
+                script.src = `${APPS_SCRIPT_URL}?${params.toString()}`;
+                script.onerror = function() {
+                    console.error('❌ Failed to load script');
+                    delete window[callbackName];
+                    throw new Error('Failed to fetch availability');
+                };
                 
-                const url = `${APPS_SCRIPT_URL}?${params.toString()}`;
-                console.log('📡 Fetching from:', url);
-                
-                // Use GET request (can read response!)
-                const response = await fetch(url, {
-                    method: 'GET',
-                    headers: { 'Accept': 'application/json' }
-                });
-                
-                if (!response.ok) {
-                    throw new Error('Network response was not ok');
-                }
-                
-                const data = await response.json();
-                console.log('✅ Availability data received:', data);
-                
-                if (data.success) {
-                    displayAvailabilityData(data);
-                } else {
-                    throw new Error(data.error || 'Failed to get availability');
-                }
+                document.body.appendChild(script);
                 
             } catch (error) {
                 console.error('❌ Error checking availability:', error);
@@ -2452,7 +2455,7 @@ function loadApprovals() {
                 document.getElementById('availReserved').textContent = '-';
                 
                 const warning = document.getElementById('availWarning');
-                warning.textContent = '⚠️ Could not load availability. Check console for details.';
+                warning.textContent = '⚠️ Could not load availability. Try changing deployment to "Anyone" access.';
                 warning.style.background = '#FEE2E2';
                 warning.style.color = '#991B1B';
                 warning.style.display = 'block';
