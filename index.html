@@ -1270,7 +1270,12 @@ if (currentUser.department === 'Transport') {
                         driverName: row[39] || '',         // Column AN
                         truckPlate: row[40] || '',         // Column AO
                         transportCompany: row[41] || '',   // Column AP
-                        estimatedDelivery: row[42] || ''   // Column AQ
+                        estimatedDelivery: row[42] || '',  // Column AQ
+                        reservedQuantity: row[43] || '',   // Column AR
+                        availabilityCheck: row[44] || '',  // Column AS
+                        stockRisk: row[45] || false,       // Column AT
+                        stockRiskNote: row[46] || '',      // Column AU
+                        availableAtCreation: row[47] || '' // Column AV
                     }));
                     console.log('✅ Loaded', ordersData.length, 'orders from Google Sheets');
                     console.log('Order statuses:', ordersData.map(o => `${o.orderID}: ${o.status}`));
@@ -1731,16 +1736,49 @@ function loadApprovals() {
 
         let html = '';
         pendingOrders.forEach(order => {
+            // Check for stock risk
+            const stockRisk = order.stockRisk === true || order.stockRisk === 'TRUE';
+            const stockRiskNote = order.stockRiskNote || '';
+            const availableAtCreation = order.availableAtCreation || 'Unknown';
+            
+            // Stock risk warning HTML
+            let stockWarningHTML = '';
+            if (stockRisk) {
+                stockWarningHTML = `
+                    <div style="margin-bottom: 1rem; padding: 0.75rem; background: #FEE2E2; border-left: 4px solid #DC2626; border-radius: 4px;">
+                        <div style="font-weight: 600; color: #991B1B; margin-bottom: 0.5rem;">
+                            ⚠️ INSUFFICIENT STOCK WARNING
+                        </div>
+                        <div style="color: #7F1D1D; font-size: 0.9rem; margin-bottom: 0.5rem;">
+                            <strong>Requested:</strong> ${new Intl.NumberFormat().format(order.quantity)} ${order.unit}<br>
+                            <strong>Available at creation:</strong> ${availableAtCreation !== 'Unknown' ? new Intl.NumberFormat().format(availableAtCreation) + ' ' + order.unit : 'Unknown'}
+                        </div>
+                        ${stockRiskNote ? `
+                        <div style="color: #7F1D1D; font-size: 0.85rem; font-style: italic;">
+                            <strong>Sales Note:</strong> "${stockRiskNote}"
+                        </div>
+                        ` : ''}
+                        <div style="color: #991B1B; font-size: 0.85rem; margin-top: 0.5rem; font-weight: 600;">
+                            → Verify current availability before approving
+                        </div>
+                    </div>
+                `;
+            }
+            
             html += `
-                <div class="card">
+                <div class="card" style="${stockRisk ? 'border-left: 4px solid #DC2626;' : ''}">
                     <div style="display: flex; justify-content: space-between; align-items: start; gap: 1rem;">
                         <div style="flex: 1;">
-                            <h3 style="margin-bottom: 0.5rem;">${order.orderID} - ${order.clientName}</h3>
+                            <h3 style="margin-bottom: 0.5rem;">
+                                ${stockRisk ? '<span style="color: #DC2626;">🚨</span> ' : ''}
+                                ${order.orderID} - ${order.clientName}
+                            </h3>
                             <p style="color: #6B7280; margin-bottom: 1rem;">
                                 ${order.quantity} ${order.unit} of ${order.productType} |
                                 Delivery: ${order.requestedDeliveryDate} |
                                 <span class="${getPriorityClass(order.priority)}">${order.priority}</span>
                             </p>
+                            ${stockWarningHTML}
                             <div style="display: flex; gap: 1rem;">
                                 <button class="btn btn-success" onclick="approveOrder('${order.orderID}')">✓ Approve</button>
                                 <button class="btn btn-danger" onclick="rejectOrder('${order.orderID}')">✗ Reject</button>
@@ -2531,24 +2569,97 @@ document.getElementById('createOrderForm').addEventListener('submit', async (e) 
     // Get form data (Backend will generate Order ID!)
     const clientID = document.getElementById('clientSelect').value;
     const client = clientsData.find(c => c.clientID === clientID);
+    const productType = document.getElementById('productTypeSelect').value;
+    const requestedQty = parseFloat(document.getElementById('quantityInput').value);
+    const deliveryDate = document.getElementById('deliveryDateInput').value;
+    
+    // PHASE 1c: Check availability and warn if insufficient
+    let stockRisk = false;
+    let stockRiskNote = '';
+    let availabilityCheck = 'Not Checked';
+    let availableAtCreation = 0;
+    
+    try {
+        console.log('🔍 Checking stock availability before submission...');
+        
+        // Get availability data
+        const availData = await getAvailabilityData(productType, deliveryDate);
+        
+        if (availData && availData.success) {
+            const available = parseFloat(availData.available) || 0;
+            availableAtCreation = available;
+            
+            // Determine availability status
+            if (available >= requestedQty) {
+                availabilityCheck = 'Available';
+                console.log('✅ Sufficient stock available');
+            } else if (available > 0) {
+                availabilityCheck = 'Partial';
+                stockRisk = true;
+                console.log('⚠️ Partial stock - less than requested');
+            } else {
+                availabilityCheck = 'Not Available';
+                stockRisk = true;
+                console.log('❌ Insufficient stock');
+            }
+            
+            // If stock risk, show warning and require note
+            if (stockRisk) {
+                const warningMsg = `⚠️ STOCK AVAILABILITY WARNING
+
+Product: ${productType}
+Requested: ${new Intl.NumberFormat().format(requestedQty)} L
+Available: ${new Intl.NumberFormat().format(available)} L
+Shortage: ${new Intl.NumberFormat().format(requestedQty - available)} L
+
+This order cannot be fulfilled with current stock.
+
+Do you want to proceed anyway?
+(Management will need to verify before approval)`;
+
+                if (!confirm(warningMsg)) {
+                    console.log('❌ Order cancelled by Sales');
+                    return; // Cancel order
+                }
+                
+                // Require explanation note
+                stockRiskNote = prompt('⚠️ Please explain why you are proceeding with insufficient stock:\n\n(Example: "Management pre-approved", "Client agreed to wait for shipment", etc.)', '');
+                
+                if (!stockRiskNote || stockRiskNote.trim() === '') {
+                    alert('❌ You must provide a note explaining why you are proceeding with insufficient stock.');
+                    return; // Cancel if no note provided
+                }
+                
+                console.log('⚠️ Proceeding with stock risk. Note:', stockRiskNote);
+            }
+        }
+    } catch (error) {
+        console.error('⚠️ Could not check availability:', error);
+        // Continue with order creation even if availability check fails
+    }
     
     const orderData = {
         action: 'createOrder',
         createdBy: currentUser.id,
         clientID: clientID,
         clientName: client ? client.clientName : '',
-        productType: document.getElementById('productTypeSelect').value,
+        productType: productType,
         unit: document.getElementById('unitSelect').value,
-        quantity: document.getElementById('quantityInput').value,
+        quantity: requestedQty,
         margin: document.getElementById('marginInput').value,
         warehouse: document.getElementById('warehouseSelect').value,
-        requestedDeliveryDate: document.getElementById('deliveryDateInput').value,
+        requestedDeliveryDate: deliveryDate,
         preferredTime: document.getElementById('deliveryTimeInput').value,
         paymentTerms: document.getElementById('paymentTermsSelect').value,
         priority: document.getElementById('prioritySelect').value,
         avoidAfterwork: document.getElementById('avoidAfterworkCheck').checked ? 'Yes' : 'No',
         noGulfBrand: document.getElementById('noGulfBrandCheck').checked,
-        notes: document.getElementById('orderNotesInput').value || ''
+        notes: document.getElementById('orderNotesInput').value || '',
+        // Phase 1c: Stock risk data
+        availabilityCheck: availabilityCheck,
+        stockRisk: stockRisk,
+        stockRiskNote: stockRiskNote,
+        availableAtCreation: availableAtCreation
     };
     
     console.log('📤 Sending order data:', orderData);
@@ -2587,7 +2698,11 @@ document.getElementById('createOrderForm').addEventListener('submit', async (e) 
         hideLoading();
         
         if (newestOrder) {
-            alert(`✅ Order created successfully!\n\nOrder ID: ${newestOrder.orderID}\n\nCheck Apps Script → Executions to verify.`);
+            let successMsg = `✅ Order created successfully!\n\nOrder ID: ${newestOrder.orderID}`;
+            if (stockRisk) {
+                successMsg += '\n\n⚠️ STOCK RISK FLAGGED\nManagement will be notified during approval.';
+            }
+            alert(successMsg);
             document.getElementById('createOrderForm').reset();
             showView('dashboard');
         } else {
@@ -2600,6 +2715,47 @@ document.getElementById('createOrderForm').addEventListener('submit', async (e) 
         alert('❌ Error creating order: ' + error.message + '\n\nCheck console (F12) for details.');
     }
 });
+
+// Helper function to get availability data
+async function getAvailabilityData(productType, deliveryDate) {
+    return new Promise((resolve) => {
+        const callbackName = 'availCheck_' + Date.now();
+        
+        window[callbackName] = function(data) {
+            resolve(data);
+            delete window[callbackName];
+            if (document.body.contains(script)) {
+                document.body.removeChild(script);
+            }
+        };
+        
+        const script = document.createElement('script');
+        const params = new URLSearchParams({
+            action: 'getAvailability',
+            productType: productType,
+            deliveryDate: deliveryDate || '',
+            callback: callbackName
+        });
+        script.src = `${APPS_SCRIPT_URL}?${params.toString()}`;
+        script.onerror = function() {
+            resolve({ success: false });
+            delete window[callbackName];
+        };
+        
+        document.body.appendChild(script);
+        
+        // Timeout after 5 seconds
+        setTimeout(() => {
+            if (window[callbackName]) {
+                resolve({ success: false });
+                delete window[callbackName];
+                if (document.body.contains(script)) {
+                    document.body.removeChild(script);
+                }
+            }
+        }, 5000);
+    });
+}
 
         async function approveOrder(orderID) {
             if (!confirm(`Approve order ${orderID}?`)) return;
