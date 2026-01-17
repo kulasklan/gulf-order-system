@@ -2407,54 +2407,120 @@ function loadApprovals() {
             
             // Show loading state
             availabilityDisplay.style.display = 'block';
-            document.getElementById('availTotal').textContent = 'Loading...';
+            document.getElementById('availTotal').textContent = 'Checking...';
+            document.getElementById('availOnHand').textContent = '...';
+            document.getElementById('availInbound').textContent = '...';
+            document.getElementById('availReserved').textContent = '...';
             
             try {
-                const response = await fetch(APPS_SCRIPT_URL, {
-                    method: 'POST',
-                    mode: 'no-cors',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        action: 'getAvailability',
-                        productType: productType,
-                        deliveryDate: deliveryDate || null
-                    })
+                console.log('🔍 Checking availability for:', productType, 'on', deliveryDate || 'any date');
+                
+                // Build GET URL with parameters
+                const params = new URLSearchParams({
+                    action: 'getAvailability',
+                    productType: productType,
+                    deliveryDate: deliveryDate || ''
                 });
                 
-                // Since mode is no-cors, we can't read response directly
-                // Wait a moment then fetch from a GET endpoint
-                // For now, we'll use a workaround with localStorage or just show a message
-                console.log('Availability check sent for:', productType);
+                const url = `${APPS_SCRIPT_URL}?${params.toString()}`;
+                console.log('📡 Fetching from:', url);
                 
-                // Temporary: Show a placeholder until we implement proper response handling
-                setTimeout(() => {
-                    // This will be replaced with actual data once backend is integrated
-                    displayAvailabilityPlaceholder(productType);
-                }, 500);
+                // Use GET request (can read response!)
+                const response = await fetch(url, {
+                    method: 'GET',
+                    headers: { 'Accept': 'application/json' }
+                });
+                
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                
+                const data = await response.json();
+                console.log('✅ Availability data received:', data);
+                
+                if (data.success) {
+                    displayAvailabilityData(data);
+                } else {
+                    throw new Error(data.error || 'Failed to get availability');
+                }
                 
             } catch (error) {
-                console.error('Error checking availability:', error);
-                document.getElementById('availTotal').textContent = 'Error loading';
+                console.error('❌ Error checking availability:', error);
+                document.getElementById('availTotal').textContent = 'Error';
+                document.getElementById('availOnHand').textContent = '-';
+                document.getElementById('availInbound').textContent = '-';
+                document.getElementById('availReserved').textContent = '-';
+                
+                const warning = document.getElementById('availWarning');
+                warning.textContent = '⚠️ Could not load availability. Check console for details.';
+                warning.style.background = '#FEE2E2';
+                warning.style.color = '#991B1B';
+                warning.style.display = 'block';
             }
         }
         
-        // Temporary placeholder display (will be replaced with real data)
-        function displayAvailabilityPlaceholder(productType) {
-            document.getElementById('availOnHand').textContent = 'Loading...';
-            document.getElementById('availInbound').textContent = 'Loading...';
-            document.getElementById('availReserved').textContent = 'Loading...';
-            document.getElementById('availTotal').textContent = 'Check inventory sheet';
-            document.getElementById('availWarning').style.display = 'none';
+        // Display real availability data
+        function displayAvailabilityData(data) {
+            const onHand = parseFloat(data.onHand) || 0;
+            const inbound = parseFloat(data.inbound) || 0;
+            const reserved = parseFloat(data.reserved) || 0;
+            const available = parseFloat(data.available) || 0;
+            const unit = data.unit || 'L';
             
-            // Add note
+            // Format numbers with thousand separators
+            const formatNumber = (num) => {
+                return new Intl.NumberFormat('en-US').format(num);
+            };
+            
+            // Update display
+            document.getElementById('availOnHand').textContent = `${formatNumber(onHand)} ${unit}`;
+            document.getElementById('availInbound').textContent = `${formatNumber(inbound)} ${unit}`;
+            document.getElementById('availReserved').textContent = `${formatNumber(reserved)} ${unit}`;
+            document.getElementById('availTotal').textContent = `${formatNumber(available)} ${unit}`;
+            
+            // Show warning based on availability
             const warning = document.getElementById('availWarning');
-            warning.textContent = '💡 Availability calculation active - check Apps Script logs for details';
-            warning.style.background = '#DBEAFE';
-            warning.style.color = '#1E40AF';
-            warning.style.display = 'block';
+            
+            if (available <= 0) {
+                warning.textContent = '❌ Not Available - Insufficient stock for this delivery date';
+                warning.style.background = '#FEE2E2';
+                warning.style.color = '#991B1B';
+                warning.style.display = 'block';
+            } else if (available < 20000) {
+                warning.textContent = '⚠️ Limited Stock - Confirm availability with management before submitting';
+                warning.style.background = '#FEF3C7';
+                warning.style.color = '#92400E';
+                warning.style.display = 'block';
+            } else if (inbound > 0 && onHand < reserved) {
+                warning.textContent = '💡 Depends on incoming shipment - Verify arrival date';
+                warning.style.background = '#DBEAFE';
+                warning.style.color = '#1E40AF';
+                warning.style.display = 'block';
+            } else {
+                warning.style.display = 'none';
+            }
+            
+            // Color code the total based on availability
+            const totalElement = document.getElementById('availTotal');
+            if (available <= 0) {
+                totalElement.style.color = '#DC2626'; // Red
+            } else if (available < 20000) {
+                totalElement.style.color = '#D97706'; // Orange
+            } else {
+                totalElement.style.color = '#059669'; // Green
+            }
+            
+            console.log('📊 Availability displayed:', {
+                onHand: onHand,
+                inbound: inbound,
+                reserved: reserved,
+                available: available,
+                status: available > 20000 ? 'Good' : available > 0 ? 'Limited' : 'Unavailable'
+            });
         }
         
-        // Add event listeners for availability check
+        // Remove old placeholder function
+        
         // ===== ORDER ACTIONS =====
 document.getElementById('createOrderForm').addEventListener('submit', async (e) => {
     e.preventDefault();
