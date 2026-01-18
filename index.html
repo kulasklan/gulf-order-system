@@ -2839,7 +2839,11 @@ async function getAvailabilityData(productType, deliveryDate) {
     return new Promise((resolve) => {
         const callbackName = 'availCheck_' + Date.now();
         
+        console.log('📡 Creating availability request for:', productType, deliveryDate || 'any date');
+        console.log('📡 Callback name:', callbackName);
+        
         window[callbackName] = function(data) {
+            console.log('✅ Callback received data:', data);
             resolve(data);
             delete window[callbackName];
             if (document.body.contains(script)) {
@@ -2855,17 +2859,27 @@ async function getAvailabilityData(productType, deliveryDate) {
             callback: callbackName
         });
         script.src = `${APPS_SCRIPT_URL}?${params.toString()}`;
-        script.onerror = function() {
-            resolve({ success: false });
+        
+        console.log('📡 Script URL:', script.src);
+        
+        script.onerror = function(error) {
+            console.error('❌ Script onerror fired:', error);
+            resolve({ success: false, error: 'Script load failed' });
             delete window[callbackName];
         };
         
+        script.onload = function() {
+            console.log('✅ Script loaded (but callback may not have fired yet)');
+        };
+        
         document.body.appendChild(script);
+        console.log('📡 Script tag appended to body');
         
         // Timeout after 5 seconds
         setTimeout(() => {
             if (window[callbackName]) {
-                resolve({ success: false });
+                console.warn('⏱️ Timeout: Callback never fired after 5 seconds');
+                resolve({ success: false, error: 'Timeout - no response from server' });
                 delete window[callbackName];
                 if (document.body.contains(script)) {
                     document.body.removeChild(script);
