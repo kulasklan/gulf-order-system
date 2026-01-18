@@ -1036,6 +1036,142 @@
                 </div>
             </div>
 
+            <!-- PHASE 1d: INVENTORY MANAGEMENT DASHBOARD -->
+            <div id="inventoryView" class="view-content hidden">
+                <div class="card">
+                    <div class="card-header">
+                        <h2 class="card-title">📦 Inventory Management</h2>
+                        <button class="btn btn-success" onclick="location.reload()" style="display: flex; align-items: center; gap: 0.5rem;">
+                            🔄 Refresh
+                        </button>
+                    </div>
+                    
+                    <div style="padding: 1.5rem;">
+                        <!-- Inventory Overview -->
+                        <div style="margin-bottom: 2rem;">
+                            <h3 style="margin-bottom: 1rem; color: var(--secondary);">📊 Current Stock Levels</h3>
+                            <div id="inventoryCards" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 1rem;">
+                                <p style="text-align: center; color: #6B7280; padding: 2rem; grid-column: 1/-1;">Loading inventory...</p>
+                            </div>
+                        </div>
+
+                        <!-- Inbound Shipments -->
+                        <div style="margin-top: 3rem;">
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                                <h3 style="color: var(--secondary); margin: 0;">🚚 Inbound Shipments</h3>
+                                <button class="btn btn-primary" onclick="showAddShipmentModal()">➕ Add Shipment</button>
+                            </div>
+                            <div id="inboundShipmentsTable" style="overflow-x: auto;">
+                                <p style="text-align: center; color: #6B7280; padding: 2rem;">Loading shipments...</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Update Inventory Modal -->
+            <div id="updateInventoryModal" class="modal">
+                <div class="modal-content" style="max-width: 500px;">
+                    <div class="modal-header">
+                        <h2 class="card-title">✏️ Update Inventory</h2>
+                        <span class="close-btn" onclick="closeUpdateInventoryModal()">&times;</span>
+                    </div>
+                    <div style="padding: 1.5rem;">
+                        <div style="margin-bottom: 1rem;">
+                            <label style="display: block; font-weight: 600; margin-bottom: 0.5rem;">Product:</label>
+                            <input type="text" id="updateProductName" readonly style="width: 100%; padding: 0.5rem; background: #f3f4f6; border: 1px solid #d1d5db; border-radius: 4px;">
+                        </div>
+                        <div style="margin-bottom: 1rem;">
+                            <label style="display: block; font-weight: 600; margin-bottom: 0.5rem;">Current Quantity:</label>
+                            <input type="text" id="updateCurrentQty" readonly style="width: 100%; padding: 0.5rem; background: #f3f4f6; border: 1px solid #d1d5db; border-radius: 4px;">
+                        </div>
+                        <div style="margin-bottom: 1rem;">
+                            <label style="display: block; font-weight: 600; margin-bottom: 0.5rem;">New Quantity: *</label>
+                            <input type="number" id="updateNewQty" required style="width: 100%; padding: 0.5rem; border: 1px solid #d1d5db; border-radius: 4px;">
+                        </div>
+                        <div style="margin-bottom: 1rem;">
+                            <label style="display: block; font-weight: 600; margin-bottom: 0.5rem;">Reason for Change: *</label>
+                            <textarea id="updateReason" required rows="3" style="width: 100%; padding: 0.5rem; border: 1px solid #d1d5db; border-radius: 4px;" placeholder="E.g. Manual count correction, delivery received, spillage..."></textarea>
+                        </div>
+                        <div style="display: flex; gap: 1rem; justify-content: flex-end;">
+                            <button class="btn btn-secondary" onclick="closeUpdateInventoryModal()">Cancel</button>
+                            <button class="btn btn-success" onclick="submitInventoryUpdate()">Update Inventory</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Add Shipment Modal -->
+            <div id="addShipmentModal" class="modal">
+                <div class="modal-content" style="max-width: 600px;">
+                    <div class="modal-header">
+                        <h2 class="card-title">➕ Add Inbound Shipment</h2>
+                        <span class="close-btn" onclick="closeAddShipmentModal()">&times;</span>
+                    </div>
+                    <div style="padding: 1.5rem;">
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem;">
+                            <div>
+                                <label style="display: block; font-weight: 600; margin-bottom: 0.5rem;">Supplier: *</label>
+                                <select id="addShipmentSupplier" required style="width: 100%; padding: 0.5rem; border: 1px solid #d1d5db; border-radius: 4px;">
+                                    <option value="">-- Select Supplier --</option>
+                                    <option value="Supplier A">Supplier A</option>
+                                    <option value="Supplier B">Supplier B</option>
+                                    <option value="Supplier C">Supplier C</option>
+                                    <option value="Local Provider D">Local Provider D</option>
+                                    <option value="Other">Other</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label style="display: block; font-weight: 600; margin-bottom: 0.5rem;">Product: *</label>
+                                <select id="addShipmentProduct" required style="width: 100%; padding: 0.5rem; border: 1px solid #d1d5db; border-radius: 4px;">
+                                    <option value="">-- Select Product --</option>
+                                    <option value="Diesel">Diesel</option>
+                                    <option value="Gasoline 95">Gasoline 95</option>
+                                    <option value="Gasoline 98">Gasoline 98</option>
+                                    <option value="LPG">LPG</option>
+                                    <option value="Mazut">Mazut</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem;">
+                            <div>
+                                <label style="display: block; font-weight: 600; margin-bottom: 0.5rem;">Quantity: *</label>
+                                <input type="number" id="addShipmentQuantity" required style="width: 100%; padding: 0.5rem; border: 1px solid #d1d5db; border-radius: 4px;">
+                            </div>
+                            <div>
+                                <label style="display: block; font-weight: 600; margin-bottom: 0.5rem;">Unit:</label>
+                                <select id="addShipmentUnit" style="width: 100%; padding: 0.5rem; border: 1px solid #d1d5db; border-radius: 4px;">
+                                    <option value="L">Liters (L)</option>
+                                    <option value="Trucks">Trucks</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem;">
+                            <div>
+                                <label style="display: block; font-weight: 600; margin-bottom: 0.5rem;">Planned Arrival Date: *</label>
+                                <input type="date" id="addShipmentDate" required style="width: 100%; padding: 0.5rem; border: 1px solid #d1d5db; border-radius: 4px;">
+                            </div>
+                            <div>
+                                <label style="display: block; font-weight: 600; margin-bottom: 0.5rem;">Warehouse:</label>
+                                <select id="addShipmentWarehouse" style="width: 100%; padding: 0.5rem; border: 1px solid #d1d5db; border-radius: 4px;">
+                                    <option value="Ohrid">Ohrid</option>
+                                    <option value="Skopje">Skopje</option>
+                                    <option value="Bitola">Bitola</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div style="margin-bottom: 1rem;">
+                            <label style="display: block; font-weight: 600; margin-bottom: 0.5rem;">Notes:</label>
+                            <textarea id="addShipmentNotes" rows="2" style="width: 100%; padding: 0.5rem; border: 1px solid #d1d5db; border-radius: 4px;" placeholder="Additional notes..."></textarea>
+                        </div>
+                        <div style="display: flex; gap: 1rem; justify-content: flex-end;">
+                            <button class="btn btn-secondary" onclick="closeAddShipmentModal()">Cancel</button>
+                            <button class="btn btn-success" onclick="submitAddShipment()">Add Shipment</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             <!-- Order Details Modal -->
             <div id="orderDetailsModal" class="modal">
                 <div class="modal-content">
@@ -1155,6 +1291,7 @@ if (currentUser.department === 'Management') {
             tabs += '<div class="nav-tab" onclick="showView(\'approval\')">✅ For Approval</div>';
             tabs += '<div class="nav-tab" onclick="showView(\'disputes\')">⚠️ Resolve Disputes</div>';
             tabs += '<div class="nav-tab" onclick="showView(\'analytics\')">📊 Analytics</div>';
+            tabs += '<div class="nav-tab" onclick="showView(\'inventory\')">📦 Inventory</div>';
         }
 
 if (currentUser.department === 'Finance') {
@@ -1227,6 +1364,9 @@ if (currentUser.department === 'Transport') {
                 if (startInput && !startInput.value) startInput.valueAsDate = dateFilterStart;
                 if (endInput && !endInput.value) endInput.valueAsDate = dateFilterEnd;
                 loadAnalytics();
+            } else if (viewName === 'inventory') {
+                document.getElementById('inventoryView').classList.remove('hidden');
+                loadInventoryDashboard();
             }
         }
 
@@ -4641,6 +4781,402 @@ window.onclick = function(event) {
                 hideLoading();
                 console.error('Error saving prices:', error);
                 alert('❌ Error saving prices. Please try again.');
+            }
+        }
+        
+        // ===== PHASE 1d: INVENTORY MANAGEMENT DASHBOARD =====
+        
+        let inventoryData = [];
+        let inboundShipmentsData = [];
+        
+        async function loadInventoryDashboard() {
+            console.log('📦 Loading Inventory Dashboard...');
+            showLoading('Loading inventory data...');
+            
+            try {
+                // Load inventory from sheets
+                const inventoryUrl = `https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_ID}/values/Inventory!A2:H100?key=${API_KEY}&t=${Date.now()}`;
+                const inventoryResponse = await fetch(inventoryUrl);
+                const inventoryJson = await inventoryResponse.json();
+                
+                if (inventoryJson.values) {
+                    inventoryData = inventoryJson.values.map(row => ({
+                        productID: row[0] || '',
+                        productName: row[1] || '',
+                        onHand: parseFloat(row[2]) || 0,
+                        unit: row[3] || 'L',
+                        lastUpdated: row[4] || '',
+                        updatedBy: row[5] || '',
+                        warehouse: row[6] || '',
+                        notes: row[7] || ''
+                    }));
+                    console.log('✅ Loaded', inventoryData.length, 'inventory items');
+                }
+                
+                // Load inbound shipments from sheets
+                const inboundUrl = `https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_ID}/values/Inbound_Shipments!A2:P100?key=${API_KEY}&t=${Date.now()}`;
+                const inboundResponse = await fetch(inboundUrl);
+                const inboundJson = await inboundResponse.json();
+                
+                if (inboundJson.values) {
+                    inboundShipmentsData = inboundJson.values.map(row => ({
+                        shipmentID: row[0] || '',
+                        supplier: row[1] || '',
+                        productType: row[2] || '',
+                        quantity: parseFloat(row[3]) || 0,
+                        unit: row[4] || 'L',
+                        plannedArrival: row[5] || '',
+                        plannedTime: row[6] || '',
+                        status: row[7] || '',
+                        actualArrival: row[8] || '',
+                        actualTime: row[9] || '',
+                        createdDate: row[10] || '',
+                        createdBy: row[11] || '',
+                        lastUpdated: row[12] || '',
+                        updatedBy: row[13] || '',
+                        warehouse: row[14] || '',
+                        notes: row[15] || ''
+                    }));
+                    console.log('✅ Loaded', inboundShipmentsData.length, 'inbound shipments');
+                }
+                
+                // Load availability for all products
+                await loadInventoryCards();
+                await loadInboundShipmentsTable();
+                
+                hideLoading();
+                
+            } catch (error) {
+                console.error('❌ Error loading inventory dashboard:', error);
+                hideLoading();
+                alert('Error loading inventory data. Please refresh.');
+            }
+        }
+        
+        async function loadInventoryCards() {
+            const container = document.getElementById('inventoryCards');
+            
+            if (inventoryData.length === 0) {
+                container.innerHTML = '<p style="text-align: center; color: #6B7280; padding: 2rem; grid-column: 1/-1;">No inventory data found</p>';
+                return;
+            }
+            
+            let html = '';
+            
+            for (const product of inventoryData) {
+                // Get availability for this product
+                const availData = await getAvailabilityData(product.productName, '');
+                
+                let onHand = product.onHand;
+                let inbound = availData && availData.success ? (parseFloat(availData.inbound) || 0) : 0;
+                let reserved = availData && availData.success ? (parseFloat(availData.reserved) || 0) : 0;
+                let available = availData && availData.success ? (parseFloat(availData.available) || 0) : onHand;
+                
+                // Color based on availability
+                let statusColor = available > 20000 ? '#059669' : available > 0 ? '#D97706' : '#DC2626';
+                let statusBg = available > 20000 ? '#D1FAE5' : available > 0 ? '#FEF3C7' : '#FEE2E2';
+                let statusText = available > 20000 ? 'Good Stock' : available > 0 ? 'Low Stock' : 'Critical';
+                
+                html += `
+                    <div class="card" style="border-left: 4px solid ${statusColor};">
+                        <div style="padding: 1.5rem;">
+                            <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 1rem;">
+                                <div>
+                                    <h3 style="margin: 0; margin-bottom: 0.5rem;">${product.productName}</h3>
+                                    <span style="background: ${statusBg}; color: ${statusColor}; padding: 0.25rem 0.5rem; border-radius: 4px; font-size: 0.75rem; font-weight: 600;">
+                                        ${statusText}
+                                    </span>
+                                </div>
+                                <button class="btn btn-secondary" onclick="showUpdateInventoryModal('${product.productName}', ${onHand})" style="padding: 0.5rem 0.75rem; font-size: 0.85rem;">
+                                    ✏️ Update
+                                </button>
+                            </div>
+                            
+                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; margin-top: 1rem;">
+                                <div>
+                                    <div style="font-size: 0.75rem; color: #6B7280; margin-bottom: 0.25rem;">On Hand</div>
+                                    <div style="font-size: 1.25rem; font-weight: 600;">${new Intl.NumberFormat().format(onHand)} ${product.unit}</div>
+                                </div>
+                                <div>
+                                    <div style="font-size: 0.75rem; color: #6B7280; margin-bottom: 0.25rem;">Incoming</div>
+                                    <div style="font-size: 1.25rem; font-weight: 600; color: #3B82F6;">${new Intl.NumberFormat().format(inbound)} ${product.unit}</div>
+                                </div>
+                                <div>
+                                    <div style="font-size: 0.75rem; color: #6B7280; margin-bottom: 0.25rem;">Reserved</div>
+                                    <div style="font-size: 1.25rem; font-weight: 600; color: #F59E0B;">${new Intl.NumberFormat().format(reserved)} ${product.unit}</div>
+                                </div>
+                                <div>
+                                    <div style="font-size: 0.75rem; color: #6B7280; margin-bottom: 0.25rem;">Available</div>
+                                    <div style="font-size: 1.25rem; font-weight: 600; color: ${statusColor};">${new Intl.NumberFormat().format(available)} ${product.unit}</div>
+                                </div>
+                            </div>
+                            
+                            ${product.notes ? `
+                            <div style="margin-top: 1rem; padding-top: 1rem; border-top: 1px solid #E5E7EB; font-size: 0.85rem; color: #6B7280;">
+                                <strong>Note:</strong> ${product.notes}
+                            </div>
+                            ` : ''}
+                            
+                            <div style="margin-top: 1rem; font-size: 0.75rem; color: #9CA3AF;">
+                                Updated: ${product.lastUpdated ? new Date(product.lastUpdated).toLocaleString() : 'N/A'} by ${product.updatedBy || 'System'}
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }
+            
+            container.innerHTML = html;
+        }
+        
+        async function loadInboundShipmentsTable() {
+            const container = document.getElementById('inboundShipmentsTable');
+            
+            // Filter: exclude "Arrived" shipments
+            const activeShipments = inboundShipmentsData.filter(s => s.status !== 'Arrived');
+            
+            if (activeShipments.length === 0) {
+                container.innerHTML = '<p style="text-align: center; color: #6B7280; padding: 2rem;">No active inbound shipments</p>';
+                return;
+            }
+            
+            let html = `
+                <table class="orders-table">
+                    <thead>
+                        <tr>
+                            <th>Shipment ID</th>
+                            <th>Supplier</th>
+                            <th>Product</th>
+                            <th>Quantity</th>
+                            <th>Planned Arrival</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+            `;
+            
+            activeShipments.forEach(shipment => {
+                const statusColors = {
+                    'Planned': { bg: '#F3F4F6', text: '#6B7280' },
+                    'Confirmed': { bg: '#D1FAE5', text: '#059669' },
+                    'In Transit': { bg: '#DBEAFE', text: '#3B82F6' },
+                    'Delayed': { bg: '#FED7AA', text: '#C2410C' },
+                    'Cancelled': { bg: '#FEE2E2', text: '#DC2626' }
+                };
+                
+                const colors = statusColors[shipment.status] || { bg: '#F3F4F6', text: '#6B7280' };
+                
+                html += `
+                    <tr>
+                        <td><strong>${shipment.shipmentID}</strong></td>
+                        <td>${shipment.supplier}</td>
+                        <td>${shipment.productType}</td>
+                        <td>${new Intl.NumberFormat().format(shipment.quantity)} ${shipment.unit}</td>
+                        <td>${shipment.plannedArrival || 'Not set'}</td>
+                        <td>
+                            <span style="background: ${colors.bg}; color: ${colors.text}; padding: 0.25rem 0.75rem; border-radius: 12px; font-size: 0.875rem; font-weight: 600;">
+                                ${shipment.status}
+                            </span>
+                        </td>
+                        <td>
+                            ${shipment.status === 'Planned' ? `
+                                <button class="btn btn-success" onclick="updateShipmentStatus('${shipment.shipmentID}', 'Confirmed')" style="padding: 0.375rem 0.75rem; font-size: 0.8rem;">
+                                    ✓ Confirm
+                                </button>
+                            ` : ''}
+                            ${shipment.status === 'Confirmed' ? `
+                                <button class="btn btn-primary" onclick="updateShipmentStatus('${shipment.shipmentID}', 'In Transit')" style="padding: 0.375rem 0.75rem; font-size: 0.8rem;">
+                                    🚚 In Transit
+                                </button>
+                            ` : ''}
+                            ${shipment.status === 'In Transit' ? `
+                                <button class="btn btn-success" onclick="updateShipmentStatus('${shipment.shipmentID}', 'Arrived')" style="padding: 0.375rem 0.75rem; font-size: 0.8rem;">
+                                    📦 Mark Arrived
+                                </button>
+                            ` : ''}
+                        </td>
+                    </tr>
+                `;
+            });
+            
+            html += `
+                    </tbody>
+                </table>
+            `;
+            
+            container.innerHTML = html;
+        }
+        
+        // Update Inventory Modal Functions
+        function showUpdateInventoryModal(productName, currentQty) {
+            document.getElementById('updateProductName').value = productName;
+            document.getElementById('updateCurrentQty').value = new Intl.NumberFormat().format(currentQty);
+            document.getElementById('updateNewQty').value = currentQty;
+            document.getElementById('updateReason').value = '';
+            document.getElementById('updateInventoryModal').style.display = 'block';
+        }
+        
+        function closeUpdateInventoryModal() {
+            document.getElementById('updateInventoryModal').style.display = 'none';
+        }
+        
+        async function submitInventoryUpdate() {
+            const productName = document.getElementById('updateProductName').value;
+            const newQty = parseFloat(document.getElementById('updateNewQty').value);
+            const reason = document.getElementById('updateReason').value;
+            
+            if (!newQty || newQty < 0) {
+                alert('Please enter a valid quantity');
+                return;
+            }
+            
+            if (!reason || reason.trim() === '') {
+                alert('Please provide a reason for the change');
+                return;
+            }
+            
+            showLoading('Updating inventory...');
+            closeUpdateInventoryModal();
+            
+            try {
+                await fetch(APPS_SCRIPT_URL, {
+                    method: 'POST',
+                    mode: 'no-cors',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        action: 'updateInventoryQuantity',
+                        productType: productName,
+                        newQuantity: newQty,
+                        updatedBy: currentUser.id,
+                        note: reason
+                    })
+                });
+                
+                await new Promise(resolve => setTimeout(resolve, 2000));
+                
+                // Reload dashboard
+                await loadInventoryDashboard();
+                
+                hideLoading();
+                alert(`✅ Inventory updated successfully!\n\n${productName} quantity updated to ${new Intl.NumberFormat().format(newQty)}`);
+                
+            } catch (error) {
+                hideLoading();
+                console.error('Error updating inventory:', error);
+                alert('❌ Error updating inventory. Please try again.');
+            }
+        }
+        
+        // Add Shipment Modal Functions
+        function showAddShipmentModal() {
+            document.getElementById('addShipmentSupplier').value = '';
+            document.getElementById('addShipmentProduct').value = '';
+            document.getElementById('addShipmentQuantity').value = '';
+            document.getElementById('addShipmentUnit').value = 'L';
+            document.getElementById('addShipmentDate').value = '';
+            document.getElementById('addShipmentWarehouse').value = 'Ohrid';
+            document.getElementById('addShipmentNotes').value = '';
+            document.getElementById('addShipmentModal').style.display = 'block';
+        }
+        
+        function closeAddShipmentModal() {
+            document.getElementById('addShipmentModal').style.display = 'none';
+        }
+        
+        async function submitAddShipment() {
+            const supplier = document.getElementById('addShipmentSupplier').value;
+            const product = document.getElementById('addShipmentProduct').value;
+            const quantity = parseFloat(document.getElementById('addShipmentQuantity').value);
+            const unit = document.getElementById('addShipmentUnit').value;
+            const plannedArrival = document.getElementById('addShipmentDate').value;
+            const warehouse = document.getElementById('addShipmentWarehouse').value;
+            const notes = document.getElementById('addShipmentNotes').value;
+            
+            if (!supplier || !product || !quantity || !plannedArrival) {
+                alert('Please fill in all required fields');
+                return;
+            }
+            
+            showLoading('Adding shipment...');
+            closeAddShipmentModal();
+            
+            try {
+                await fetch(APPS_SCRIPT_URL, {
+                    method: 'POST',
+                    mode: 'no-cors',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        action: 'addInboundShipment',
+                        supplier: supplier,
+                        productType: product,
+                        quantity: quantity,
+                        unit: unit,
+                        plannedArrival: plannedArrival,
+                        warehouse: warehouse,
+                        notes: notes,
+                        createdBy: currentUser.id
+                    })
+                });
+                
+                await new Promise(resolve => setTimeout(resolve, 2000));
+                
+                // Reload dashboard
+                await loadInventoryDashboard();
+                
+                hideLoading();
+                alert(`✅ Inbound shipment added successfully!\n\n${quantity} ${unit} of ${product} from ${supplier}`);
+                
+            } catch (error) {
+                hideLoading();
+                console.error('Error adding shipment:', error);
+                alert('❌ Error adding shipment. Please try again.');
+            }
+        }
+        
+        // Update Shipment Status
+        async function updateShipmentStatus(shipmentID, newStatus) {
+            const shipment = inboundShipmentsData.find(s => s.shipmentID === shipmentID);
+            if (!shipment) return;
+            
+            const confirmMsg = newStatus === 'Arrived' 
+                ? `Mark shipment as ARRIVED?\n\n${shipment.quantity} ${shipment.unit} of ${shipment.productType} will be added to inventory.`
+                : `Update status to "${newStatus}"?`;
+                
+            if (!confirm(confirmMsg)) return;
+            
+            showLoading(`Updating to ${newStatus}...`);
+            
+            try {
+                await fetch(APPS_SCRIPT_URL, {
+                    method: 'POST',
+                    mode: 'no-cors',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        action: 'updateInboundStatus',
+                        shipmentID: shipmentID,
+                        newStatus: newStatus,
+                        updatedBy: currentUser.id,
+                        actualArrivalDate: newStatus === 'Arrived' ? new Date().toISOString().split('T')[0] : null
+                    })
+                });
+                
+                await new Promise(resolve => setTimeout(resolve, 2000));
+                
+                // Reload dashboard
+                await loadInventoryDashboard();
+                
+                hideLoading();
+                
+                if (newStatus === 'Arrived') {
+                    alert(`✅ Shipment marked as arrived!\n\nInventory has been updated automatically.`);
+                } else {
+                    alert(`✅ Status updated to ${newStatus}`);
+                }
+                
+            } catch (error) {
+                hideLoading();
+                console.error('Error updating shipment:', error);
+                alert('❌ Error updating shipment. Please try again.');
             }
         }
         
