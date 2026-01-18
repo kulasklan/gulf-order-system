@@ -2593,37 +2593,15 @@ function loadApprovals() {
             try {
                 console.log('🔍 Checking availability for:', productType, 'on', deliveryDate || 'any date');
                 
-                // WORKAROUND: Use script tag injection (JSONP-style) to bypass CORS
-                const callbackName = 'availabilityCallback_' + Date.now();
+                // Use reusable helper function (has timeout and error handling)
+                const data = await getAvailabilityData(productType, deliveryDate);
                 
-                window[callbackName] = function(data) {
-                    console.log('✅ Availability data received via callback:', data);
-                    if (data.success) {
-                        displayAvailabilityData(data);
-                    } else {
-                        throw new Error(data.error || 'Failed to get availability');
-                    }
-                    // Cleanup
-                    delete window[callbackName];
-                    document.body.removeChild(script);
-                };
-                
-                // Create script tag
-                const script = document.createElement('script');
-                const params = new URLSearchParams({
-                    action: 'getAvailability',
-                    productType: productType,
-                    deliveryDate: deliveryDate || '',
-                    callback: callbackName
-                });
-                script.src = `${APPS_SCRIPT_URL}?${params.toString()}`;
-                script.onerror = function() {
-                    console.error('❌ Failed to load script');
-                    delete window[callbackName];
-                    throw new Error('Failed to fetch availability');
-                };
-                
-                document.body.appendChild(script);
+                if (data && data.success) {
+                    console.log('✅ Availability data received:', data);
+                    displayAvailabilityData(data);
+                } else {
+                    throw new Error('Failed to get availability');
+                }
                 
             } catch (error) {
                 console.error('❌ Error checking availability:', error);
@@ -2633,7 +2611,7 @@ function loadApprovals() {
                 document.getElementById('availReserved').textContent = '-';
                 
                 const warning = document.getElementById('availWarning');
-                warning.textContent = '⚠️ Could not load availability. Try changing deployment to "Anyone" access.';
+                warning.textContent = '⚠️ Could not load availability. Check connection and try again.';
                 warning.style.background = '#FEE2E2';
                 warning.style.color = '#991B1B';
                 warning.style.display = 'block';
@@ -4861,11 +4839,22 @@ window.onclick = function(event) {
                 return;
             }
             
+            // PERFORMANCE FIX: Load all availability data in parallel (not sequential!)
+            console.log('📊 Loading availability for', inventoryData.length, 'products in parallel...');
+            
+            const availabilityPromises = inventoryData.map(product => 
+                getAvailabilityData(product.productName, '')
+            );
+            
+            const availabilityResults = await Promise.all(availabilityPromises);
+            
+            console.log('✅ All availability data loaded!');
+            
+            // Now render cards with the data we already have
             let html = '';
             
-            for (const product of inventoryData) {
-                // Get availability for this product
-                const availData = await getAvailabilityData(product.productName, '');
+            inventoryData.forEach((product, index) => {
+                const availData = availabilityResults[index];
                 
                 let onHand = product.onHand;
                 let inbound = availData && availData.success ? (parseFloat(availData.inbound) || 0) : 0;
@@ -4923,7 +4912,7 @@ window.onclick = function(event) {
                         </div>
                     </div>
                 `;
-            }
+            });
             
             container.innerHTML = html;
         }
