@@ -1057,12 +1057,9 @@
                                 </div>
                             </div>
 
-                            <!-- Inbound Shipments -->
+                            <!-- Inbound Shipments (Read-only for Management) -->
                             <div style="margin-top: 3rem;">
-                                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
-                                    <h3 style="color: var(--secondary); margin: 0;">🚚 Inbound Shipments</h3>
-                                    <button class="btn btn-primary" onclick="showAddShipmentModal()">➕ Add Shipment</button>
-                                </div>
+                                <h3 style="color: var(--secondary); margin-bottom: 1rem;">🚚 Inbound Shipments</h3>
                                 <div id="inboundShipmentsTable" style="overflow-x: auto;">
                                     <p style="text-align: center; color: #6B7280; padding: 2rem;">Loading shipments...</p>
                                 </div>
@@ -3060,7 +3057,7 @@ async function getAvailabilityData(productType, deliveryDate) {
         console.log('📡 Script URL:', script.src);
         
         script.onerror = function(error) {
-            console.error('❌ Script onerror fired:', error);
+            console.warn('⚠️ Availability check failed (non-critical):', productType);
             resolve({ success: false, error: 'Script load failed' });
             delete window[callbackName];
         };
@@ -5228,7 +5225,6 @@ window.onclick = function(event) {
                             <th>Quantity</th>
                             <th>Planned Arrival</th>
                             <th>Status</th>
-                            <th>Actions</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -5240,7 +5236,8 @@ window.onclick = function(event) {
                     'Confirmed': { bg: '#D1FAE5', text: '#059669' },
                     'In Transit': { bg: '#DBEAFE', text: '#3B82F6' },
                     'Delayed': { bg: '#FED7AA', text: '#C2410C' },
-                    'Cancelled': { bg: '#FEE2E2', text: '#DC2626' }
+                    'Cancelled': { bg: '#FEE2E2', text: '#DC2626' },
+                    'Created': { bg: '#F3F4F6', text: '#6B7280' }
                 };
                 
                 const colors = statusColors[shipment.status] || { bg: '#F3F4F6', text: '#6B7280' };
@@ -5256,21 +5253,6 @@ window.onclick = function(event) {
                             <span style="background: ${colors.bg}; color: ${colors.text}; padding: 0.25rem 0.75rem; border-radius: 12px; font-size: 0.875rem; font-weight: 600;">
                                 ${shipment.status}
                             </span>
-                        </td>
-                        <td>
-                            ${shipment.status === 'Planned' ? `
-                                <button class="btn btn-success" onclick="updateShipmentStatus('${shipment.shipmentID}', 'Confirmed')" style="padding: 0.375rem 0.75rem; font-size: 0.8rem;">
-                                    ✓ Confirm
-                                </button>
-                            ` : ''}
-                            ${shipment.status === 'Confirmed' ? `
-                                <button class="btn btn-primary" onclick="updateShipmentStatus('${shipment.shipmentID}', 'In Transit')" style="padding: 0.375rem 0.75rem; font-size: 0.8rem;">
-                                    🚚 In Transit
-                                </button>
-                            ` : ''}
-                            ${shipment.status === 'In Transit' ? `
-                                <span style="color: #3B82F6; font-size: 0.85rem;">Warehouse marks arrival</span>
-                            ` : ''}
                         </td>
                     </tr>
                 `;
