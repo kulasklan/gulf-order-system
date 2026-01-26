@@ -1082,33 +1082,20 @@
                         </div>
                         
                         <div style="padding: 1.5rem;">
-                            <!-- Update Stock Form -->
+                            <!-- Bulk Update Form - All Reservoirs at Once -->
                             <div style="margin-bottom: 2rem;">
-                                <h3 style="margin-bottom: 1rem; color: var(--secondary);">Update Reservoir Stock</h3>
+                                <h3 style="margin-bottom: 1rem; color: var(--secondary);">📦 Daily Stock Report - Update All Reservoirs</h3>
                                 <div style="background: #F9FAFB; padding: 1.5rem; border-radius: 8px; border: 1px solid #E5E7EB;">
-                                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem;">
-                                        <div>
-                                            <label style="display: block; font-weight: 600; margin-bottom: 0.5rem;">Reservoir: *</label>
-                                            <select id="warehouseReservoirSelect" onchange="showCurrentStock()" style="width: 100%; padding: 0.75rem; border: 1px solid #D1D5DB; border-radius: 4px;">
-                                                <option value="">-- Select Reservoir --</option>
-                                            </select>
-                                        </div>
-                                        <div>
-                                            <label style="display: block; font-weight: 600; margin-bottom: 0.5rem;">Current Stock:</label>
-                                            <input type="text" id="warehouseCurrentStock" readonly style="width: 100%; padding: 0.75rem; background: #F3F4F6; border: 1px solid #D1D5DB; border-radius: 4px;">
-                                        </div>
+                                    <div id="bulkUpdateForm" style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem;">
+                                        <!-- Will be populated with all 11 reservoirs -->
                                     </div>
-                                    <div style="display: grid; grid-template-columns: 1fr 2fr; gap: 1rem; margin-bottom: 1rem;">
-                                        <div>
-                                            <label style="display: block; font-weight: 600; margin-bottom: 0.5rem;">New Quantity (L): *</label>
-                                            <input type="number" id="warehouseNewQty" style="width: 100%; padding: 0.75rem; border: 1px solid #D1D5DB; border-radius: 4px;" placeholder="Enter new quantity">
-                                        </div>
-                                        <div>
-                                            <label style="display: block; font-weight: 600; margin-bottom: 0.5rem;">Reason: *</label>
-                                            <input type="text" id="warehouseReason" style="width: 100%; padding: 0.75rem; border: 1px solid #D1D5DB; border-radius: 4px;" placeholder="E.g. Daily measurement, correction">
-                                        </div>
+                                    <div style="margin-bottom: 1rem;">
+                                        <label style="display: block; font-weight: 600; margin-bottom: 0.5rem;">Reason: *</label>
+                                        <input type="text" id="bulkUpdateReason" value="Daily morning measurement" style="width: 100%; padding: 0.75rem; border: 1px solid #D1D5DB; border-radius: 4px;" placeholder="E.g. Daily morning measurement">
                                     </div>
-                                    <button class="btn btn-primary" onclick="submitWarehouseStockUpdate()">📝 Update Stock</button>
+                                    <button class="btn btn-primary" onclick="submitBulkUpdate()" style="font-size: 1rem; padding: 0.75rem 1.5rem;">
+                                        ✅ Apply All Updates
+                                    </button>
                                 </div>
                             </div>
 
@@ -1117,14 +1104,6 @@
                                 <h3 style="margin-bottom: 1rem; color: var(--secondary);">🚚 Inbound Shipments (In Transit)</h3>
                                 <div id="warehouseInboundTable" style="overflow-x: auto;">
                                     <p style="text-align: center; color: #6B7280; padding: 2rem;">Loading shipments...</p>
-                                </div>
-                            </div>
-
-                            <!-- Recent Changes Log -->
-                            <div style="margin-top: 2rem;">
-                                <h3 style="margin-bottom: 1rem; color: var(--secondary);">📊 Recent Updates (Last 10)</h3>
-                                <div id="warehouseLogTable" style="overflow-x: auto;">
-                                    <p style="text-align: center; color: #6B7280; padding: 2rem;">Loading log...</p>
                                 </div>
                             </div>
                         </div>
@@ -1149,7 +1128,16 @@
                                     <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1rem; margin-bottom: 1rem;">
                                         <div>
                                             <label style="display: block; font-weight: 600; margin-bottom: 0.5rem;">Supplier: *</label>
-                                            <input type="text" id="transportSupplier" style="width: 100%; padding: 0.75rem; border: 1px solid #D1D5DB; border-radius: 4px;" placeholder="Supplier name">
+                                            <select id="transportSupplier" style="width: 100%; padding: 0.75rem; border: 1px solid #D1D5DB; border-radius: 4px;">
+                                                <option value="">-- Select Supplier --</option>
+                                                <option value="OKTA">OKTA</option>
+                                                <option value="Makpetrol">Makpetrol</option>
+                                                <option value="Lukoil">Lukoil</option>
+                                                <option value="Shell">Shell</option>
+                                                <option value="OMV">OMV</option>
+                                                <option value="Hellenic Petroleum">Hellenic Petroleum</option>
+                                                <option value="Other">Other</option>
+                                            </select>
                                         </div>
                                         <div>
                                             <label style="display: block; font-weight: 600; margin-bottom: 0.5rem;">Fuel Type: *</label>
@@ -1200,41 +1188,47 @@
                                     <p style="text-align: center; color: #6B7280; padding: 2rem;">Loading shipments...</p>
                                 </div>
                             </div>
-
-                            <!-- Reservoir Stock View (Read-only) -->
-                            <div style="margin-top: 2rem;">
-                                <h3 style="margin-bottom: 1rem; color: var(--secondary);">📊 Current Reservoir Stock</h3>
-                                <div id="transportStockTable" style="overflow-x: auto;">
-                                    <p style="text-align: center; color: #6B7280; padding: 2rem;">Loading stock...</p>
-                                </div>
-                            </div>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <!-- Mark Arrived Modal (Warehouse) -->
+            <!-- Mark Arrived Modal (Warehouse) - Now includes update form -->
             <div id="markArrivedModal" class="modal">
-                <div class="modal-content" style="max-width: 500px;">
+                <div class="modal-content" style="max-width: 600px;">
                     <div class="modal-header">
                         <h2 class="card-title">📦 Mark Shipment as Arrived</h2>
                         <span class="close-btn" onclick="closeMarkArrivedModal()">&times;</span>
                     </div>
                     <div style="padding: 1.5rem;">
                         <input type="hidden" id="arrivedShipmentID">
-                        <div style="margin-bottom: 1rem;">
+                        <input type="hidden" id="arrivedShipmentQty">
+                        
+                        <div style="margin-bottom: 1.5rem;">
                             <label style="display: block; font-weight: 600; margin-bottom: 0.5rem;">Shipment Details:</label>
-                            <div id="arrivedShipmentDetails" style="background: #F3F4F6; padding: 1rem; border-radius: 4px; margin-bottom: 1rem;"></div>
+                            <div id="arrivedShipmentDetails" style="background: #F3F4F6; padding: 1rem; border-radius: 4px;"></div>
                         </div>
-                        <div style="margin-bottom: 1rem;">
+                        
+                        <div style="margin-bottom: 1.5rem;">
                             <label style="display: block; font-weight: 600; margin-bottom: 0.5rem;">Target Reservoir: *</label>
-                            <select id="arrivedTargetReservoir" required style="width: 100%; padding: 0.75rem; border: 1px solid #D1D5DB; border-radius: 4px;">
+                            <select id="arrivedTargetReservoir" required onchange="showArrivedCurrentStock()" style="width: 100%; padding: 0.75rem; border: 1px solid #D1D5DB; border-radius: 4px;">
                                 <option value="">-- Select Reservoir --</option>
                             </select>
                         </div>
+                        
+                        <div style="margin-bottom: 1.5rem;">
+                            <label style="display: block; font-weight: 600; margin-bottom: 0.5rem;">Current Stock in Reservoir:</label>
+                            <input type="text" id="arrivedCurrentStock" readonly style="width: 100%; padding: 0.75rem; background: #F3F4F6; border: 1px solid #D1D5DB; border-radius: 4px;">
+                        </div>
+                        
+                        <div style="margin-bottom: 1.5rem;">
+                            <label style="display: block; font-weight: 600; margin-bottom: 0.5rem;">New Stock After Arrival:</label>
+                            <input type="text" id="arrivedNewStock" readonly style="width: 100%; padding: 0.75rem; background: #E0F2FE; border: 1px solid #0284C7; border-radius: 4px; font-weight: 600; color: #0369A1;">
+                        </div>
+                        
                         <div style="display: flex; gap: 1rem; justify-content: flex-end;">
                             <button class="btn btn-secondary" onclick="closeMarkArrivedModal()">Cancel</button>
-                            <button class="btn btn-success" onclick="confirmMarkArrived()">✅ Mark Arrived</button>
+                            <button class="btn btn-success" onclick="confirmMarkArrived()">✅ Confirm Arrival & Update Stock</button>
                         </div>
                     </div>
                 </div>
@@ -5393,14 +5387,11 @@ window.onclick = function(event) {
             showLoading('Loading warehouse inventory...');
             
             try {
-                // Load reservoirs
+                // Load reservoirs and populate bulk form
                 await loadWarehouseReservoirs();
                 
                 // Load inbound shipments (In Transit only)
                 await loadWarehouseInbound();
-                
-                // Load recent log
-                await loadWarehouseLog();
                 
                 hideLoading();
                 
@@ -5434,18 +5425,13 @@ window.onclick = function(event) {
                         capacity: parseFloat(row[4]) || 0
                     }));
                     
-                    // Populate dropdown
-                    const select = document.getElementById('warehouseReservoirSelect');
-                    select.innerHTML = '<option value="">-- Select Reservoir --</option>';
-                    
-                    warehouseReservoirs.forEach(res => {
-                        select.innerHTML += `<option value="${res.reservoirID}">${res.name} (${res.fuelType})</option>`;
-                    });
-                    
                     console.log('✅ Loaded', warehouseReservoirs.length, 'reservoirs');
                     
                     // Load stock data
                     await loadWarehouseStock();
+                    
+                    // Populate bulk update form
+                    populateBulkUpdateForm();
                 }
                 
             } catch (error) {
@@ -5476,63 +5462,71 @@ window.onclick = function(event) {
             }
         }
         
-        function showCurrentStock() {
-            const select = document.getElementById('warehouseReservoirSelect');
-            const reservoirID = select.value;
+        function populateBulkUpdateForm() {
+            const form = document.getElementById('bulkUpdateForm');
+            let html = '';
             
-            if (!reservoirID) {
-                document.getElementById('warehouseCurrentStock').value = '';
-                return;
-            }
+            warehouseReservoirs.forEach(res => {
+                const stock = warehouseReservoirStock.find(s => s.reservoirID === res.reservoirID);
+                const currentQty = stock ? stock.physicalQty : 0;
+                
+                html += `
+                    <div style="margin-bottom: 0.5rem;">
+                        <label style="display: block; font-weight: 600; margin-bottom: 0.25rem; font-size: 0.9rem;">
+                            ${res.name} (${res.fuelType}):
+                        </label>
+                        <div style="display: flex; gap: 0.5rem; align-items: center;">
+                            <input 
+                                type="number" 
+                                id="bulk_${res.reservoirID}" 
+                                value="${currentQty}"
+                                style="flex: 1; padding: 0.5rem; border: 1px solid #D1D5DB; border-radius: 4px;" 
+                                placeholder="Quantity in L">
+                            <span style="color: #6B7280; font-size: 0.85rem; width: 120px;">Current: ${new Intl.NumberFormat().format(currentQty)} L</span>
+                        </div>
+                    </div>
+                `;
+            });
             
-            const stock = warehouseReservoirStock.find(s => s.reservoirID === reservoirID);
-            
-            if (stock) {
-                document.getElementById('warehouseCurrentStock').value = new Intl.NumberFormat().format(stock.physicalQty) + ' L';
-            } else {
-                document.getElementById('warehouseCurrentStock').value = '0 L';
-            }
+            form.innerHTML = html;
         }
         
-        async function submitWarehouseStockUpdate() {
-            const reservoirID = document.getElementById('warehouseReservoirSelect').value;
-            const newQty = document.getElementById('warehouseNewQty').value;
-            const reason = document.getElementById('warehouseReason').value;
-            
-            if (!reservoirID) {
-                alert('Please select a reservoir');
-                return;
-            }
-            
-            if (!newQty || newQty < 0) {
-                alert('Please enter a valid quantity');
-                return;
-            }
+        async function submitBulkUpdate() {
+            const reason = document.getElementById('bulkUpdateReason').value;
             
             if (!reason) {
                 alert('Please enter a reason for the update');
                 return;
             }
             
-            if (!confirm(`Update ${reservoirID} to ${newQty} L?`)) {
+            if (!confirm('Update all reservoir stock levels with these values?')) {
                 return;
             }
             
-            showLoading('Updating stock...');
+            showLoading('Updating all reservoirs...');
             
             try {
-                await fetch(APPS_SCRIPT_URL, {
-                    method: 'POST',
-                    mode: 'no-cors',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        action: 'updateReservoirStock',
-                        reservoirID: reservoirID,
-                        newQty: parseFloat(newQty),
-                        updatedBy: currentUser.name,
-                        reason: reason
-                    })
-                });
+                // Update each reservoir
+                for (const res of warehouseReservoirs) {
+                    const input = document.getElementById(`bulk_${res.reservoirID}`);
+                    const newQty = parseFloat(input.value) || 0;
+                    
+                    await fetch(APPS_SCRIPT_URL, {
+                        method: 'POST',
+                        mode: 'no-cors',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            action: 'updateReservoirStock',
+                            reservoirID: res.reservoirID,
+                            newQty: newQty,
+                            updatedBy: currentUser.name,
+                            reason: reason
+                        })
+                    });
+                    
+                    // Small delay between updates
+                    await new Promise(resolve => setTimeout(resolve, 300));
+                }
                 
                 // Wait for processing
                 await new Promise(resolve => setTimeout(resolve, 2000));
@@ -5540,21 +5534,16 @@ window.onclick = function(event) {
                 // Reload data
                 await loadWarehouseInventory();
                 
-                // Clear form
-                document.getElementById('warehouseReservoirSelect').value = '';
-                document.getElementById('warehouseCurrentStock').value = '';
-                document.getElementById('warehouseNewQty').value = '';
-                document.getElementById('warehouseReason').value = '';
-                
                 hideLoading();
-                alert('✅ Stock updated successfully!');
+                alert('✅ All reservoirs updated successfully!');
                 
             } catch (error) {
                 hideLoading();
-                console.error('Error updating stock:', error);
-                alert('❌ Error updating stock. Please try again.');
+                console.error('Error bulk updating:', error);
+                alert('❌ Error updating reservoirs. Please try again.');
             }
         }
+        
         
         async function loadWarehouseInbound() {
             try {
@@ -5624,6 +5613,7 @@ window.onclick = function(event) {
         
         function showMarkArrivedModal(shipmentID, product, quantity) {
             document.getElementById('arrivedShipmentID').value = shipmentID;
+            document.getElementById('arrivedShipmentQty').value = quantity;
             
             document.getElementById('arrivedShipmentDetails').innerHTML = `
                 <strong>Shipment:</strong> ${shipmentID}<br>
@@ -5641,7 +5631,29 @@ window.onclick = function(event) {
                 }
             });
             
+            // Clear stock displays
+            document.getElementById('arrivedCurrentStock').value = '';
+            document.getElementById('arrivedNewStock').value = '';
+            
             document.getElementById('markArrivedModal').style.display = 'block';
+        }
+        
+        function showArrivedCurrentStock() {
+            const reservoirID = document.getElementById('arrivedTargetReservoir').value;
+            const shipmentQty = parseFloat(document.getElementById('arrivedShipmentQty').value) || 0;
+            
+            if (!reservoirID) {
+                document.getElementById('arrivedCurrentStock').value = '';
+                document.getElementById('arrivedNewStock').value = '';
+                return;
+            }
+            
+            const stock = warehouseReservoirStock.find(s => s.reservoirID === reservoirID);
+            const currentQty = stock ? stock.physicalQty : 0;
+            const newQty = currentQty + shipmentQty;
+            
+            document.getElementById('arrivedCurrentStock').value = new Intl.NumberFormat().format(currentQty) + ' L';
+            document.getElementById('arrivedNewStock').value = new Intl.NumberFormat().format(newQty) + ' L' + ` (+${new Intl.NumberFormat().format(shipmentQty)} L)`;
         }
         
         function closeMarkArrivedModal() {
@@ -5693,74 +5705,6 @@ window.onclick = function(event) {
             }
         }
         
-        async function loadWarehouseLog() {
-            try {
-                // Load via Sheets API - last 10 rows from Reservoir_Stock_Log
-                const apiUrl = `https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_ID}/values/Reservoir_Stock_Log!A:H?key=${API_KEY}`;
-                const response = await fetch(apiUrl);
-                const data = await response.json();
-                
-                const container = document.getElementById('warehouseLogTable');
-                
-                if (!data.values || data.values.length <= 1) {
-                    container.innerHTML = '<p style="text-align: center; color: #6B7280; padding: 2rem;">No recent updates</p>';
-                    return;
-                }
-                
-                // Get last 10 rows (skip header)
-                const allRows = data.values.slice(1);
-                const last10 = allRows.slice(-10).reverse();
-                
-                let html = `
-                    <table class="orders-table">
-                        <thead>
-                            <tr>
-                                <th>Reservoir</th>
-                                <th>Old Qty</th>
-                                <th>New Qty</th>
-                                <th>Change</th>
-                                <th>Timestamp</th>
-                                <th>Changed By</th>
-                                <th>Reason</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                `;
-                
-                last10.forEach(row => {
-                    const reservoirID = row[1] || '';
-                    const oldQty = parseFloat(row[2]) || 0;
-                    const newQty = parseFloat(row[3]) || 0;
-                    const change = parseFloat(row[4]) || 0;
-                    const timestamp = row[5] || '';
-                    const changedBy = row[6] || '';
-                    const reason = row[7] || '';
-                    
-                    const changeColor = change >= 0 ? '#059669' : '#DC2626';
-                    const changeSymbol = change >= 0 ? '+' : '';
-                    
-                    html += `
-                        <tr>
-                            <td><strong>${reservoirID}</strong></td>
-                            <td>${new Intl.NumberFormat().format(oldQty)} L</td>
-                            <td>${new Intl.NumberFormat().format(newQty)} L</td>
-                            <td style="color: ${changeColor}; font-weight: 600;">${changeSymbol}${new Intl.NumberFormat().format(change)} L</td>
-                            <td>${new Date(timestamp).toLocaleString()}</td>
-                            <td>${changedBy}</td>
-                            <td>${reason}</td>
-                        </tr>
-                    `;
-                });
-                
-                html += '</tbody></table>';
-                container.innerHTML = html;
-                
-                console.log('✅ Loaded warehouse log');
-                
-            } catch (error) {
-                console.error('Error loading log:', error);
-            }
-        }
         
         // =============================================
         // TRANSPORT INVENTORY FUNCTIONS
@@ -5778,9 +5722,6 @@ window.onclick = function(event) {
                 
                 // Load inbound shipments
                 await loadTransportInbound();
-                
-                // Load reservoir stock (read-only)
-                await loadTransportStock();
                 
                 hideLoading();
                 
@@ -6006,77 +5947,6 @@ window.onclick = function(event) {
             }
         }
         
-        async function loadTransportStock() {
-            try {
-                const reservoirApiUrl = `https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_ID}/values/Reservoirs!A2:E100?key=${API_KEY}`;
-                const stockApiUrl = `https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_ID}/values/Reservoir_Stock!A2:F100?key=${API_KEY}`;
-                
-                const [reservoirResponse, stockResponse] = await Promise.all([
-                    fetch(reservoirApiUrl),
-                    fetch(stockApiUrl)
-                ]);
-                
-                const reservoirData = await reservoirResponse.json();
-                const stockData = await stockResponse.json();
-                
-                const container = document.getElementById('transportStockTable');
-                
-                if (!reservoirData.values || !stockData.values) {
-                    container.innerHTML = '<p style="text-align: center; color: #6B7280; padding: 2rem;">No data available</p>';
-                    return;
-                }
-                
-                // Create lookup map
-                const stockMap = {};
-                stockData.values.forEach(row => {
-                    stockMap[row[0]] = {
-                        physicalQty: parseFloat(row[1]) || 0,
-                        updatedAt: row[4] || ''
-                    };
-                });
-                
-                let html = `
-                    <table class="orders-table">
-                        <thead>
-                            <tr>
-                                <th>Reservoir</th>
-                                <th>Location</th>
-                                <th>Fuel Type</th>
-                                <th>Physical Stock</th>
-                                <th>Last Updated</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                `;
-                
-                reservoirData.values.forEach(row => {
-                    const reservoirID = row[0];
-                    const name = row[1];
-                    const fuelType = row[2];
-                    const location = row[3];
-                    
-                    const stock = stockMap[reservoirID] || { physicalQty: 0, updatedAt: '' };
-                    
-                    html += `
-                        <tr>
-                            <td><strong>${name}</strong></td>
-                            <td>${location}</td>
-                            <td>${fuelType}</td>
-                            <td>${new Intl.NumberFormat().format(stock.physicalQty)} L</td>
-                            <td>${stock.updatedAt ? new Date(stock.updatedAt).toLocaleString() : 'N/A'}</td>
-                        </tr>
-                    `;
-                });
-                
-                html += '</tbody></table>';
-                container.innerHTML = html;
-                
-                console.log('✅ Loaded transport stock view');
-                
-            } catch (error) {
-                console.error('Error loading stock:', error);
-            }
-        }
         
     </script>
 </body>
