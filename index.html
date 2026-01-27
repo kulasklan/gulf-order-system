@@ -1130,6 +1130,7 @@
                             <div style="margin-bottom: 2rem;">
                                 <h3 style="margin-bottom: 1rem; color: var(--secondary);">➕ Create Inbound Shipment</h3>
                                 <div style="background: #F9FAFB; padding: 1.5rem; border-radius: 8px; border: 1px solid #E5E7EB;">
+                                    <!-- Row 1 -->
                                     <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1rem; margin-bottom: 1rem;">
                                         <div>
                                             <label style="display: block; font-weight: 600; margin-bottom: 0.5rem;">Supplier: *</label>
@@ -1159,6 +1160,7 @@
                                             <input type="number" id="transportQuantity" style="width: 100%; padding: 0.75rem; border: 1px solid #D1D5DB; border-radius: 4px;" placeholder="Quantity">
                                         </div>
                                     </div>
+                                    <!-- Row 2 -->
                                     <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1rem; margin-bottom: 1rem;">
                                         <div>
                                             <label style="display: block; font-weight: 600; margin-bottom: 0.5rem;">Driver: *</label>
@@ -1175,6 +1177,40 @@
                                         <div>
                                             <label style="display: block; font-weight: 600; margin-bottom: 0.5rem;">Expected Arrival: *</label>
                                             <input type="date" id="transportETA" style="width: 100%; padding: 0.75rem; border: 1px solid #D1D5DB; border-radius: 4px;">
+                                        </div>
+                                    </div>
+                                    <!-- Row 3 - NEW FIELDS -->
+                                    <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1rem; margin-bottom: 1rem;">
+                                        <div>
+                                            <label style="display: block; font-weight: 600; margin-bottom: 0.5rem;">Truck Licence Plate: *</label>
+                                            <input type="text" id="transportTruckLicence" style="width: 100%; padding: 0.75rem; border: 1px solid #D1D5DB; border-radius: 4px;" placeholder="e.g. SK-123-AB">
+                                        </div>
+                                        <div>
+                                            <label style="display: block; font-weight: 600; margin-bottom: 0.5rem;">Semi-trailer Licence:</label>
+                                            <input type="text" id="transportTrailerLicence" style="width: 100%; padding: 0.75rem; border: 1px solid #D1D5DB; border-radius: 4px;" placeholder="Optional">
+                                        </div>
+                                        <div>
+                                            <label style="display: block; font-weight: 600; margin-bottom: 0.5rem;">Freight Forwarder: *</label>
+                                            <select id="transportFreightForwarder" style="width: 100%; padding: 0.75rem; border: 1px solid #D1D5DB; border-radius: 4px;">
+                                                <option value="">-- Select --</option>
+                                                <option value="Fershped">Fershped</option>
+                                                <option value="Uniko">Uniko</option>
+                                                <option value="Gori">Gori</option>
+                                                <option value="Trajkov">Trajkov</option>
+                                                <option value="Other">Other</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <!-- Row 4 - NEW WAREHOUSE LOCATION -->
+                                    <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1rem; margin-bottom: 1rem;">
+                                        <div>
+                                            <label style="display: block; font-weight: 600; margin-bottom: 0.5rem;">Warehouse Location: *</label>
+                                            <select id="transportWarehouseLocation" style="width: 100%; padding: 0.75rem; border: 1px solid #D1D5DB; border-radius: 4px;">
+                                                <option value="">-- Select --</option>
+                                                <option value="Tetovo">Tetovo</option>
+                                                <option value="Ohis">Ohis</option>
+                                                <option value="Lisiche">Lisiche</option>
+                                            </select>
                                         </div>
                                     </div>
                                     <button class="btn btn-primary" onclick="submitTransportInbound()">🚚 Create Shipment</button>
@@ -1198,42 +1234,220 @@
                 </div>
             </div>
 
-            <!-- Mark Arrived Modal (Warehouse) - Now includes update form -->
+            <!-- Mark Arrived Modal (Warehouse) - COMPREHENSIVE FORM -->
             <div id="markArrivedModal" class="modal">
-                <div class="modal-content" style="max-width: 600px;">
+                <div class="modal-content" style="max-width: 800px; max-height: 90vh; overflow-y: auto;">
                     <div class="modal-header">
-                        <h2 class="card-title">📦 Mark Shipment as Arrived</h2>
+                        <h2 class="card-title">📦 Mark Shipment as Arrived - Complete Measurements</h2>
                         <span class="close-btn" onclick="closeMarkArrivedModal()">&times;</span>
                     </div>
                     <div style="padding: 1.5rem;">
                         <input type="hidden" id="arrivedShipmentID">
                         <input type="hidden" id="arrivedShipmentQty">
+                        <input type="hidden" id="arrivedDriver">
+                        <input type="hidden" id="arrivedCompany">
+                        <input type="hidden" id="arrivedTruckLicence">
+                        <input type="hidden" id="arrivedTrailerLicence">
                         
-                        <div style="margin-bottom: 1.5rem;">
-                            <label style="display: block; font-weight: 600; margin-bottom: 0.5rem;">Shipment Details:</label>
-                            <div id="arrivedShipmentDetails" style="background: #F3F4F6; padding: 1rem; border-radius: 4px;"></div>
+                        <!-- SECTION 1: SHIPMENT INFO (Read-only) -->
+                        <div style="margin-bottom: 1.5rem; background: #F9FAFB; padding: 1rem; border-radius: 4px; border-left: 4px solid #3B82F6;">
+                            <h3 style="margin: 0 0 0.75rem 0; color: #1F2937; font-size: 1rem;">📋 Shipment Information</h3>
+                            <div id="arrivedShipmentDetails" style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; font-size: 0.9rem;"></div>
                         </div>
                         
+                        <!-- SECTION 2: DELIVERY DOCUMENTATION -->
                         <div style="margin-bottom: 1.5rem;">
-                            <label style="display: block; font-weight: 600; margin-bottom: 0.5rem;">Target Reservoir: *</label>
-                            <select id="arrivedTargetReservoir" required onchange="showArrivedCurrentStock()" style="width: 100%; padding: 0.75rem; border: 1px solid #D1D5DB; border-radius: 4px;">
-                                <option value="">-- Select Reservoir --</option>
-                            </select>
+                            <h3 style="margin: 0 0 0.75rem 0; color: #1F2937; font-size: 1rem;">📄 Delivery Documentation</h3>
+                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                                <div>
+                                    <label style="display: block; font-weight: 600; margin-bottom: 0.5rem; font-size: 0.9rem;">Delivery Note Nr: *</label>
+                                    <input type="text" id="arrivedDeliveryNoteNr" required style="width: 100%; padding: 0.75rem; border: 1px solid #D1D5DB; border-radius: 4px;" placeholder="DN-2026-001">
+                                </div>
+                                <div>
+                                    <label style="display: block; font-weight: 600; margin-bottom: 0.5rem; font-size: 0.9rem;">Delivery Note Qty (L): *</label>
+                                    <input type="number" id="arrivedDeliveryNoteQty" required step="0.01" onchange="calculateArrivedDifferences()" style="width: 100%; padding: 0.75rem; border: 1px solid #D1D5DB; border-radius: 4px;" placeholder="20000">
+                                </div>
+                            </div>
                         </div>
                         
+                        <!-- SECTION 3: PHYSICAL MEASUREMENTS -->
                         <div style="margin-bottom: 1.5rem;">
-                            <label style="display: block; font-weight: 600; margin-bottom: 0.5rem;">Current Stock in Reservoir:</label>
-                            <input type="text" id="arrivedCurrentStock" readonly style="width: 100%; padding: 0.75rem; background: #F3F4F6; border: 1px solid #D1D5DB; border-radius: 4px;">
+                            <h3 style="margin: 0 0 0.75rem 0; color: #1F2937; font-size: 1rem;">⚖️ Physical Measurements</h3>
+                            <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1rem; margin-bottom: 0.5rem;">
+                                <div>
+                                    <label style="display: block; font-weight: 600; margin-bottom: 0.5rem; font-size: 0.9rem;">Density (kg/l): *</label>
+                                    <input type="number" id="arrivedDensity" required step="0.001" onchange="calculateArrivedDifferences()" style="width: 100%; padding: 0.75rem; border: 1px solid #D1D5DB; border-radius: 4px;" placeholder="0.835">
+                                </div>
+                                <div>
+                                    <label style="display: block; font-weight: 600; margin-bottom: 0.5rem; font-size: 0.9rem;">Scale Inlet (kg): *</label>
+                                    <input type="number" id="arrivedScaleInlet" required step="0.01" onchange="calculateArrivedDifferences()" style="width: 100%; padding: 0.75rem; border: 1px solid #D1D5DB; border-radius: 4px;" placeholder="25000">
+                                </div>
+                                <div>
+                                    <label style="display: block; font-weight: 600; margin-bottom: 0.5rem; font-size: 0.9rem;">Scale Outlet (kg): *</label>
+                                    <input type="number" id="arrivedScaleOutlet" required step="0.01" onchange="calculateArrivedDifferences()" style="width: 100%; padding: 0.75rem; border: 1px solid #D1D5DB; border-radius: 4px;" placeholder="8500">
+                                </div>
+                            </div>
+                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                                <div>
+                                    <label style="display: block; font-weight: 600; margin-bottom: 0.5rem; font-size: 0.9rem;">→ Scale Difference (kg):</label>
+                                    <input type="text" id="arrivedScaleDiff" readonly style="width: 100%; padding: 0.75rem; background: #E0F2FE; border: 1px solid #0284C7; border-radius: 4px; font-weight: 600; color: #0369A1;">
+                                </div>
+                                <div>
+                                    <label style="display: block; font-weight: 600; margin-bottom: 0.5rem; font-size: 0.9rem;">→ VvAGA (L):</label>
+                                    <input type="text" id="arrivedVvAGA" readonly style="width: 100%; padding: 0.75rem; background: #E0F2FE; border: 1px solid #0284C7; border-radius: 4px; font-weight: 600; color: #0369A1;">
+                                </div>
+                            </div>
                         </div>
                         
+                        <!-- SECTION 4: FLOW METER READINGS -->
                         <div style="margin-bottom: 1.5rem;">
-                            <label style="display: block; font-weight: 600; margin-bottom: 0.5rem;">New Stock After Arrival:</label>
-                            <input type="text" id="arrivedNewStock" readonly style="width: 100%; padding: 0.75rem; background: #E0F2FE; border: 1px solid #0284C7; border-radius: 4px; font-weight: 600; color: #0369A1;">
+                            <h3 style="margin: 0 0 0.75rem 0; color: #1F2937; font-size: 1rem;">🔢 Flow Meter Readings</h3>
+                            <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1rem; margin-bottom: 0.5rem;">
+                                <div>
+                                    <label style="display: block; font-weight: 600; margin-bottom: 0.5rem; font-size: 0.9rem;">Flow Meter (V15): *</label>
+                                    <input type="text" id="arrivedFlowMeterID" required style="width: 100%; padding: 0.75rem; border: 1px solid #D1D5DB; border-radius: 4px;" placeholder="V15">
+                                </div>
+                                <div>
+                                    <label style="display: block; font-weight: 600; margin-bottom: 0.5rem; font-size: 0.9rem;">Flow Meter Start: *</label>
+                                    <input type="number" id="arrivedFlowStart" required step="0.01" onchange="calculateArrivedDifferences()" style="width: 100%; padding: 0.75rem; border: 1px solid #D1D5DB; border-radius: 4px;" placeholder="100000">
+                                </div>
+                                <div>
+                                    <label style="display: block; font-weight: 600; margin-bottom: 0.5rem; font-size: 0.9rem;">Flow Meter Stop: *</label>
+                                    <input type="number" id="arrivedFlowStop" required step="0.01" onchange="calculateArrivedDifferences()" style="width: 100%; padding: 0.75rem; border: 1px solid #D1D5DB; border-radius: 4px;" placeholder="120000">
+                                </div>
+                            </div>
+                            <div style="display: grid; grid-template-columns: 1fr; gap: 1rem;">
+                                <div>
+                                    <label style="display: block; font-weight: 600; margin-bottom: 0.5rem; font-size: 0.9rem;">→ Flow Meter Difference (L):</label>
+                                    <input type="text" id="arrivedFlowDiff" readonly style="width: 100%; padding: 0.75rem; background: #E0F2FE; border: 1px solid #0284C7; border-radius: 4px; font-weight: 600; color: #0369A1;">
+                                </div>
+                            </div>
                         </div>
                         
-                        <div style="display: flex; gap: 1rem; justify-content: flex-end;">
+                        <!-- SECTION 5: FINAL CONFIRMATION -->
+                        <div style="margin-bottom: 1.5rem;">
+                            <h3 style="margin: 0 0 0.75rem 0; color: #1F2937; font-size: 1rem;">✅ Final Confirmation</h3>
+                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                                <div>
+                                    <label style="display: block; font-weight: 600; margin-bottom: 0.5rem; font-size: 0.9rem;">Confirmed Qty (L): *</label>
+                                    <input type="number" id="arrivedConfirmedQty" required step="0.01" onchange="calculateArrivedDifferences()" style="width: 100%; padding: 0.75rem; border: 1px solid #D1D5DB; border-radius: 4px;" placeholder="19800">
+                                </div>
+                                <div>
+                                    <label style="display: block; font-weight: 600; margin-bottom: 0.5rem; font-size: 0.9rem;">→ Difference from Note (L):</label>
+                                    <input type="text" id="arrivedQtyDiff" readonly style="width: 100%; padding: 0.75rem; background: #FEF3C7; border: 1px solid #F59E0B; border-radius: 4px; font-weight: 600; color: #92400E;">
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- SECTION 6: TARGET RESERVOIR -->
+                        <div style="margin-bottom: 1.5rem;">
+                            <h3 style="margin: 0 0 0.75rem 0; color: #1F2937; font-size: 1rem;">🎯 Target Reservoir</h3>
+                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                                <div>
+                                    <label style="display: block; font-weight: 600; margin-bottom: 0.5rem; font-size: 0.9rem;">Target Reservoir: *</label>
+                                    <select id="arrivedTargetReservoir" required onchange="showArrivedCurrentStock()" style="width: 100%; padding: 0.75rem; border: 1px solid #D1D5DB; border-radius: 4px;">
+                                        <option value="">-- Select Reservoir --</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label style="display: block; font-weight: 600; margin-bottom: 0.5rem; font-size: 0.9rem;">Current Stock in Reservoir:</label>
+                                    <input type="text" id="arrivedCurrentStock" readonly style="width: 100%; padding: 0.75rem; background: #F3F4F6; border: 1px solid #D1D5DB; border-radius: 4px;">
+                                </div>
+                            </div>
+                            <div style="margin-top: 0.5rem;">
+                                <label style="display: block; font-weight: 600; margin-bottom: 0.5rem; font-size: 0.9rem;">→ New Stock After Arrival:</label>
+                                <input type="text" id="arrivedNewStock" readonly style="width: 100%; padding: 0.75rem; background: #D1FAE5; border: 1px solid #059669; border-radius: 4px; font-weight: 600; color: #065F46; font-size: 1.1rem;">
+                            </div>
+                        </div>
+                        
+                        <div style="display: flex; gap: 1rem; justify-content: flex-end; margin-top: 2rem; padding-top: 1rem; border-top: 2px solid #E5E7EB;">
                             <button class="btn btn-secondary" onclick="closeMarkArrivedModal()">Cancel</button>
-                            <button class="btn btn-success" onclick="confirmMarkArrived()">✅ Confirm Arrival & Update Stock</button>
+                            <button class="btn btn-success" onclick="confirmMarkArrived()" style="font-size: 1rem; padding: 0.75rem 1.5rem;">✅ Confirm Arrival & Update Stock</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Edit Shipment Modal (Transport) -->
+            <div id="editShipmentModal" class="modal">
+                <div class="modal-content" style="max-width: 700px;">
+                    <div class="modal-header">
+                        <h2 class="card-title">✏️ Edit Inbound Shipment</h2>
+                        <span class="close-btn" onclick="closeEditShipmentModal()">&times;</span>
+                    </div>
+                    <div style="padding: 1.5rem;">
+                        <input type="hidden" id="editShipmentID">
+                        
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem;">
+                            <div>
+                                <label style="display: block; font-weight: 600; margin-bottom: 0.5rem;">Supplier: *</label>
+                                <select id="editSupplier" style="width: 100%; padding: 0.75rem; border: 1px solid #D1D5DB; border-radius: 4px;">
+                                    <option value="OKTA">OKTA</option>
+                                    <option value="Makpetrol">Makpetrol</option>
+                                    <option value="Lukoil">Lukoil</option>
+                                    <option value="Shell">Shell</option>
+                                    <option value="OMV">OMV</option>
+                                    <option value="Hellenic Petroleum">Hellenic Petroleum</option>
+                                    <option value="Other">Other</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label style="display: block; font-weight: 600; margin-bottom: 0.5rem;">Fuel Type: *</label>
+                                <select id="editFuelType" style="width: 100%; padding: 0.75rem; border: 1px solid #D1D5DB; border-radius: 4px;">
+                                    <option value="Diesel">Diesel</option>
+                                    <option value="Gasoline">Gasoline</option>
+                                    <option value="Mazut">Mazut</option>
+                                    <option value="EL">EL (Extra Light)</option>
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem;">
+                            <div>
+                                <label style="display: block; font-weight: 600; margin-bottom: 0.5rem;">Quantity (L): *</label>
+                                <input type="number" id="editQuantity" style="width: 100%; padding: 0.75rem; border: 1px solid #D1D5DB; border-radius: 4px;">
+                            </div>
+                            <div>
+                                <label style="display: block; font-weight: 600; margin-bottom: 0.5rem;">Expected Arrival: *</label>
+                                <input type="date" id="editETA" style="width: 100%; padding: 0.75rem; border: 1px solid #D1D5DB; border-radius: 4px;">
+                            </div>
+                        </div>
+                        
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem;">
+                            <div>
+                                <label style="display: block; font-weight: 600; margin-bottom: 0.5rem;">Truck Licence: *</label>
+                                <input type="text" id="editTruckLicence" style="width: 100%; padding: 0.75rem; border: 1px solid #D1D5DB; border-radius: 4px;">
+                            </div>
+                            <div>
+                                <label style="display: block; font-weight: 600; margin-bottom: 0.5rem;">Trailer Licence:</label>
+                                <input type="text" id="editTrailerLicence" style="width: 100%; padding: 0.75rem; border: 1px solid #D1D5DB; border-radius: 4px;">
+                            </div>
+                        </div>
+                        
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem;">
+                            <div>
+                                <label style="display: block; font-weight: 600; margin-bottom: 0.5rem;">Freight Forwarder: *</label>
+                                <select id="editFreightForwarder" style="width: 100%; padding: 0.75rem; border: 1px solid #D1D5DB; border-radius: 4px;">
+                                    <option value="Fershped">Fershped</option>
+                                    <option value="Uniko">Uniko</option>
+                                    <option value="Gori">Gori</option>
+                                    <option value="Trajkov">Trajkov</option>
+                                    <option value="Other">Other</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label style="display: block; font-weight: 600; margin-bottom: 0.5rem;">Warehouse Location: *</label>
+                                <select id="editWarehouseLocation" style="width: 100%; padding: 0.75rem; border: 1px solid #D1D5DB; border-radius: 4px;">
+                                    <option value="Tetovo">Tetovo</option>
+                                    <option value="Ohis">Ohis</option>
+                                    <option value="Lisiche">Lisiche</option>
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <div style="display: flex; gap: 1rem; justify-content: flex-end; margin-top: 2rem;">
+                            <button class="btn btn-secondary" onclick="closeEditShipmentModal()">Cancel</button>
+                            <button class="btn btn-primary" onclick="submitEditShipment()">💾 Save Changes</button>
                         </div>
                     </div>
                 </div>
@@ -5733,7 +5947,7 @@ window.onclick = function(event) {
         
         async function loadWarehouseInbound() {
             try {
-                const apiUrl = `https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_ID}/values/Inbound_Shipments!A2:R100?key=${API_KEY}`;
+                const apiUrl = `https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_ID}/values/Inbound_Shipments!A2:AI100?key=${API_KEY}`;
                 const response = await fetch(apiUrl);
                 const data = await response.json();
                 
@@ -5770,6 +5984,21 @@ window.onclick = function(event) {
                         const quantity = parseFloat(row[3]) || 0;
                         const unit = row[4] || 'L';
                         const eta = row[5] || 'Not set';
+                        const notes = row[15] || '';
+                        const truckLicence = row[18] || '';
+                        const trailerLicence = row[19] || '';
+                        
+                        // Extract driver and company from notes (format: "Driver: X, Company: Y")
+                        let driver = '';
+                        let company = '';
+                        if (notes.includes('Driver:')) {
+                            const driverMatch = notes.match(/Driver:\s*([^,]+)/);
+                            if (driverMatch) driver = driverMatch[1].trim();
+                        }
+                        if (notes.includes('Company:')) {
+                            const companyMatch = notes.match(/Company:\s*(.+)/);
+                            if (companyMatch) company = companyMatch[1].trim();
+                        }
                         
                         html += `
                             <tr>
@@ -5779,7 +6008,7 @@ window.onclick = function(event) {
                                 <td>${new Intl.NumberFormat().format(quantity)} ${unit}</td>
                                 <td>${eta}</td>
                                 <td>
-                                    <button class="btn btn-success" onclick="showMarkArrivedModal('${shipmentID}', '${product}', ${quantity})" style="padding: 0.375rem 0.75rem; font-size: 0.85rem;">
+                                    <button class="btn btn-success" onclick="showMarkArrivedModal('${shipmentID}', '${product}', ${quantity}, '${supplier}', '${driver}', '${company}', '${truckLicence}', '${trailerLicence}')" style="padding: 0.375rem 0.75rem; font-size: 0.85rem;">
                                         📦 Mark Arrived
                                     </button>
                                 </td>
@@ -5797,14 +6026,24 @@ window.onclick = function(event) {
             }
         }
         
-        function showMarkArrivedModal(shipmentID, product, quantity) {
+        function showMarkArrivedModal(shipmentID, product, quantity, supplier, driver, company, truckLicence, trailerLicence) {
             document.getElementById('arrivedShipmentID').value = shipmentID;
             document.getElementById('arrivedShipmentQty').value = quantity;
+            document.getElementById('arrivedDriver').value = driver || '';
+            document.getElementById('arrivedCompany').value = company || '';
+            document.getElementById('arrivedTruckLicence').value = truckLicence || '';
+            document.getElementById('arrivedTrailerLicence').value = trailerLicence || '';
             
+            // Show shipment info in read-only section
             document.getElementById('arrivedShipmentDetails').innerHTML = `
-                <strong>Shipment:</strong> ${shipmentID}<br>
-                <strong>Product:</strong> ${product}<br>
-                <strong>Quantity:</strong> ${new Intl.NumberFormat().format(quantity)} L
+                <div style="color: #6B7280;"><strong>Shipment ID:</strong> ${shipmentID}</div>
+                <div style="color: #6B7280;"><strong>Supplier:</strong> ${supplier}</div>
+                <div style="color: #6B7280;"><strong>Product:</strong> ${product}</div>
+                <div style="color: #6B7280;"><strong>Original Quantity:</strong> ${new Intl.NumberFormat().format(quantity)} L</div>
+                <div style="color: #6B7280;"><strong>Company:</strong> ${company || 'Not specified'}</div>
+                <div style="color: #6B7280;"><strong>Driver:</strong> ${driver || 'Not specified'}</div>
+                <div style="color: #6B7280;"><strong>Truck Licence:</strong> ${truckLicence || 'Not specified'}</div>
+                ${trailerLicence ? `<div style="color: #6B7280;"><strong>Trailer Licence:</strong> ${trailerLicence}</div>` : ''}
             `;
             
             // Populate reservoir dropdown - only show reservoirs matching this fuel type
@@ -5817,7 +6056,20 @@ window.onclick = function(event) {
                 }
             });
             
-            // Clear stock displays
+            // Clear all measurement fields
+            document.getElementById('arrivedDeliveryNoteNr').value = '';
+            document.getElementById('arrivedDeliveryNoteQty').value = '';
+            document.getElementById('arrivedDensity').value = '';
+            document.getElementById('arrivedScaleInlet').value = '';
+            document.getElementById('arrivedScaleOutlet').value = '';
+            document.getElementById('arrivedScaleDiff').value = '';
+            document.getElementById('arrivedVvAGA').value = '';
+            document.getElementById('arrivedFlowMeterID').value = 'V15';
+            document.getElementById('arrivedFlowStart').value = '';
+            document.getElementById('arrivedFlowStop').value = '';
+            document.getElementById('arrivedFlowDiff').value = '';
+            document.getElementById('arrivedConfirmedQty').value = '';
+            document.getElementById('arrivedQtyDiff').value = '';
             document.getElementById('arrivedCurrentStock').value = '';
             document.getElementById('arrivedNewStock').value = '';
             
@@ -5826,7 +6078,7 @@ window.onclick = function(event) {
         
         function showArrivedCurrentStock() {
             const reservoirID = document.getElementById('arrivedTargetReservoir').value;
-            const shipmentQty = parseFloat(document.getElementById('arrivedShipmentQty').value) || 0;
+            const confirmedQty = parseFloat(document.getElementById('arrivedConfirmedQty').value) || 0;
             
             if (!reservoirID) {
                 document.getElementById('arrivedCurrentStock').value = '';
@@ -5836,10 +6088,15 @@ window.onclick = function(event) {
             
             const stock = warehouseReservoirStock.find(s => s.reservoirID === reservoirID);
             const currentQty = stock ? stock.physicalQty : 0;
-            const newQty = currentQty + shipmentQty;
+            const newQty = currentQty + confirmedQty;
             
             document.getElementById('arrivedCurrentStock').value = new Intl.NumberFormat().format(currentQty) + ' L';
-            document.getElementById('arrivedNewStock').value = new Intl.NumberFormat().format(newQty) + ' L' + ` (+${new Intl.NumberFormat().format(shipmentQty)} L)`;
+            
+            if (confirmedQty > 0) {
+                document.getElementById('arrivedNewStock').value = new Intl.NumberFormat().format(newQty) + ' L' + ` (+${new Intl.NumberFormat().format(confirmedQty)} L)`;
+            } else {
+                document.getElementById('arrivedNewStock').value = '';
+            }
         }
         
         function closeMarkArrivedModal() {
@@ -5849,18 +6106,44 @@ window.onclick = function(event) {
         async function confirmMarkArrived() {
             const shipmentID = document.getElementById('arrivedShipmentID').value;
             const targetReservoir = document.getElementById('arrivedTargetReservoir').value;
+            const deliveryNoteNr = document.getElementById('arrivedDeliveryNoteNr').value;
+            const deliveryNoteQty = document.getElementById('arrivedDeliveryNoteQty').value;
+            const density = document.getElementById('arrivedDensity').value;
+            const scaleInlet = document.getElementById('arrivedScaleInlet').value;
+            const scaleOutlet = document.getElementById('arrivedScaleOutlet').value;
+            const flowMeterID = document.getElementById('arrivedFlowMeterID').value;
+            const flowMeterStart = document.getElementById('arrivedFlowStart').value;
+            const flowMeterStop = document.getElementById('arrivedFlowStop').value;
+            const confirmedQty = document.getElementById('arrivedConfirmedQty').value;
             
+            // Validate all required fields
             if (!targetReservoir) {
                 alert('Please select a target reservoir');
                 return;
             }
+            if (!deliveryNoteNr) {
+                alert('Please enter Delivery Note Number');
+                return;
+            }
+            if (!deliveryNoteQty || !density || !scaleInlet || !scaleOutlet) {
+                alert('Please fill in all delivery documentation and physical measurement fields');
+                return;
+            }
+            if (!flowMeterID || !flowMeterStart || !flowMeterStop) {
+                alert('Please fill in all flow meter readings');
+                return;
+            }
+            if (!confirmedQty) {
+                alert('Please enter the confirmed quantity');
+                return;
+            }
             
-            if (!confirm(`Mark ${shipmentID} as arrived to ${targetReservoir}?`)) {
+            if (!confirm(`Mark ${shipmentID} as arrived with confirmed quantity ${confirmedQty} L to ${targetReservoir}?`)) {
                 return;
             }
             
             closeMarkArrivedModal();
-            showLoading('Marking shipment as arrived...');
+            showLoading('Processing arrival and updating stock...');
             
             try {
                 await fetch(APPS_SCRIPT_URL, {
@@ -5870,19 +6153,30 @@ window.onclick = function(event) {
                     body: JSON.stringify({
                         action: 'markInboundArrived',
                         shipmentID: shipmentID,
-                        targetReservoir: targetReservoir,
+                        data: {
+                            targetReservoir: targetReservoir,
+                            deliveryNoteNr: deliveryNoteNr,
+                            deliveryNoteQty: parseFloat(deliveryNoteQty),
+                            density: parseFloat(density),
+                            scaleInlet: parseFloat(scaleInlet),
+                            scaleOutlet: parseFloat(scaleOutlet),
+                            flowMeterID: flowMeterID,
+                            flowMeterStart: parseFloat(flowMeterStart),
+                            flowMeterStop: parseFloat(flowMeterStop),
+                            confirmedQty: parseFloat(confirmedQty)
+                        },
                         updatedBy: currentUser.name
                     })
                 });
                 
                 // Wait for processing
-                await new Promise(resolve => setTimeout(resolve, 2000));
+                await new Promise(resolve => setTimeout(resolve, 2500));
                 
                 // Reload data
                 await loadWarehouseInventory();
                 
                 hideLoading();
-                alert('✅ Shipment marked as arrived! Stock has been updated automatically.');
+                alert('✅ Shipment arrived! Stock updated with confirmed quantity: ' + new Intl.NumberFormat().format(confirmedQty) + ' L');
                 
             } catch (error) {
                 hideLoading();
@@ -5941,9 +6235,13 @@ window.onclick = function(event) {
             const driver = document.getElementById('transportDriver').value;
             const company = document.getElementById('transportCompany').value;
             const eta = document.getElementById('transportETA').value;
+            const truckLicence = document.getElementById('transportTruckLicence').value;
+            const trailerLicence = document.getElementById('transportTrailerLicence').value;
+            const freightForwarder = document.getElementById('transportFreightForwarder').value;
+            const warehouseLocation = document.getElementById('transportWarehouseLocation').value;
             
-            if (!supplier || !fuelType || !quantity || !driver || !company || !eta) {
-                alert('Please fill in all required fields');
+            if (!supplier || !fuelType || !quantity || !driver || !company || !eta || !truckLicence || !freightForwarder || !warehouseLocation) {
+                alert('Please fill in all required fields (marked with *)');
                 return;
             }
             
@@ -5968,7 +6266,11 @@ window.onclick = function(event) {
                         plannedTime: '',
                         warehouse: '',
                         notes: `Driver: ${driver}, Company: ${company}`,
-                        createdBy: currentUser.name
+                        createdBy: currentUser.name,
+                        truckLicence: truckLicence,
+                        trailerLicence: trailerLicence,
+                        freightForwarder: freightForwarder,
+                        warehouseLocation: warehouseLocation
                     })
                 });
                 
@@ -5985,6 +6287,10 @@ window.onclick = function(event) {
                 document.getElementById('transportDriver').value = '';
                 document.getElementById('transportCompany').value = '';
                 document.getElementById('transportETA').value = '';
+                document.getElementById('transportTruckLicence').value = '';
+                document.getElementById('transportTrailerLicence').value = '';
+                document.getElementById('transportFreightForwarder').value = '';
+                document.getElementById('transportWarehouseLocation').value = '';
                 
                 hideLoading();
                 alert('✅ Inbound shipment created successfully!');
@@ -5998,7 +6304,7 @@ window.onclick = function(event) {
         
         async function loadTransportInbound() {
             try {
-                const apiUrl = `https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_ID}/values/Inbound_Shipments!A2:R100?key=${API_KEY}`;
+                const apiUrl = `https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_ID}/values/Inbound_Shipments!A2:AI100?key=${API_KEY}`;
                 const response = await fetch(apiUrl);
                 const data = await response.json();
                 
@@ -6044,14 +6350,33 @@ window.onclick = function(event) {
                     const unit = row[4] || 'L';
                     const eta = row[5] || 'Not set';
                     const status = row[7] || 'Created';
+                    const truckLicence = row[18] || '';
+                    const trailerLicence = row[19] || '';
+                    const freightForwarder = row[20] || '';
+                    const warehouseLocation = row[21] || '';
                     
                     const statusColors = {
                         'Created': { bg: '#F3F4F6', text: '#6B7280' },
                         'In Transit': { bg: '#DBEAFE', text: '#3B82F6' },
-                        'Arrived': { bg: '#D1FAE5', text: '#059669' }
+                        'Arrived': { bg: '#D1FAE5', text: '#059669' },
+                        'Cancelled': { bg: '#FEE2E2', text: '#DC2626' }
                     };
                     
                     const colors = statusColors[status] || { bg: '#F3F4F6', text: '#6B7280' };
+                    
+                    // Escape quotes in data for onclick
+                    const shipmentData = {
+                        shipmentID: shipmentID,
+                        supplier: supplier,
+                        productType: product,
+                        quantity: quantity,
+                        plannedArrival: eta,
+                        truckLicence: truckLicence,
+                        trailerLicence: trailerLicence,
+                        freightForwarder: freightForwarder,
+                        warehouseLocation: warehouseLocation
+                    };
+                    const shipmentDataJson = JSON.stringify(shipmentData).replace(/"/g, '&quot;');
                     
                     html += `
                         <tr>
@@ -6065,17 +6390,30 @@ window.onclick = function(event) {
                                     ${status}
                                 </span>
                             </td>
-                            <td>
+                            <td style="white-space: nowrap;">
+                                ${(status === 'Created' || status === 'In Transit') ? `
+                                    <button class="btn btn-secondary" onclick='showEditShipmentModal(${shipmentDataJson})' style="padding: 0.375rem 0.75rem; font-size: 0.85rem; margin-right: 0.5rem;">
+                                        ✏️ Edit
+                                    </button>
+                                ` : ''}
                                 ${status === 'Created' ? `
-                                    <button class="btn btn-primary" onclick="updateTransportStatus('${shipmentID}', 'In Transit')" style="padding: 0.375rem 0.75rem; font-size: 0.85rem;">
-                                        🚚 Mark In Transit
+                                    <button class="btn btn-primary" onclick="updateTransportStatus('${shipmentID}', 'In Transit')" style="padding: 0.375rem 0.75rem; font-size: 0.85rem; margin-right: 0.5rem;">
+                                        🚚 In Transit
+                                    </button>
+                                ` : ''}
+                                ${(status === 'Created' || status === 'In Transit') ? `
+                                    <button class="btn btn-danger" onclick="cancelShipment('${shipmentID}')" style="padding: 0.375rem 0.75rem; font-size: 0.85rem; background: #DC2626;">
+                                        ❌ Cancel
                                     </button>
                                 ` : ''}
                                 ${status === 'In Transit' ? `
-                                    <span style="color: #6B7280; font-size: 0.85rem;">Warehouse marks arrived</span>
+                                    <span style="color: #6B7280; font-size: 0.85rem; display: block; margin-top: 0.25rem;">Warehouse marks arrived</span>
                                 ` : ''}
                                 ${status === 'Arrived' ? `
                                     <span style="color: #059669; font-size: 0.85rem;">✅ Completed</span>
+                                ` : ''}
+                                ${status === 'Cancelled' ? `
+                                    <span style="color: #DC2626; font-size: 0.85rem;">❌ Cancelled</span>
                                 ` : ''}
                             </td>
                         </tr>
@@ -6132,6 +6470,158 @@ window.onclick = function(event) {
                 alert('❌ Error updating status. Please try again.');
             }
         }
+        
+        // Edit Shipment Functions (Transport)
+        function showEditShipmentModal(shipmentData) {
+            document.getElementById('editShipmentID').value = shipmentData.shipmentID;
+            document.getElementById('editSupplier').value = shipmentData.supplier;
+            document.getElementById('editFuelType').value = shipmentData.productType;
+            document.getElementById('editQuantity').value = shipmentData.quantity;
+            document.getElementById('editETA').value = shipmentData.plannedArrival;
+            document.getElementById('editTruckLicence').value = shipmentData.truckLicence || '';
+            document.getElementById('editTrailerLicence').value = shipmentData.trailerLicence || '';
+            document.getElementById('editFreightForwarder').value = shipmentData.freightForwarder || 'Fershped';
+            document.getElementById('editWarehouseLocation').value = shipmentData.warehouseLocation || 'Tetovo';
+            
+            document.getElementById('editShipmentModal').style.display = 'block';
+        }
+        
+        function closeEditShipmentModal() {
+            document.getElementById('editShipmentModal').style.display = 'none';
+        }
+        
+        async function submitEditShipment() {
+            const shipmentID = document.getElementById('editShipmentID').value;
+            const supplier = document.getElementById('editSupplier').value;
+            const fuelType = document.getElementById('editFuelType').value;
+            const quantity = document.getElementById('editQuantity').value;
+            const eta = document.getElementById('editETA').value;
+            const truckLicence = document.getElementById('editTruckLicence').value;
+            const trailerLicence = document.getElementById('editTrailerLicence').value;
+            const freightForwarder = document.getElementById('editFreightForwarder').value;
+            const warehouseLocation = document.getElementById('editWarehouseLocation').value;
+            
+            if (!supplier || !fuelType || !quantity || !eta || !truckLicence || !freightForwarder || !warehouseLocation) {
+                alert('Please fill in all required fields');
+                return;
+            }
+            
+            if (!confirm('Save changes to this shipment?')) {
+                return;
+            }
+            
+            closeEditShipmentModal();
+            showLoading('Saving changes...');
+            
+            try {
+                await fetch(APPS_SCRIPT_URL, {
+                    method: 'POST',
+                    mode: 'no-cors',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        action: 'editInboundShipment',
+                        shipmentID: shipmentID,
+                        supplier: supplier,
+                        productType: fuelType,
+                        quantity: parseFloat(quantity),
+                        plannedArrival: eta,
+                        truckLicence: truckLicence,
+                        trailerLicence: trailerLicence,
+                        freightForwarder: freightForwarder,
+                        warehouseLocation: warehouseLocation,
+                        updatedBy: currentUser.name
+                    })
+                });
+                
+                // Wait for processing
+                await new Promise(resolve => setTimeout(resolve, 2000));
+                
+                // Reload data
+                await loadTransportInbound();
+                
+                hideLoading();
+                alert('✅ Shipment updated successfully!');
+                
+            } catch (error) {
+                hideLoading();
+                console.error('Error updating shipment:', error);
+                alert('❌ Error updating shipment. Please try again.');
+            }
+        }
+        
+        async function cancelShipment(shipmentID) {
+            const reason = prompt('Enter cancellation reason:', 'Cancelled by transport department');
+            
+            if (!reason) {
+                return;
+            }
+            
+            if (!confirm(`Cancel shipment ${shipmentID}?\n\nThis action cannot be undone.`)) {
+                return;
+            }
+            
+            showLoading('Cancelling shipment...');
+            
+            try {
+                await fetch(APPS_SCRIPT_URL, {
+                    method: 'POST',
+                    mode: 'no-cors',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        action: 'cancelInboundShipment',
+                        shipmentID: shipmentID,
+                        updatedBy: currentUser.name,
+                        reason: reason
+                    })
+                });
+                
+                // Wait for processing
+                await new Promise(resolve => setTimeout(resolve, 2000));
+                
+                // Reload data
+                await loadTransportInbound();
+                
+                hideLoading();
+                alert('✅ Shipment cancelled successfully');
+                
+            } catch (error) {
+                hideLoading();
+                console.error('Error cancelling shipment:', error);
+                alert('❌ Error cancelling shipment. Please try again.');
+            }
+        }
+        
+        // Enhanced Mark Arrived Functions (Warehouse)
+        function calculateArrivedDifferences() {
+            // Calculate Scale Difference
+            const scaleInlet = parseFloat(document.getElementById('arrivedScaleInlet').value) || 0;
+            const scaleOutlet = parseFloat(document.getElementById('arrivedScaleOutlet').value) || 0;
+            const scaleDiff = scaleInlet - scaleOutlet;
+            document.getElementById('arrivedScaleDiff').value = new Intl.NumberFormat().format(scaleDiff) + ' kg';
+            
+            // Calculate VvAGA
+            const density = parseFloat(document.getElementById('arrivedDensity').value) || 0;
+            const vvAGA = density > 0 ? scaleDiff / density : 0;
+            document.getElementById('arrivedVvAGA').value = new Intl.NumberFormat().format(vvAGA.toFixed(2)) + ' L';
+            
+            // Calculate Flow Meter Difference
+            const flowStart = parseFloat(document.getElementById('arrivedFlowStart').value) || 0;
+            const flowStop = parseFloat(document.getElementById('arrivedFlowStop').value) || 0;
+            const flowDiff = flowStop - flowStart;
+            document.getElementById('arrivedFlowDiff').value = new Intl.NumberFormat().format(flowDiff) + ' L';
+            
+            // Calculate Quantity Difference
+            const deliveryNoteQty = parseFloat(document.getElementById('arrivedDeliveryNoteQty').value) || 0;
+            const confirmedQty = parseFloat(document.getElementById('arrivedConfirmedQty').value) || 0;
+            const qtyDiff = deliveryNoteQty - confirmedQty;
+            const qtyDiffColor = qtyDiff === 0 ? '#059669' : (qtyDiff > 0 ? '#D97706' : '#DC2626');
+            document.getElementById('arrivedQtyDiff').value = (qtyDiff >= 0 ? '+' : '') + new Intl.NumberFormat().format(qtyDiff) + ' L';
+            document.getElementById('arrivedQtyDiff').style.color = qtyDiffColor;
+            
+            // Update new stock calculation
+            showArrivedCurrentStock();
+        }
+        
         
         
     </script>
