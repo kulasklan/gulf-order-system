@@ -1164,15 +1164,17 @@
                                     <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1rem; margin-bottom: 1rem;">
                                         <div>
                                             <label style="display: block; font-weight: 600; margin-bottom: 0.5rem;">Driver: *</label>
-                                            <select id="transportDriver" style="width: 100%; padding: 0.75rem; border: 1px solid #D1D5DB; border-radius: 4px;">
+                                            <select id="transportDriver" onchange="toggleCustomDriver()" style="width: 100%; padding: 0.75rem; border: 1px solid #D1D5DB; border-radius: 4px;">
                                                 <option value="">-- Select Driver --</option>
                                             </select>
+                                            <input type="text" id="transportDriverCustom" placeholder="Enter driver name" style="width: 100%; padding: 0.75rem; border: 1px solid #D1D5DB; border-radius: 4px; margin-top: 0.5rem; display: none;">
                                         </div>
                                         <div>
                                             <label style="display: block; font-weight: 600; margin-bottom: 0.5rem;">Transport Company: *</label>
-                                            <select id="transportCompany" style="width: 100%; padding: 0.75rem; border: 1px solid #D1D5DB; border-radius: 4px;">
+                                            <select id="transportCompany" onchange="toggleCustomCompany()" style="width: 100%; padding: 0.75rem; border: 1px solid #D1D5DB; border-radius: 4px;">
                                                 <option value="">-- Select Company --</option>
                                             </select>
+                                            <input type="text" id="transportCompanyCustom" placeholder="Enter company name" style="width: 100%; padding: 0.75rem; border: 1px solid #D1D5DB; border-radius: 4px; margin-top: 0.5rem; display: none;">
                                         </div>
                                         <div>
                                             <label style="display: block; font-weight: 600; margin-bottom: 0.5rem;">Expected Arrival: *</label>
@@ -1234,6 +1236,93 @@
                 </div>
             </div>
 
+            <!-- REPORT View (All Users) -->
+            <div id="reportView" class="view-content hidden">
+                <h1 style="margin-bottom: 1.5rem;">📊 Reports & Analytics</h1>
+                
+                <div class="card">
+                    <div class="card-header">
+                        <h2 class="card-title">Generate Custom Report</h2>
+                    </div>
+                    <div style="padding: 1.5rem;">
+                        <!-- Date Range Filter -->
+                        <div style="margin-bottom: 1.5rem;">
+                            <h3 style="margin-bottom: 0.75rem; color: var(--secondary); font-size: 1rem;">📅 Date Range</h3>
+                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                                <div>
+                                    <label style="display: block; font-weight: 600; margin-bottom: 0.5rem;">From Date:</label>
+                                    <input type="date" id="reportDateFrom" style="width: 100%; padding: 0.75rem; border: 1px solid #D1D5DB; border-radius: 4px;">
+                                </div>
+                                <div>
+                                    <label style="display: block; font-weight: 600; margin-bottom: 0.5rem;">To Date:</label>
+                                    <input type="date" id="reportDateTo" style="width: 100%; padding: 0.75rem; border: 1px solid #D1D5DB; border-radius: 4px;">
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Report Type Selection -->
+                        <div style="margin-bottom: 1.5rem;">
+                            <h3 style="margin-bottom: 0.75rem; color: var(--secondary); font-size: 1rem;">📋 Report Type</h3>
+                            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 0.75rem;">
+                                <label style="display: flex; align-items: center; padding: 0.75rem; background: #F9FAFB; border: 2px solid #E5E7EB; border-radius: 4px; cursor: pointer;">
+                                    <input type="radio" name="reportType" value="inbound" checked style="margin-right: 0.5rem;">
+                                    <span style="font-weight: 600;">Inbound Shipments</span>
+                                </label>
+                                <label style="display: flex; align-items: center; padding: 0.75rem; background: #F9FAFB; border: 2px solid #E5E7EB; border-radius: 4px; cursor: pointer;">
+                                    <input type="radio" name="reportType" value="orders" style="margin-right: 0.5rem;">
+                                    <span style="font-weight: 600;">Sales Orders</span>
+                                </label>
+                                <label style="display: flex; align-items: center; padding: 0.75rem; background: #F9FAFB; border: 2px solid #E5E7EB; border-radius: 4px; cursor: pointer;">
+                                    <input type="radio" name="reportType" value="inventory" style="margin-right: 0.5rem;">
+                                    <span style="font-weight: 600;">Inventory Log</span>
+                                </label>
+                            </div>
+                        </div>
+                        
+                        <!-- Filters Section -->
+                        <div style="margin-bottom: 1.5rem;">
+                            <h3 style="margin-bottom: 0.75rem; color: var(--secondary); font-size: 1rem;">🔍 Filters (Optional)</h3>
+                            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 0.75rem;">
+                                <label style="display: flex; align-items: center; padding: 0.5rem; background: white; border: 1px solid #E5E7EB; border-radius: 4px;">
+                                    <input type="checkbox" id="filterCreated" value="Created" style="margin-right: 0.5rem;">
+                                    <span>Status: Created</span>
+                                </label>
+                                <label style="display: flex; align-items: center; padding: 0.5rem; background: white; border: 1px solid #E5E7EB; border-radius: 4px;">
+                                    <input type="checkbox" id="filterInTransit" value="In Transit" style="margin-right: 0.5rem;">
+                                    <span>Status: In Transit</span>
+                                </label>
+                                <label style="display: flex; align-items: center; padding: 0.5rem; background: white; border: 1px solid #E5E7EB; border-radius: 4px;">
+                                    <input type="checkbox" id="filterArrived" value="Arrived" style="margin-right: 0.5rem;">
+                                    <span>Status: Arrived</span>
+                                </label>
+                                <label style="display: flex; align-items: center; padding: 0.5rem; background: white; border: 1px solid #E5E7EB; border-radius: 4px;">
+                                    <input type="checkbox" id="filterCancelled" value="Cancelled" style="margin-right: 0.5rem;">
+                                    <span>Status: Cancelled</span>
+                                </label>
+                            </div>
+                            <div style="margin-top: 0.5rem; font-size: 0.85rem; color: #6B7280;">
+                                💡 Leave all unchecked to include all statuses. More filters coming soon!
+                            </div>
+                        </div>
+                        
+                        <!-- Action Buttons -->
+                        <div style="display: flex; gap: 1rem; margin-bottom: 1.5rem;">
+                            <button class="btn btn-primary" onclick="generateReport()">🔍 Generate Report</button>
+                            <button class="btn btn-success" onclick="exportReportToExcel()">📥 Export to Excel</button>
+                        </div>
+                        
+                        <!-- Report Results -->
+                        <div id="reportResults" style="display: none; margin-top: 1.5rem;">
+                            <h3 style="margin-bottom: 0.75rem; color: var(--secondary); font-size: 1rem;">📊 Results</h3>
+                            <div style="background: #F9FAFB; padding: 1rem; border-radius: 4px; margin-bottom: 1rem;">
+                                <div id="reportSummary" style="font-size: 0.9rem; color: #6B7280;"></div>
+                            </div>
+                            <div id="reportTable" style="overflow-x: auto; max-height: 500px; overflow-y: auto;"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             <!-- Mark Arrived Modal (Warehouse) - COMPREHENSIVE FORM -->
             <div id="markArrivedModal" class="modal">
                 <div class="modal-content" style="max-width: 800px; max-height: 90vh; overflow-y: auto;">
@@ -1244,15 +1333,41 @@
                     <div style="padding: 1.5rem;">
                         <input type="hidden" id="arrivedShipmentID">
                         <input type="hidden" id="arrivedShipmentQty">
-                        <input type="hidden" id="arrivedDriver">
-                        <input type="hidden" id="arrivedCompany">
-                        <input type="hidden" id="arrivedTruckLicence">
-                        <input type="hidden" id="arrivedTrailerLicence">
+                        <input type="hidden" id="arrivedSupplier">
+                        <input type="hidden" id="arrivedProduct">
                         
-                        <!-- SECTION 1: SHIPMENT INFO (Read-only) -->
+                        <!-- SECTION 1: SHIPMENT INFO (Mixed: Read-only + Editable) -->
                         <div style="margin-bottom: 1.5rem; background: #F9FAFB; padding: 1rem; border-radius: 4px; border-left: 4px solid #3B82F6;">
                             <h3 style="margin: 0 0 0.75rem 0; color: #1F2937; font-size: 1rem;">📋 Shipment Information</h3>
-                            <div id="arrivedShipmentDetails" style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; font-size: 0.9rem;"></div>
+                            
+                            <!-- Read-only info -->
+                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; font-size: 0.9rem; margin-bottom: 1rem; padding-bottom: 1rem; border-bottom: 1px solid #E5E7EB;">
+                                <div style="color: #6B7280;"><strong>Shipment ID:</strong> <span id="arrivedShipmentIDDisplay"></span></div>
+                                <div style="color: #6B7280;"><strong>Supplier:</strong> <span id="arrivedSupplierDisplay"></span></div>
+                                <div style="color: #6B7280;"><strong>Product:</strong> <span id="arrivedProductDisplay"></span></div>
+                                <div style="color: #6B7280;"><strong>Original Quantity:</strong> <span id="arrivedQtyDisplay"></span></div>
+                            </div>
+                            
+                            <!-- Editable transport details -->
+                            <div style="color: #059669; font-weight: 600; font-size: 0.85rem; margin-bottom: 0.5rem;">✏️ Transport Details (Editable - verify and correct if needed):</div>
+                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem;">
+                                <div>
+                                    <label style="display: block; font-weight: 600; margin-bottom: 0.25rem; font-size: 0.85rem;">Company:</label>
+                                    <input type="text" id="arrivedCompany" style="width: 100%; padding: 0.5rem; border: 1px solid #D1D5DB; border-radius: 4px; background: #FFFFFF;" placeholder="Company name">
+                                </div>
+                                <div>
+                                    <label style="display: block; font-weight: 600; margin-bottom: 0.25rem; font-size: 0.85rem;">Driver:</label>
+                                    <input type="text" id="arrivedDriver" style="width: 100%; padding: 0.5rem; border: 1px solid #D1D5DB; border-radius: 4px; background: #FFFFFF;" placeholder="Driver name">
+                                </div>
+                                <div>
+                                    <label style="display: block; font-weight: 600; margin-bottom: 0.25rem; font-size: 0.85rem;">Truck Licence:</label>
+                                    <input type="text" id="arrivedTruckLicence" style="width: 100%; padding: 0.5rem; border: 1px solid #D1D5DB; border-radius: 4px; background: #FFFFFF;" placeholder="Truck plate">
+                                </div>
+                                <div>
+                                    <label style="display: block; font-weight: 600; margin-bottom: 0.25rem; font-size: 0.85rem;">Trailer Licence:</label>
+                                    <input type="text" id="arrivedTrailerLicence" style="width: 100%; padding: 0.5rem; border: 1px solid #D1D5DB; border-radius: 4px; background: #FFFFFF;" placeholder="Trailer plate (if any)">
+                                </div>
+                            </div>
                         </div>
                         
                         <!-- SECTION 2: DELIVERY DOCUMENTATION -->
@@ -1695,6 +1810,9 @@ if (currentUser.department === 'Transport') {
                 tabs += '<div class="nav-tab" onclick="showView(\'warehouse\')">📦 Warehouse</div>';
                 tabs += '<div class="nav-tab" onclick="showView(\'inventory\')">📦 Inventory</div>';
             }
+            
+            // REPORT tab for all users (permissions managed later)
+            tabs += '<div class="nav-tab" onclick="showView(\'report\')">📊 REPORT</div>';
 
             navTabs.innerHTML = tabs;
         }
@@ -1769,6 +1887,14 @@ if (currentUser.department === 'Transport') {
                     document.getElementById('managementInventoryContent').classList.remove('hidden');
                     loadInventoryDashboard(); // Existing Management view
                 }
+            } else if (viewName === 'report') {
+                document.getElementById('reportView').classList.remove('hidden');
+                // Set default dates (last 30 days)
+                const today = new Date();
+                const thirtyDaysAgo = new Date(today);
+                thirtyDaysAgo.setDate(today.getDate() - 30);
+                document.getElementById('reportDateFrom').valueAsDate = thirtyDaysAgo;
+                document.getElementById('reportDateTo').valueAsDate = today;
             }
         }
 
@@ -6027,24 +6153,23 @@ window.onclick = function(event) {
         }
         
         function showMarkArrivedModal(shipmentID, product, quantity, supplier, driver, company, truckLicence, trailerLicence) {
+            // Store basic shipment info
             document.getElementById('arrivedShipmentID').value = shipmentID;
             document.getElementById('arrivedShipmentQty').value = quantity;
-            document.getElementById('arrivedDriver').value = driver || '';
+            document.getElementById('arrivedSupplier').value = supplier;
+            document.getElementById('arrivedProduct').value = product;
+            
+            // Populate read-only display fields
+            document.getElementById('arrivedShipmentIDDisplay').textContent = shipmentID;
+            document.getElementById('arrivedSupplierDisplay').textContent = supplier;
+            document.getElementById('arrivedProductDisplay').textContent = product;
+            document.getElementById('arrivedQtyDisplay').textContent = new Intl.NumberFormat().format(quantity) + ' L';
+            
+            // Populate EDITABLE transport details (pre-filled but changeable)
             document.getElementById('arrivedCompany').value = company || '';
+            document.getElementById('arrivedDriver').value = driver || '';
             document.getElementById('arrivedTruckLicence').value = truckLicence || '';
             document.getElementById('arrivedTrailerLicence').value = trailerLicence || '';
-            
-            // Show shipment info in read-only section
-            document.getElementById('arrivedShipmentDetails').innerHTML = `
-                <div style="color: #6B7280;"><strong>Shipment ID:</strong> ${shipmentID}</div>
-                <div style="color: #6B7280;"><strong>Supplier:</strong> ${supplier}</div>
-                <div style="color: #6B7280;"><strong>Product:</strong> ${product}</div>
-                <div style="color: #6B7280;"><strong>Original Quantity:</strong> ${new Intl.NumberFormat().format(quantity)} L</div>
-                <div style="color: #6B7280;"><strong>Company:</strong> ${company || 'Not specified'}</div>
-                <div style="color: #6B7280;"><strong>Driver:</strong> ${driver || 'Not specified'}</div>
-                <div style="color: #6B7280;"><strong>Truck Licence:</strong> ${truckLicence || 'Not specified'}</div>
-                ${trailerLicence ? `<div style="color: #6B7280;"><strong>Trailer Licence:</strong> ${trailerLicence}</div>` : ''}
-            `;
             
             // Populate reservoir dropdown - only show reservoirs matching this fuel type
             const select = document.getElementById('arrivedTargetReservoir');
@@ -6116,6 +6241,12 @@ window.onclick = function(event) {
             const flowMeterStop = document.getElementById('arrivedFlowStop').value;
             const confirmedQty = document.getElementById('arrivedConfirmedQty').value;
             
+            // Get editable transport details (corrected by warehouse)
+            const company = document.getElementById('arrivedCompany').value;
+            const driver = document.getElementById('arrivedDriver').value;
+            const truckLicence = document.getElementById('arrivedTruckLicence').value;
+            const trailerLicence = document.getElementById('arrivedTrailerLicence').value;
+            
             // Validate all required fields
             if (!targetReservoir) {
                 alert('Please select a target reservoir');
@@ -6163,7 +6294,12 @@ window.onclick = function(event) {
                             flowMeterID: flowMeterID,
                             flowMeterStart: parseFloat(flowMeterStart),
                             flowMeterStop: parseFloat(flowMeterStop),
-                            confirmedQty: parseFloat(confirmedQty)
+                            confirmedQty: parseFloat(confirmedQty),
+                            // Warehouse-corrected transport details
+                            company: company,
+                            driver: driver,
+                            truckLicence: truckLicence,
+                            trailerLicence: trailerLicence
                         },
                         updatedBy: currentUser.name
                     })
@@ -6219,6 +6355,7 @@ window.onclick = function(event) {
             driversData.forEach(driver => {
                 driverSelect.innerHTML += `<option value="${driver.driverName}">${driver.driverName}</option>`;
             });
+            driverSelect.innerHTML += '<option value="CUSTOM">✏️ Custom (Enter manually)</option>';
             
             // Populate company dropdown
             const companySelect = document.getElementById('transportCompany');
@@ -6226,19 +6363,68 @@ window.onclick = function(event) {
             transportCompaniesData.forEach(company => {
                 companySelect.innerHTML += `<option value="${company.companyName}">${company.companyName}</option>`;
             });
+            companySelect.innerHTML += '<option value="CUSTOM">✏️ Custom (Enter manually)</option>';
+        }
+        
+        // Toggle custom driver input
+        function toggleCustomDriver() {
+            const driverSelect = document.getElementById('transportDriver');
+            const customInput = document.getElementById('transportDriverCustom');
+            
+            if (driverSelect.value === 'CUSTOM') {
+                customInput.style.display = 'block';
+                customInput.focus();
+            } else {
+                customInput.style.display = 'none';
+                customInput.value = '';
+            }
+        }
+        
+        // Toggle custom company input
+        function toggleCustomCompany() {
+            const companySelect = document.getElementById('transportCompany');
+            const customInput = document.getElementById('transportCompanyCustom');
+            
+            if (companySelect.value === 'CUSTOM') {
+                customInput.style.display = 'block';
+                customInput.focus();
+            } else {
+                customInput.style.display = 'none';
+                customInput.value = '';
+            }
         }
         
         async function submitTransportInbound() {
             const supplier = document.getElementById('transportSupplier').value;
             const fuelType = document.getElementById('transportFuelType').value;
             const quantity = document.getElementById('transportQuantity').value;
-            const driver = document.getElementById('transportDriver').value;
-            const company = document.getElementById('transportCompany').value;
+            let driver = document.getElementById('transportDriver').value;
+            let company = document.getElementById('transportCompany').value;
             const eta = document.getElementById('transportETA').value;
             const truckLicence = document.getElementById('transportTruckLicence').value;
             const trailerLicence = document.getElementById('transportTrailerLicence').value;
             const freightForwarder = document.getElementById('transportFreightForwarder').value;
             const warehouseLocation = document.getElementById('transportWarehouseLocation').value;
+            
+            // Handle custom driver
+            if (driver === 'CUSTOM') {
+                const customDriver = document.getElementById('transportDriverCustom').value.trim();
+                if (!customDriver) {
+                    alert('Please enter a custom driver name');
+                    return;
+                }
+                driver = customDriver;
+            }
+            
+            // Handle custom company
+            if (company === 'CUSTOM') {
+                const customCompany = document.getElementById('transportCompanyCustom').value.trim();
+                if (!customCompany) {
+                    alert('Please enter a custom company name');
+                    return;
+                }
+                company = customCompany;
+            }
             
             if (!supplier || !fuelType || !quantity || !driver || !company || !eta || !truckLicence || !freightForwarder || !warehouseLocation) {
                 alert('Please fill in all required fields (marked with *)');
@@ -6286,6 +6472,10 @@ window.onclick = function(event) {
                 document.getElementById('transportQuantity').value = '';
                 document.getElementById('transportDriver').value = '';
                 document.getElementById('transportCompany').value = '';
+                document.getElementById('transportDriverCustom').value = '';
+                document.getElementById('transportDriverCustom').style.display = 'none';
+                document.getElementById('transportCompanyCustom').value = '';
+                document.getElementById('transportCompanyCustom').style.display = 'none';
                 document.getElementById('transportETA').value = '';
                 document.getElementById('transportTruckLicence').value = '';
                 document.getElementById('transportTrailerLicence').value = '';
@@ -6620,6 +6810,234 @@ window.onclick = function(event) {
             
             // Update new stock calculation
             showArrivedCurrentStock();
+        }
+        
+        // ===== REPORT FUNCTIONS =====
+        
+        let reportData = [];
+        
+        async function generateReport() {
+            const dateFrom = document.getElementById('reportDateFrom').value;
+            const dateTo = document.getElementById('reportDateTo').value;
+            const reportType = document.querySelector('input[name="reportType"]:checked').value;
+            
+            if (!dateFrom || !dateTo) {
+                alert('Please select both From and To dates');
+                return;
+            }
+            
+            showLoading('Generating report...');
+            
+            try {
+                // Get selected status filters
+                const selectedStatuses = [];
+                if (document.getElementById('filterCreated').checked) selectedStatuses.push('Created');
+                if (document.getElementById('filterInTransit').checked) selectedStatuses.push('In Transit');
+                if (document.getElementById('filterArrived').checked) selectedStatuses.push('Arrived');
+                if (document.getElementById('filterCancelled').checked) selectedStatuses.push('Cancelled');
+                
+                if (reportType === 'inbound') {
+                    await generateInboundReport(dateFrom, dateTo, selectedStatuses);
+                } else if (reportType === 'orders') {
+                    await generateOrdersReport(dateFrom, dateTo);
+                } else if (reportType === 'inventory') {
+                    await generateInventoryReport(dateFrom, dateTo);
+                }
+                
+                hideLoading();
+                
+            } catch (error) {
+                hideLoading();
+                console.error('Error generating report:', error);
+                alert('Error generating report. Please try again.');
+            }
+        }
+        
+        async function generateInboundReport(dateFrom, dateTo, selectedStatuses) {
+            // Load inbound shipments from Google Sheets
+            const apiUrl = `https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_ID}/values/Inbound_Shipments!A2:AI1000?key=${API_KEY}`;
+            const response = await fetch(apiUrl);
+            const data = await response.json();
+            
+            if (!data.values || data.values.length === 0) {
+                document.getElementById('reportResults').style.display = 'block';
+                document.getElementById('reportSummary').innerHTML = 'No data found';
+                document.getElementById('reportTable').innerHTML = '<p>No inbound shipments found</p>';
+                return;
+            }
+            
+            // Filter by date and status
+            const fromDate = new Date(dateFrom);
+            const toDate = new Date(dateTo);
+            toDate.setHours(23, 59, 59, 999); // Include entire end date
+            
+            reportData = data.values.filter(row => {
+                const createdDate = row[10] ? new Date(row[10]) : null; // Column K: Created_Date
+                if (!createdDate) return false;
+                
+                const inDateRange = createdDate >= fromDate && createdDate <= toDate;
+                
+                // If no statuses selected, show all
+                if (selectedStatuses.length === 0) return inDateRange;
+                
+                // Otherwise filter by selected statuses
+                const status = row[7] || ''; // Column H: Status
+                return inDateRange && selectedStatuses.includes(status);
+            });
+            
+            // Display results
+            displayInboundReport();
+        }
+        
+        function displayInboundReport() {
+            document.getElementById('reportResults').style.display = 'block';
+            
+            // Summary
+            const totalShipments = reportData.length;
+            const totalQuantity = reportData.reduce((sum, row) => sum + (parseFloat(row[3]) || 0), 0);
+            const arrived = reportData.filter(row => row[7] === 'Arrived').length;
+            const inTransit = reportData.filter(row => row[7] === 'In Transit').length;
+            const created = reportData.filter(row => row[7] === 'Created').length;
+            const cancelled = reportData.filter(row => row[7] === 'Cancelled').length;
+            
+            document.getElementById('reportSummary').innerHTML = `
+                <strong>Total Shipments:</strong> ${totalShipments} | 
+                <strong>Total Quantity:</strong> ${new Intl.NumberFormat().format(totalQuantity)} L | 
+                <strong>Created:</strong> ${created} | 
+                <strong>In Transit:</strong> ${inTransit} | 
+                <strong>Arrived:</strong> ${arrived} | 
+                <strong>Cancelled:</strong> ${cancelled}
+            `;
+            
+            // Table
+            let html = `
+                <table class="orders-table">
+                    <thead>
+                        <tr>
+                            <th>Shipment ID</th>
+                            <th>Created Date</th>
+                            <th>Supplier</th>
+                            <th>Product</th>
+                            <th>Quantity (L)</th>
+                            <th>Status</th>
+                            <th>ETA</th>
+                            <th>Actual Arrival</th>
+                            <th>Truck Licence</th>
+                            <th>Warehouse Location</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+            `;
+            
+            reportData.forEach(row => {
+                const shipmentID = row[0];
+                const createdDate = row[10] ? new Date(row[10]).toLocaleDateString() : '-';
+                const supplier = row[1];
+                const product = row[2];
+                const quantity = parseFloat(row[3]) || 0;
+                const status = row[7] || 'Created';
+                const eta = row[5] || '-';
+                const actualArrival = row[8] ? new Date(row[8]).toLocaleDateString() : '-';
+                const truckLicence = row[18] || '-';
+                const warehouseLocation = row[21] || '-';
+                
+                const statusColors = {
+                    'Created': '#6B7280',
+                    'In Transit': '#3B82F6',
+                    'Arrived': '#059669',
+                    'Cancelled': '#DC2626'
+                };
+                const statusColor = statusColors[status] || '#6B7280';
+                
+                html += `
+                    <tr>
+                        <td><strong>${shipmentID}</strong></td>
+                        <td>${createdDate}</td>
+                        <td>${supplier}</td>
+                        <td>${product}</td>
+                        <td>${new Intl.NumberFormat().format(quantity)}</td>
+                        <td><span style="color: ${statusColor}; font-weight: 600;">${status}</span></td>
+                        <td>${eta}</td>
+                        <td>${actualArrival}</td>
+                        <td>${truckLicence}</td>
+                        <td>${warehouseLocation}</td>
+                    </tr>
+                `;
+            });
+            
+            html += '</tbody></table>';
+            document.getElementById('reportTable').innerHTML = html;
+        }
+        
+        async function generateOrdersReport(dateFrom, dateTo) {
+            document.getElementById('reportResults').style.display = 'block';
+            document.getElementById('reportSummary').innerHTML = 'Orders report coming soon! This will show sales orders within the date range.';
+            document.getElementById('reportTable').innerHTML = '<p>Feature under development...</p>';
+            reportData = [];
+        }
+        
+        async function generateInventoryReport(dateFrom, dateTo) {
+            document.getElementById('reportResults').style.display = 'block';
+            document.getElementById('reportSummary').innerHTML = 'Inventory log report coming soon! This will show all inventory changes within the date range.';
+            document.getElementById('reportTable').innerHTML = '<p>Feature under development...</p>';
+            reportData = [];
+        }
+        
+        function exportReportToExcel() {
+            if (!reportData || reportData.length === 0) {
+                alert('Please generate a report first before exporting');
+                return;
+            }
+            
+            const reportType = document.querySelector('input[name="reportType"]:checked').value;
+            
+            if (reportType === 'inbound') {
+                exportInboundToExcel();
+            } else {
+                alert('Export for this report type coming soon!');
+            }
+        }
+        
+        function exportInboundToExcel() {
+            // Prepare CSV data (Excel-compatible)
+            let csv = 'Shipment ID,Created Date,Supplier,Product,Quantity (L),Status,ETA,Actual Arrival,Truck Licence,Trailer Licence,Freight Forwarder,Warehouse Location,Delivery Note Nr,Confirmed Qty,Target Reservoir\n';
+            
+            reportData.forEach(row => {
+                const shipmentID = row[0] || '';
+                const createdDate = row[10] ? new Date(row[10]).toLocaleDateString() : '';
+                const supplier = row[1] || '';
+                const product = row[2] || '';
+                const quantity = row[3] || '0';
+                const status = row[7] || 'Created';
+                const eta = row[5] || '';
+                const actualArrival = row[8] ? new Date(row[8]).toLocaleDateString() : '';
+                const truckLicence = row[18] || '';
+                const trailerLicence = row[19] || '';
+                const freightForwarder = row[20] || '';
+                const warehouseLocation = row[21] || '';
+                const deliveryNoteNr = row[22] || '';
+                const confirmedQty = row[33] || '';
+                const targetReservoir = row[16] || '';
+                
+                csv += `"${shipmentID}","${createdDate}","${supplier}","${product}","${quantity}","${status}","${eta}","${actualArrival}","${truckLicence}","${trailerLicence}","${freightForwarder}","${warehouseLocation}","${deliveryNoteNr}","${confirmedQty}","${targetReservoir}"\n`;
+            });
+            
+            // Create download
+            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement('a');
+            const url = URL.createObjectURL(blob);
+            const dateFrom = document.getElementById('reportDateFrom').value;
+            const dateTo = document.getElementById('reportDateTo').value;
+            const fileName = `Inbound_Report_${dateFrom}_to_${dateTo}.csv`;
+            
+            link.setAttribute('href', url);
+            link.setAttribute('download', fileName);
+            link.style.visibility = 'hidden';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            
+            alert(`✅ Report exported to ${fileName}!\n\nOpen in Excel or Google Sheets.`);
         }
         
         
