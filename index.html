@@ -2758,6 +2758,11 @@ function loadApprovals() {
         
         // Check availability when product type or delivery date changes
         async function checkAvailability() {
+            // CRITICAL: Sales should NEVER see stock availability
+            if (currentUser && currentUser.department === 'Sales') {
+                return; // Exit immediately for Sales users
+            }
+            
             const productSelect = document.getElementById('productTypeSelect');
             const deliveryDateInput = document.getElementById('deliveryDateInput');
             const availabilityDisplay = document.getElementById('availabilityDisplay');
