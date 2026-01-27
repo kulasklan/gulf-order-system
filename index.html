@@ -1268,6 +1268,14 @@
                                     <input type="radio" name="reportType" value="inbound" checked style="margin-right: 0.5rem;">
                                     <span style="font-weight: 600;">Inbound Shipments</span>
                                 </label>
+                                <label style="display: flex; align-items: center; padding: 0.75rem; background: #ECFDF5; border: 2px solid #10B981; border-radius: 4px; cursor: pointer;">
+                                    <input type="radio" name="reportType" value="reservoir" style="margin-right: 0.5rem;">
+                                    <span style="font-weight: 600;">📊 Reservoir Report</span>
+                                </label>
+                                <label style="display: flex; align-items: center; padding: 0.75rem; background: #EFF6FF; border: 2px solid #3B82F6; border-radius: 4px; cursor: pointer;">
+                                    <input type="radio" name="reportType" value="import" style="margin-right: 0.5rem;">
+                                    <span style="font-weight: 600;">🚚 Import Tracker</span>
+                                </label>
                                 <label style="display: flex; align-items: center; padding: 0.75rem; background: #F9FAFB; border: 2px solid #E5E7EB; border-radius: 4px; cursor: pointer;">
                                     <input type="radio" name="reportType" value="orders" style="margin-right: 0.5rem;">
                                     <span style="font-weight: 600;">Sales Orders</span>
@@ -1373,7 +1381,7 @@
                         <!-- SECTION 2: DELIVERY DOCUMENTATION -->
                         <div style="margin-bottom: 1.5rem;">
                             <h3 style="margin: 0 0 0.75rem 0; color: #1F2937; font-size: 1rem;">📄 Delivery Documentation</h3>
-                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem;">
                                 <div>
                                     <label style="display: block; font-weight: 600; margin-bottom: 0.5rem; font-size: 0.9rem;">Delivery Note Nr: *</label>
                                     <input type="text" id="arrivedDeliveryNoteNr" required style="width: 100%; padding: 0.75rem; border: 1px solid #D1D5DB; border-radius: 4px;" placeholder="DN-2026-001">
@@ -1382,6 +1390,10 @@
                                     <label style="display: block; font-weight: 600; margin-bottom: 0.5rem; font-size: 0.9rem;">Delivery Note Qty (L): *</label>
                                     <input type="number" id="arrivedDeliveryNoteQty" required step="0.01" onchange="calculateArrivedDifferences()" style="width: 100%; padding: 0.75rem; border: 1px solid #D1D5DB; border-radius: 4px;" placeholder="20000">
                                 </div>
+                            </div>
+                            <div>
+                                <label style="display: block; font-weight: 600; margin-bottom: 0.5rem; font-size: 0.9rem;">E-AD Number (Electronic Administrative Document): *</label>
+                                <input type="text" id="arrivedEADNumber" required style="width: 100%; padding: 0.75rem; border: 1px solid #D1D5DB; border-radius: 4px;" placeholder="26МК402000000000025А9">
                             </div>
                         </div>
                         
@@ -6184,6 +6196,7 @@ window.onclick = function(event) {
             // Clear all measurement fields
             document.getElementById('arrivedDeliveryNoteNr').value = '';
             document.getElementById('arrivedDeliveryNoteQty').value = '';
+            document.getElementById('arrivedEADNumber').value = '';
             document.getElementById('arrivedDensity').value = '';
             document.getElementById('arrivedScaleInlet').value = '';
             document.getElementById('arrivedScaleOutlet').value = '';
@@ -6233,6 +6246,7 @@ window.onclick = function(event) {
             const targetReservoir = document.getElementById('arrivedTargetReservoir').value;
             const deliveryNoteNr = document.getElementById('arrivedDeliveryNoteNr').value;
             const deliveryNoteQty = document.getElementById('arrivedDeliveryNoteQty').value;
+            const eadNumber = document.getElementById('arrivedEADNumber').value;
             const density = document.getElementById('arrivedDensity').value;
             const scaleInlet = document.getElementById('arrivedScaleInlet').value;
             const scaleOutlet = document.getElementById('arrivedScaleOutlet').value;
@@ -6254,6 +6268,10 @@ window.onclick = function(event) {
             }
             if (!deliveryNoteNr) {
                 alert('Please enter Delivery Note Number');
+                return;
+            }
+            if (!eadNumber) {
+                alert('Please enter E-AD Number');
                 return;
             }
             if (!deliveryNoteQty || !density || !scaleInlet || !scaleOutlet) {
@@ -6288,6 +6306,7 @@ window.onclick = function(event) {
                             targetReservoir: targetReservoir,
                             deliveryNoteNr: deliveryNoteNr,
                             deliveryNoteQty: parseFloat(deliveryNoteQty),
+                            eadNumber: eadNumber,
                             density: parseFloat(density),
                             scaleInlet: parseFloat(scaleInlet),
                             scaleOutlet: parseFloat(scaleOutlet),
@@ -6838,6 +6857,10 @@ window.onclick = function(event) {
                 
                 if (reportType === 'inbound') {
                     await generateInboundReport(dateFrom, dateTo, selectedStatuses);
+                } else if (reportType === 'reservoir') {
+                    await generateReservoirReport(dateFrom, dateTo);
+                } else if (reportType === 'import') {
+                    await generateImportReport(dateFrom, dateTo);
                 } else if (reportType === 'orders') {
                     await generateOrdersReport(dateFrom, dateTo);
                 } else if (reportType === 'inventory') {
@@ -6983,6 +7006,300 @@ window.onclick = function(event) {
             reportData = [];
         }
         
+        async function generateReservoirReport(dateFrom, dateTo) {
+            showLoading('Loading arrived shipments...');
+            
+            // Load inbound shipments that arrived on selected date
+            const apiUrl = `https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_ID}/values/Inbound_Shipments!A2:AJ1000?key=${API_KEY}`;
+            const response = await fetch(apiUrl);
+            const data = await response.json();
+            
+            if (!data.values || data.values.length === 0) {
+                document.getElementById('reportResults').style.display = 'block';
+                document.getElementById('reportSummary').innerHTML = 'No data found';
+                document.getElementById('reportTable').innerHTML = '<p>No shipments found</p>';
+                reportData = [];
+                hideLoading();
+                return;
+            }
+            
+            // Filter by arrival date and status = Arrived
+            const fromDate = new Date(dateFrom);
+            const toDate = new Date(dateTo);
+            toDate.setHours(23, 59, 59, 999);
+            
+            const arrivedShipments = data.values.filter(row => {
+                const status = row[7];
+                const arrivalDate = row[8] ? new Date(row[8]) : null; // Column I: Actual_Arrival_Date
+                
+                return status === 'Arrived' && arrivalDate && arrivalDate >= fromDate && arrivalDate <= toDate;
+            });
+            
+            reportData = arrivedShipments;
+            
+            if (arrivedShipments.length === 0) {
+                document.getElementById('reportResults').style.display = 'block';
+                document.getElementById('reportSummary').innerHTML = 'No arrivals found for this date range';
+                document.getElementById('reportTable').innerHTML = '<p>No shipments arrived during this period</p>';
+                hideLoading();
+                return;
+            }
+            
+            // Group by reservoir
+            const byReservoir = {};
+            arrivedShipments.forEach(row => {
+                const reservoir = row[16] || 'Unknown'; // Column Q: Target_Reservoir
+                if (!byReservoir[reservoir]) {
+                    byReservoir[reservoir] = [];
+                }
+                byReservoir[reservoir].push(row);
+            });
+            
+            // Display grouped results
+            displayReservoirReport(byReservoir, arrivedShipments);
+            hideLoading();
+        }
+        
+        function displayReservoirReport(byReservoir, allShipments) {
+            document.getElementById('reportResults').style.display = 'block';
+            
+            // Summary
+            const totalShipments = allShipments.length;
+            const totalConfirmed = allShipments.reduce((sum, row) => sum + (parseFloat(row[33]) || 0), 0); // Column AH: Confirmed_Qty
+            const reservoirCount = Object.keys(byReservoir).length;
+            
+            document.getElementById('reportSummary').innerHTML = `
+                <strong>Total Shipments:</strong> ${totalShipments} | 
+                <strong>Total Confirmed Volume:</strong> ${new Intl.NumberFormat().format(totalConfirmed)} L | 
+                <strong>Reservoirs Affected:</strong> ${reservoirCount}
+            `;
+            
+            // Tables by reservoir
+            let html = '';
+            
+            Object.keys(byReservoir).sort().forEach(reservoir => {
+                const shipments = byReservoir[reservoir];
+                const resTotal = shipments.reduce((sum, row) => sum + (parseFloat(row[33]) || 0), 0);
+                
+                html += `
+                    <div style="margin-bottom: 2rem;">
+                        <h3 style="background: #3B82F6; color: white; padding: 0.75rem 1rem; border-radius: 4px; margin-bottom: 0.5rem;">
+                            ${reservoir} - Total: ${new Intl.NumberFormat().format(resTotal)} L (${shipments.length} shipments)
+                        </h3>
+                        <table class="orders-table" style="font-size: 0.85rem;">
+                            <thead>
+                                <tr>
+                                    <th>R.br.</th>
+                                    <th>Company</th>
+                                    <th>Supplier</th>
+                                    <th>Driver</th>
+                                    <th>Delivery Note</th>
+                                    <th>Truck</th>
+                                    <th>Density</th>
+                                    <th>Scale In</th>
+                                    <th>Scale Out</th>
+                                    <th>Scale Diff</th>
+                                    <th>VvAGA</th>
+                                    <th>Flow Start</th>
+                                    <th>Flow Stop</th>
+                                    <th>Flow Diff</th>
+                                    <th>Confirmed</th>
+                                    <th>E-AD Nr</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                `;
+                
+                shipments.forEach((row, idx) => {
+                    // Parse notes for company and driver
+                    const notes = row[15] || '';
+                    let company = '', driver = '';
+                    if (notes.includes('Driver:')) {
+                        const driverMatch = notes.match(/Driver:\s*([^,]+)/);
+                        if (driverMatch) driver = driverMatch[1].trim();
+                    }
+                    if (notes.includes('Company:')) {
+                        const companyMatch = notes.match(/Company:\s*(.+)/);
+                        if (companyMatch) company = companyMatch[1].trim();
+                    }
+                    
+                    html += `
+                        <tr>
+                            <td>${idx + 1}</td>
+                            <td>${company || '-'}</td>
+                            <td>${row[1] || '-'}</td>
+                            <td>${driver || '-'}</td>
+                            <td>${row[22] || '-'}</td>
+                            <td>${row[18] || '-'}</td>
+                            <td>${row[24] || '-'}</td>
+                            <td>${row[25] ? new Intl.NumberFormat().format(parseFloat(row[25])) : '-'}</td>
+                            <td>${row[26] ? new Intl.NumberFormat().format(parseFloat(row[26])) : '-'}</td>
+                            <td>${row[27] ? new Intl.NumberFormat().format(parseFloat(row[27])) : '-'}</td>
+                            <td>${row[28] ? new Intl.NumberFormat().format(parseFloat(row[28])) : '-'}</td>
+                            <td>${row[30] ? new Intl.NumberFormat().format(parseFloat(row[30])) : '-'}</td>
+                            <td>${row[31] ? new Intl.NumberFormat().format(parseFloat(row[31])) : '-'}</td>
+                            <td>${row[32] ? new Intl.NumberFormat().format(parseFloat(row[32])) : '-'}</td>
+                            <td><strong>${row[33] ? new Intl.NumberFormat().format(parseFloat(row[33])) : '-'}</strong></td>
+                            <td>${row[35] || '-'}</td>
+                        </tr>
+                    `;
+                });
+                
+                html += `
+                            </tbody>
+                        </table>
+                    </div>
+                `;
+            });
+            
+            document.getElementById('reportTable').innerHTML = html;
+        }
+        
+        async function generateImportReport(dateFrom, dateTo) {
+            showLoading('Loading import data...');
+            
+            // Load inbound shipments
+            const apiUrl = `https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_ID}/values/Inbound_Shipments!A2:AJ1000?key=${API_KEY}`;
+            const response = await fetch(apiUrl);
+            const data = await response.json();
+            
+            if (!data.values || data.values.length === 0) {
+                document.getElementById('reportResults').style.display = 'block';
+                document.getElementById('reportSummary').innerHTML = 'No data found';
+                document.getElementById('reportTable').innerHTML = '<p>No shipments found</p>';
+                reportData = [];
+                hideLoading();
+                return;
+            }
+            
+            // Filter by planned arrival date (loading date)
+            const fromDate = new Date(dateFrom);
+            const toDate = new Date(dateTo);
+            toDate.setHours(23, 59, 59, 999);
+            
+            const shipments = data.values.filter(row => {
+                const plannedDate = row[5] ? new Date(row[5]) : null; // Column F: Planned_Arrival
+                return plannedDate && plannedDate >= fromDate && plannedDate <= toDate;
+            });
+            
+            reportData = shipments;
+            
+            if (shipments.length === 0) {
+                document.getElementById('reportResults').style.display = 'block';
+                document.getElementById('reportSummary').innerHTML = 'No shipments found for this date range';
+                document.getElementById('reportTable').innerHTML = '<p>No imports during this period</p>';
+                hideLoading();
+                return;
+            }
+            
+            // Group by supplier
+            const bySupplier = {};
+            shipments.forEach(row => {
+                const supplier = row[1] || 'Unknown';
+                if (!bySupplier[supplier]) {
+                    bySupplier[supplier] = [];
+                }
+                bySupplier[supplier].push(row);
+            });
+            
+            displayImportReport(bySupplier, shipments);
+            hideLoading();
+        }
+        
+        function displayImportReport(bySupplier, allShipments) {
+            document.getElementById('reportResults').style.display = 'block';
+            
+            // Summary
+            const totalShipments = allShipments.length;
+            const totalQty = allShipments.reduce((sum, row) => sum + (parseFloat(row[3]) || 0), 0);
+            const supplierCount = Object.keys(bySupplier).length;
+            
+            document.getElementById('reportSummary').innerHTML = `
+                <strong>Total Shipments:</strong> ${totalShipments} | 
+                <strong>Total Planned Volume:</strong> ${new Intl.NumberFormat().format(totalQty)} L | 
+                <strong>Suppliers:</strong> ${supplierCount}
+            `;
+            
+            // Tables by supplier
+            let html = '';
+            
+            Object.keys(bySupplier).sort().forEach(supplier => {
+                const shipments = bySupplier[supplier];
+                const suppTotal = shipments.reduce((sum, row) => sum + (parseFloat(row[3]) || 0), 0);
+                
+                html += `
+                    <div style="margin-bottom: 2rem;">
+                        <h3 style="background: #10B981; color: white; padding: 0.75rem 1rem; border-radius: 4px; margin-bottom: 0.5rem;">
+                            ${supplier} - Total: ${new Intl.NumberFormat().format(suppTotal)} L (${shipments.length} shipments)
+                        </h3>
+                        <table class="orders-table" style="font-size: 0.85rem;">
+                            <thead>
+                                <tr>
+                                    <th>BR</th>
+                                    <th>Loading Date</th>
+                                    <th>Product</th>
+                                    <th>Qty (L)</th>
+                                    <th>Truck</th>
+                                    <th>Trailer</th>
+                                    <th>Driver</th>
+                                    <th>Company</th>
+                                    <th>Freight Fwd</th>
+                                    <th>Warehouse</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                `;
+                
+                shipments.forEach((row, idx) => {
+                    // Parse notes for driver and company
+                    const notes = row[15] || '';
+                    let company = '', driver = '';
+                    if (notes.includes('Driver:')) {
+                        const driverMatch = notes.match(/Driver:\s*([^,]+)/);
+                        if (driverMatch) driver = driverMatch[1].trim();
+                    }
+                    if (notes.includes('Company:')) {
+                        const companyMatch = notes.match(/Company:\s*(.+)/);
+                        if (companyMatch) company = companyMatch[1].trim();
+                    }
+                    
+                    const statusColors = {
+                        'Created': '#6B7280',
+                        'In Transit': '#3B82F6',
+                        'Arrived': '#059669',
+                        'Cancelled': '#DC2626'
+                    };
+                    const status = row[7] || 'Created';
+                    const statusColor = statusColors[status] || '#6B7280';
+                    
+                    html += `
+                        <tr>
+                            <td>${idx + 1}</td>
+                            <td>${row[5] || '-'}</td>
+                            <td>${row[2] || '-'}</td>
+                            <td>${new Intl.NumberFormat().format(parseFloat(row[3]) || 0)}</td>
+                            <td>${row[18] || '-'}</td>
+                            <td>${row[19] || '-'}</td>
+                            <td>${driver || '-'}</td>
+                            <td>${company || '-'}</td>
+                            <td>${row[20] || '-'}</td>
+                            <td>${row[21] || '-'}</td>
+                            <td><span style="color: ${statusColor}; font-weight: 600;">${status}</span></td>
+                        </tr>
+                    `;
+                });
+                
+                html += `
+                            </tbody>
+                        </table>
+                    </div>
+                `;
+            });
+            
+            document.getElementById('reportTable').innerHTML = html;
+        }
+        
         function exportReportToExcel() {
             if (!reportData || reportData.length === 0) {
                 alert('Please generate a report first before exporting');
@@ -6993,6 +7310,10 @@ window.onclick = function(event) {
             
             if (reportType === 'inbound') {
                 exportInboundToExcel();
+            } else if (reportType === 'reservoir') {
+                exportReservoirToExcel();
+            } else if (reportType === 'import') {
+                exportImportToExcel();
             } else {
                 alert('Export for this report type coming soon!');
             }
@@ -7038,6 +7359,138 @@ window.onclick = function(event) {
             document.body.removeChild(link);
             
             alert(`✅ Report exported to ${fileName}!\n\nOpen in Excel or Google Sheets.`);
+        }
+        
+        function exportReservoirToExcel() {
+            // Group by reservoir for cleaner export
+            const byReservoir = {};
+            reportData.forEach(row => {
+                const reservoir = row[16] || 'Unknown';
+                if (!byReservoir[reservoir]) {
+                    byReservoir[reservoir] = [];
+                }
+                byReservoir[reservoir].push(row);
+            });
+            
+            // Prepare CSV with sections by reservoir
+            let csv = '';
+            
+            Object.keys(byReservoir).sort().forEach((reservoir, resIdx) => {
+                const shipments = byReservoir[reservoir];
+                const total = shipments.reduce((sum, row) => sum + (parseFloat(row[33]) || 0), 0);
+                
+                // Reservoir header
+                if (resIdx > 0) csv += '\n'; // Blank line between reservoirs
+                csv += `"RESERVOIR: ${reservoir}","Total: ${total} L","Shipments: ${shipments.length}"\n`;
+                csv += '\n';
+                
+                // Column headers
+                csv += 'R.br.,Company,Supplier,Driver,Delivery Note,Truck,Density (kg/l),Scale Inlet (kg),Scale Outlet (kg),Scale Diff (kg),VvAGA (L),Flow Start,Flow Stop,Flow Diff (L),Confirmed (L),E-AD Number\n';
+                
+                // Data rows
+                shipments.forEach((row, idx) => {
+                    // Parse notes
+                    const notes = row[15] || '';
+                    let company = '', driver = '';
+                    if (notes.includes('Driver:')) {
+                        const driverMatch = notes.match(/Driver:\s*([^,]+)/);
+                        if (driverMatch) driver = driverMatch[1].trim();
+                    }
+                    if (notes.includes('Company:')) {
+                        const companyMatch = notes.match(/Company:\s*(.+)/);
+                        if (companyMatch) company = companyMatch[1].trim();
+                    }
+                    
+                    csv += `${idx + 1},"${company}","${row[1] || ''}","${driver}","${row[22] || ''}","${row[18] || ''}","${row[24] || ''}","${row[25] || ''}","${row[26] || ''}","${row[27] || ''}","${row[28] || ''}","${row[30] || ''}","${row[31] || ''}","${row[32] || ''}","${row[33] || ''}","${row[35] || ''}"\n`;
+                });
+                
+                // Reservoir total
+                csv += `\n"TOTAL",,,,,,,,,,,,,,"${total}"\n`;
+            });
+            
+            // Create download
+            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement('a');
+            const url = URL.createObjectURL(blob);
+            const dateFrom = document.getElementById('reportDateFrom').value;
+            const dateTo = document.getElementById('reportDateTo').value;
+            const dateStr = dateFrom === dateTo ? dateFrom.replace(/-/g, '.') : `${dateFrom}_to_${dateTo}`.replace(/-/g, '.');
+            const fileName = `Reservoir_Report_${dateStr}.csv`;
+            
+            link.setAttribute('href', url);
+            link.setAttribute('download', fileName);
+            link.style.visibility = 'hidden';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            
+            alert(`✅ Reservoir Report exported to ${fileName}!\n\nOpen in Excel or Google Sheets.\nContains ${Object.keys(byReservoir).length} reservoirs.`);
+        }
+        
+        function exportImportToExcel() {
+            // Group by supplier
+            const bySupplier = {};
+            reportData.forEach(row => {
+                const supplier = row[1] || 'Unknown';
+                if (!bySupplier[supplier]) {
+                    bySupplier[supplier] = [];
+                }
+                bySupplier[supplier].push(row);
+            });
+            
+            // Prepare CSV with sections by supplier
+            let csv = '';
+            
+            Object.keys(bySupplier).sort().forEach((supplier, suppIdx) => {
+                const shipments = bySupplier[supplier];
+                const total = shipments.reduce((sum, row) => sum + (parseFloat(row[3]) || 0), 0);
+                
+                // Supplier header
+                if (suppIdx > 0) csv += '\n'; // Blank line between suppliers
+                csv += `"SUPPLIER: ${supplier}","Total: ${total} L","Shipments: ${shipments.length}"\n`;
+                csv += '\n';
+                
+                // Column headers
+                csv += 'BR,Loading Date,Product,Qty (L),Truck,Trailer,Driver,Company,Freight Forwarder,Warehouse,Status\n';
+                
+                // Data rows
+                shipments.forEach((row, idx) => {
+                    // Parse notes
+                    const notes = row[15] || '';
+                    let company = '', driver = '';
+                    if (notes.includes('Driver:')) {
+                        const driverMatch = notes.match(/Driver:\s*([^,]+)/);
+                        if (driverMatch) driver = driverMatch[1].trim();
+                    }
+                    if (notes.includes('Company:')) {
+                        const companyMatch = notes.match(/Company:\s*(.+)/);
+                        if (companyMatch) company = companyMatch[1].trim();
+                    }
+                    
+                    csv += `${idx + 1},"${row[5] || ''}","${row[2] || ''}","${row[3] || '0'}","${row[18] || ''}","${row[19] || ''}","${driver}","${company}","${row[20] || ''}","${row[21] || ''}","${row[7] || 'Created'}"\n`;
+                });
+                
+                // Supplier total
+                csv += `\n"TOTAL",,,"${total}"\n`;
+            });
+            
+            // Create download
+            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement('a');
+            const url = URL.createObjectURL(blob);
+            const dateFrom = document.getElementById('reportDateFrom').value;
+            const dateTo = document.getElementById('reportDateTo').value;
+            const dateStr = dateFrom === dateTo ? dateFrom.replace(/-/g, '.') : `${dateFrom}_to_${dateTo}`.replace(/-/g, '.');
+            const fileName = `Import_${dateStr}.csv`;
+            
+            link.setAttribute('href', url);
+            link.setAttribute('download', fileName);
+            link.style.visibility = 'hidden';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            
+            alert(`✅ Import Report exported to ${fileName}!\n\nOpen in Excel or Google Sheets.\nContains ${Object.keys(bySupplier).length} suppliers.`);
         }
         
         
