@@ -7320,92 +7320,94 @@ window.onclick = function(event) {
         }
         
         function exportInboundToExcel() {
-            // Create new workbook
-            const wb = XLSX.utils.book_new();
-            
-            // Prepare data array
-            const allData = [];
-            
-            // Headers
-            allData.push(['Shipment ID', 'Created Date', 'Supplier', 'Product', 'Quantity (L)', 'Status', 'ETA', 'Actual Arrival', 'Truck Licence', 'Trailer Licence', 'Freight Forwarder', 'Warehouse Location', 'Delivery Note Nr', 'Confirmed Qty', 'Target Reservoir']);
+            // Build HTML with embedded CSS for Excel
+            let html = `<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <style>
+        table {
+            border-collapse: collapse;
+            font-family: Arial, sans-serif;
+            font-size: 11pt;
+        }
+        th, td {
+            border: 1px solid black;
+            padding: 5px 8px;
+            text-align: left;
+            max-width: 150px;
+            white-space: nowrap;
+            overflow: hidden;
+        }
+        th {
+            background-color: #E7E6E6;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+<table>
+<tr>
+    <th>Shipment ID</th>
+    <th>Created Date</th>
+    <th>Supplier</th>
+    <th>Product</th>
+    <th>Quantity (L)</th>
+    <th>Status</th>
+    <th>ETA</th>
+    <th>Actual Arrival</th>
+    <th>Truck Licence</th>
+    <th>Trailer Licence</th>
+    <th>Freight Forwarder</th>
+    <th>Warehouse Location</th>
+    <th>Delivery Note Nr</th>
+    <th>Confirmed Qty</th>
+    <th>Target Reservoir</th>
+</tr>
+`;
             
             // Data rows
             reportData.forEach(row => {
-                allData.push([
-                    row[0] || '',
-                    row[10] ? new Date(row[10]).toLocaleDateString() : '',
-                    row[1] || '',
-                    row[2] || '',
-                    parseFloat(row[3]) || 0,
-                    row[7] || 'Created',
-                    row[5] || '',
-                    row[8] ? new Date(row[8]).toLocaleDateString() : '',
-                    row[18] || '',
-                    row[19] || '',
-                    row[20] || '',
-                    row[21] || '',
-                    row[22] || '',
-                    parseFloat(row[33]) || '',
-                    row[16] || ''
-                ]);
+                html += `<tr>
+                    <td>${row[0] || ''}</td>
+                    <td>${row[10] ? new Date(row[10]).toLocaleDateString() : ''}</td>
+                    <td>${row[1] || ''}</td>
+                    <td>${row[2] || ''}</td>
+                    <td>${new Intl.NumberFormat().format(parseFloat(row[3]) || 0)}</td>
+                    <td>${row[7] || 'Created'}</td>
+                    <td>${row[5] || ''}</td>
+                    <td>${row[8] ? new Date(row[8]).toLocaleDateString() : ''}</td>
+                    <td>${row[18] || ''}</td>
+                    <td>${row[19] || ''}</td>
+                    <td>${row[20] || ''}</td>
+                    <td>${row[21] || ''}</td>
+                    <td>${row[22] || ''}</td>
+                    <td>${row[33] ? new Intl.NumberFormat().format(parseFloat(row[33])) : ''}</td>
+                    <td>${row[16] || ''}</td>
+                </tr>\n`;
             });
             
-            // Create worksheet
-            const ws = XLSX.utils.aoa_to_sheet(allData);
+            html += '</table>\n</body>\n</html>';
             
-            // Set column widths (max 19 characters)
-            const maxWidth = 19;
-            const colWidths = [];
-            
-            for (let c = 0; c < 15; c++) {
-                let maxLen = 0;
-                for (let r = 0; r < allData.length; r++) {
-                    if (allData[r] && allData[r][c]) {
-                        const cellLen = String(allData[r][c]).length;
-                        maxLen = Math.max(maxLen, cellLen);
-                    }
-                }
-                colWidths.push({ wch: Math.min(Math.max(maxLen, 8), maxWidth) });
-            }
-            ws['!cols'] = colWidths;
-            
-            // Add borders ONLY to cells with data (table borders)
-            const range = XLSX.utils.decode_range(ws['!ref']);
-            for (let R = range.s.r; R <= range.e.r; ++R) {
-                for (let C = range.s.c; C <= range.e.c; ++C) {
-                    const cellAddress = XLSX.utils.encode_cell({ r: R, c: C });
-                    
-                    // Only add borders if cell has data
-                    if (!ws[cellAddress] || !ws[cellAddress].v) continue;
-                    
-                    if (!ws[cellAddress].s) ws[cellAddress].s = {};
-                    ws[cellAddress].s.border = {
-                        top: { style: 'thin', color: { rgb: '000000' } },
-                        bottom: { style: 'thin', color: { rgb: '000000' } },
-                        left: { style: 'thin', color: { rgb: '000000' } },
-                        right: { style: 'thin', color: { rgb: '000000' } }
-                    };
-                }
-            }
-            
-            // Add worksheet to workbook
-            XLSX.utils.book_append_sheet(wb, ws, 'Inbound Shipments');
-            
-            // Generate filename
+            // Create download
+            const blob = new Blob([html], { type: 'application/vnd.ms-excel' });
+            const link = document.createElement('a');
+            const url = URL.createObjectURL(blob);
             const dateFrom = document.getElementById('reportDateFrom').value;
             const dateTo = document.getElementById('reportDateTo').value;
-            const fileName = `Inbound_Report_${dateFrom}_to_${dateTo}.xlsx`;
+            const fileName = `Inbound_Report_${dateFrom}_to_${dateTo}.xls`;
             
-            // Write file
-            XLSX.writeFile(wb, fileName);
+            link.setAttribute('href', url);
+            link.setAttribute('download', fileName);
+            link.style.visibility = 'hidden';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
             
-            alert(`✅ Report exported to ${fileName}!\n\nTable borders on data cells only.\nColumns auto-fitted (max 19 chars).`);
+            alert(`✅ Report exported to ${fileName}!\n\nHTML table with borders - Excel will open it perfectly.`);
         }
         
         function exportReservoirToExcel() {
-            // Create new workbook
-            const wb = XLSX.utils.book_new();
-            
             // Group by reservoir
             const byReservoir = {};
             reportData.forEach(row => {
@@ -7416,24 +7418,81 @@ window.onclick = function(event) {
                 byReservoir[reservoir].push(row);
             });
             
-            // Create data array for each reservoir
-            const allData = [];
+            // Build HTML with embedded CSS for Excel
+            let html = `<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <style>
+        table {
+            border-collapse: collapse;
+            font-family: Arial, sans-serif;
+            font-size: 11pt;
+            margin-bottom: 20px;
+        }
+        th, td {
+            border: 1px solid black;
+            padding: 5px 8px;
+            text-align: left;
+            max-width: 150px;
+            white-space: nowrap;
+            overflow: hidden;
+        }
+        th {
+            background-color: #E7E6E6;
+            font-weight: bold;
+        }
+        .header-row {
+            background-color: #4472C4;
+            color: white;
+            font-weight: bold;
+            font-size: 12pt;
+        }
+        .total-row {
+            background-color: #FFC000;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+`;
             
             Object.keys(byReservoir).sort().forEach((reservoir, resIdx) => {
                 const shipments = byReservoir[reservoir];
                 const total = shipments.reduce((sum, row) => sum + (parseFloat(row[33]) || 0), 0);
                 
-                // Add blank row between reservoirs
+                // Add gap between sections
                 if (resIdx > 0) {
-                    allData.push([]);
+                    html += '<br><br>\n';
                 }
                 
+                // Start table for this reservoir
+                html += '<table>\n';
+                
                 // Reservoir header
-                allData.push([`RESERVOIR: ${reservoir}`, `Total: ${new Intl.NumberFormat().format(total)} L`, `Shipments: ${shipments.length}`]);
-                allData.push([]); // Blank row
+                html += `<tr class="header-row">
+                    <td colspan="16">RESERVOIR: ${reservoir} | Total: ${new Intl.NumberFormat().format(total)} L | Shipments: ${shipments.length}</td>
+                </tr>\n`;
                 
                 // Column headers
-                allData.push(['R.br.', 'Company', 'Supplier', 'Driver', 'Delivery Note', 'Truck', 'Density (kg/l)', 'Scale Inlet (kg)', 'Scale Outlet (kg)', 'Scale Diff (kg)', 'VvAGA (L)', 'Flow Start', 'Flow Stop', 'Flow Diff (L)', 'Confirmed (L)', 'E-AD Number']);
+                html += `<tr>
+                    <th>R.br.</th>
+                    <th>Company</th>
+                    <th>Supplier</th>
+                    <th>Driver</th>
+                    <th>Delivery Note</th>
+                    <th>Truck</th>
+                    <th>Density (kg/l)</th>
+                    <th>Scale Inlet (kg)</th>
+                    <th>Scale Outlet (kg)</th>
+                    <th>Scale Diff (kg)</th>
+                    <th>VvAGA (L)</th>
+                    <th>Flow Start</th>
+                    <th>Flow Stop</th>
+                    <th>Flow Diff (L)</th>
+                    <th>Confirmed (L)</th>
+                    <th>E-AD Number</th>
+                </tr>\n`;
                 
                 // Data rows
                 shipments.forEach((row, idx) => {
@@ -7449,90 +7508,58 @@ window.onclick = function(event) {
                         if (companyMatch) company = companyMatch[1].trim();
                     }
                     
-                    allData.push([
-                        idx + 1,
-                        company,
-                        row[1] || '',
-                        driver,
-                        row[22] || '',
-                        row[18] || '',
-                        parseFloat(row[24]) || '',
-                        parseFloat(row[25]) || '',
-                        parseFloat(row[26]) || '',
-                        parseFloat(row[27]) || '',
-                        parseFloat(row[28]) || '',
-                        parseFloat(row[30]) || '',
-                        parseFloat(row[31]) || '',
-                        parseFloat(row[32]) || '',
-                        parseFloat(row[33]) || '',
-                        row[35] || ''
-                    ]);
+                    html += `<tr>
+                        <td>${idx + 1}</td>
+                        <td>${company}</td>
+                        <td>${row[1] || ''}</td>
+                        <td>${driver}</td>
+                        <td>${row[22] || ''}</td>
+                        <td>${row[18] || ''}</td>
+                        <td>${row[24] || ''}</td>
+                        <td>${row[25] ? new Intl.NumberFormat().format(parseFloat(row[25])) : ''}</td>
+                        <td>${row[26] ? new Intl.NumberFormat().format(parseFloat(row[26])) : ''}</td>
+                        <td>${row[27] ? new Intl.NumberFormat().format(parseFloat(row[27])) : ''}</td>
+                        <td>${row[28] ? new Intl.NumberFormat().format(parseFloat(row[28])) : ''}</td>
+                        <td>${row[30] ? new Intl.NumberFormat().format(parseFloat(row[30])) : ''}</td>
+                        <td>${row[31] ? new Intl.NumberFormat().format(parseFloat(row[31])) : ''}</td>
+                        <td>${row[32] ? new Intl.NumberFormat().format(parseFloat(row[32])) : ''}</td>
+                        <td>${row[33] ? new Intl.NumberFormat().format(parseFloat(row[33])) : ''}</td>
+                        <td>${row[35] || ''}</td>
+                    </tr>\n`;
                 });
                 
                 // Total row
-                allData.push(['TOTAL', '', '', '', '', '', '', '', '', '', '', '', '', '', total, '']);
+                html += `<tr class="total-row">
+                    <td colspan="14">TOTAL</td>
+                    <td>${new Intl.NumberFormat().format(total)}</td>
+                    <td></td>
+                </tr>\n`;
+                
+                html += '</table>\n';
             });
             
-            // Create worksheet
-            const ws = XLSX.utils.aoa_to_sheet(allData);
+            html += '</body>\n</html>';
             
-            // Set column widths (max 19 characters)
-            const maxWidth = 19;
-            const colWidths = [];
-            
-            // Calculate optimal width for each column
-            for (let c = 0; c < 16; c++) {
-                let maxLen = 0;
-                for (let r = 0; r < allData.length; r++) {
-                    if (allData[r] && allData[r][c]) {
-                        const cellLen = String(allData[r][c]).length;
-                        maxLen = Math.max(maxLen, cellLen);
-                    }
-                }
-                // Set width: min 8, max 19 characters
-                colWidths.push({ wch: Math.min(Math.max(maxLen, 8), maxWidth) });
-            }
-            ws['!cols'] = colWidths;
-            
-            // Add borders ONLY to cells with data (table borders)
-            const range = XLSX.utils.decode_range(ws['!ref']);
-            for (let R = range.s.r; R <= range.e.r; ++R) {
-                for (let C = range.s.c; C <= range.e.c; ++C) {
-                    const cellAddress = XLSX.utils.encode_cell({ r: R, c: C });
-                    
-                    // Only add borders if cell has data
-                    if (!ws[cellAddress] || !ws[cellAddress].v) continue;
-                    
-                    // Add border style
-                    if (!ws[cellAddress].s) ws[cellAddress].s = {};
-                    ws[cellAddress].s.border = {
-                        top: { style: 'thin', color: { rgb: '000000' } },
-                        bottom: { style: 'thin', color: { rgb: '000000' } },
-                        left: { style: 'thin', color: { rgb: '000000' } },
-                        right: { style: 'thin', color: { rgb: '000000' } }
-                    };
-                }
-            }
-            
-            // Add worksheet to workbook
-            XLSX.utils.book_append_sheet(wb, ws, 'Reservoir Report');
-            
-            // Generate filename
+            // Create download
+            const blob = new Blob([html], { type: 'application/vnd.ms-excel' });
+            const link = document.createElement('a');
+            const url = URL.createObjectURL(blob);
             const dateFrom = document.getElementById('reportDateFrom').value;
             const dateTo = document.getElementById('reportDateTo').value;
             const dateStr = dateFrom === dateTo ? dateFrom.replace(/-/g, '.') : `${dateFrom}_to_${dateTo}`.replace(/-/g, '.');
-            const fileName = `Reservoir_Report_${dateStr}.xlsx`;
+            const fileName = `Reservoir_Report_${dateStr}.xls`;
             
-            // Write file
-            XLSX.writeFile(wb, fileName);
+            link.setAttribute('href', url);
+            link.setAttribute('download', fileName);
+            link.style.visibility = 'hidden';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
             
-            alert(`✅ Reservoir Report exported to ${fileName}!\n\nTable borders applied only to data cells.\nColumns auto-fitted (max 19 chars).\nContains ${Object.keys(byReservoir).length} reservoirs.`);
+            alert(`✅ Reservoir Report exported to ${fileName}!\n\nHTML table with borders - Excel will open it perfectly.\nContains ${Object.keys(byReservoir).length} reservoirs.`);
         }
         
         function exportImportToExcel() {
-            // Create new workbook
-            const wb = XLSX.utils.book_new();
-            
             // Group by supplier
             const bySupplier = {};
             reportData.forEach(row => {
@@ -7543,24 +7570,76 @@ window.onclick = function(event) {
                 bySupplier[supplier].push(row);
             });
             
-            // Create data array
-            const allData = [];
+            // Build HTML with embedded CSS for Excel
+            let html = `<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <style>
+        table {
+            border-collapse: collapse;
+            font-family: Arial, sans-serif;
+            font-size: 11pt;
+            margin-bottom: 20px;
+        }
+        th, td {
+            border: 1px solid black;
+            padding: 5px 8px;
+            text-align: left;
+            max-width: 150px;
+            white-space: nowrap;
+            overflow: hidden;
+        }
+        th {
+            background-color: #E7E6E6;
+            font-weight: bold;
+        }
+        .header-row {
+            background-color: #10B981;
+            color: white;
+            font-weight: bold;
+            font-size: 12pt;
+        }
+        .total-row {
+            background-color: #FFC000;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+`;
             
             Object.keys(bySupplier).sort().forEach((supplier, suppIdx) => {
                 const shipments = bySupplier[supplier];
                 const total = shipments.reduce((sum, row) => sum + (parseFloat(row[3]) || 0), 0);
                 
-                // Add blank row between suppliers
+                // Add gap between sections
                 if (suppIdx > 0) {
-                    allData.push([]);
+                    html += '<br><br>\n';
                 }
                 
+                // Start table for this supplier
+                html += '<table>\n';
+                
                 // Supplier header
-                allData.push([`SUPPLIER: ${supplier}`, `Total: ${new Intl.NumberFormat().format(total)} L`, `Shipments: ${shipments.length}`]);
-                allData.push([]); // Blank row
+                html += `<tr class="header-row">
+                    <td colspan="11">SUPPLIER: ${supplier} | Total: ${new Intl.NumberFormat().format(total)} L | Shipments: ${shipments.length}</td>
+                </tr>\n`;
                 
                 // Column headers
-                allData.push(['BR', 'Loading Date', 'Product', 'Qty (L)', 'Truck', 'Trailer', 'Driver', 'Company', 'Freight Forwarder', 'Warehouse', 'Status']);
+                html += `<tr>
+                    <th>BR</th>
+                    <th>Loading Date</th>
+                    <th>Product</th>
+                    <th>Qty (L)</th>
+                    <th>Truck</th>
+                    <th>Trailer</th>
+                    <th>Driver</th>
+                    <th>Company</th>
+                    <th>Freight Forwarder</th>
+                    <th>Warehouse</th>
+                    <th>Status</th>
+                </tr>\n`;
                 
                 // Data rows
                 shipments.forEach((row, idx) => {
@@ -7576,76 +7655,50 @@ window.onclick = function(event) {
                         if (companyMatch) company = companyMatch[1].trim();
                     }
                     
-                    allData.push([
-                        idx + 1,
-                        row[5] || '',
-                        row[2] || '',
-                        parseFloat(row[3]) || 0,
-                        row[18] || '',
-                        row[19] || '',
-                        driver,
-                        company,
-                        row[20] || '',
-                        row[21] || '',
-                        row[7] || 'Created'
-                    ]);
+                    html += `<tr>
+                        <td>${idx + 1}</td>
+                        <td>${row[5] || ''}</td>
+                        <td>${row[2] || ''}</td>
+                        <td>${new Intl.NumberFormat().format(parseFloat(row[3]) || 0)}</td>
+                        <td>${row[18] || ''}</td>
+                        <td>${row[19] || ''}</td>
+                        <td>${driver}</td>
+                        <td>${company}</td>
+                        <td>${row[20] || ''}</td>
+                        <td>${row[21] || ''}</td>
+                        <td>${row[7] || 'Created'}</td>
+                    </tr>\n`;
                 });
                 
                 // Total row
-                allData.push(['TOTAL', '', '', total, '', '', '', '', '', '', '']);
+                html += `<tr class="total-row">
+                    <td colspan="3">TOTAL</td>
+                    <td>${new Intl.NumberFormat().format(total)}</td>
+                    <td colspan="7"></td>
+                </tr>\n`;
+                
+                html += '</table>\n';
             });
             
-            // Create worksheet
-            const ws = XLSX.utils.aoa_to_sheet(allData);
+            html += '</body>\n</html>';
             
-            // Set column widths (max 19 characters)
-            const maxWidth = 19;
-            const colWidths = [];
-            
-            for (let c = 0; c < 11; c++) {
-                let maxLen = 0;
-                for (let r = 0; r < allData.length; r++) {
-                    if (allData[r] && allData[r][c]) {
-                        const cellLen = String(allData[r][c]).length;
-                        maxLen = Math.max(maxLen, cellLen);
-                    }
-                }
-                colWidths.push({ wch: Math.min(Math.max(maxLen, 8), maxWidth) });
-            }
-            ws['!cols'] = colWidths;
-            
-            // Add borders ONLY to cells with data (table borders)
-            const range = XLSX.utils.decode_range(ws['!ref']);
-            for (let R = range.s.r; R <= range.e.r; ++R) {
-                for (let C = range.s.c; C <= range.e.c; ++C) {
-                    const cellAddress = XLSX.utils.encode_cell({ r: R, c: C });
-                    
-                    // Only add borders if cell has data
-                    if (!ws[cellAddress] || !ws[cellAddress].v) continue;
-                    
-                    if (!ws[cellAddress].s) ws[cellAddress].s = {};
-                    ws[cellAddress].s.border = {
-                        top: { style: 'thin', color: { rgb: '000000' } },
-                        bottom: { style: 'thin', color: { rgb: '000000' } },
-                        left: { style: 'thin', color: { rgb: '000000' } },
-                        right: { style: 'thin', color: { rgb: '000000' } }
-                    };
-                }
-            }
-            
-            // Add worksheet to workbook
-            XLSX.utils.book_append_sheet(wb, ws, 'Import Tracker');
-            
-            // Generate filename
+            // Create download
+            const blob = new Blob([html], { type: 'application/vnd.ms-excel' });
+            const link = document.createElement('a');
+            const url = URL.createObjectURL(blob);
             const dateFrom = document.getElementById('reportDateFrom').value;
             const dateTo = document.getElementById('reportDateTo').value;
             const dateStr = dateFrom === dateTo ? dateFrom.replace(/-/g, '.') : `${dateFrom}_to_${dateTo}`.replace(/-/g, '.');
-            const fileName = `Import_${dateStr}.xlsx`;
+            const fileName = `Import_${dateStr}.xls`;
             
-            // Write file
-            XLSX.writeFile(wb, fileName);
+            link.setAttribute('href', url);
+            link.setAttribute('download', fileName);
+            link.style.visibility = 'hidden';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
             
-            alert(`✅ Import Report exported to ${fileName}!\n\nTable borders on data cells only.\nColumns auto-fitted (max 19 chars).\nContains ${Object.keys(bySupplier).length} suppliers.`);
+            alert(`✅ Import Report exported to ${fileName}!\n\nHTML table with borders - Excel will open it perfectly.\nContains ${Object.keys(bySupplier).length} suppliers.`);
         }
         
         
