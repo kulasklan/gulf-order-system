@@ -7320,50 +7320,91 @@ window.onclick = function(event) {
         }
         
         function exportInboundToExcel() {
-            // Prepare TSV data (Tab-Separated Values - Excel-compatible)
-            let tsv = 'Shipment ID\tCreated Date\tSupplier\tProduct\tQuantity (L)\tStatus\tETA\tActual Arrival\tTruck Licence\tTrailer Licence\tFreight Forwarder\tWarehouse Location\tDelivery Note Nr\tConfirmed Qty\tTarget Reservoir\n';
+            // Create new workbook
+            const wb = XLSX.utils.book_new();
             
+            // Prepare data array
+            const allData = [];
+            
+            // Headers
+            allData.push(['Shipment ID', 'Created Date', 'Supplier', 'Product', 'Quantity (L)', 'Status', 'ETA', 'Actual Arrival', 'Truck Licence', 'Trailer Licence', 'Freight Forwarder', 'Warehouse Location', 'Delivery Note Nr', 'Confirmed Qty', 'Target Reservoir']);
+            
+            // Data rows
             reportData.forEach(row => {
-                const shipmentID = row[0] || '';
-                const createdDate = row[10] ? new Date(row[10]).toLocaleDateString() : '';
-                const supplier = row[1] || '';
-                const product = row[2] || '';
-                const quantity = row[3] || '0';
-                const status = row[7] || 'Created';
-                const eta = row[5] || '';
-                const actualArrival = row[8] ? new Date(row[8]).toLocaleDateString() : '';
-                const truckLicence = row[18] || '';
-                const trailerLicence = row[19] || '';
-                const freightForwarder = row[20] || '';
-                const warehouseLocation = row[21] || '';
-                const deliveryNoteNr = row[22] || '';
-                const confirmedQty = row[33] || '';
-                const targetReservoir = row[16] || '';
-                
-                // TAB-SEPARATED (no quotes needed)
-                tsv += `${shipmentID}\t${createdDate}\t${supplier}\t${product}\t${quantity}\t${status}\t${eta}\t${actualArrival}\t${truckLicence}\t${trailerLicence}\t${freightForwarder}\t${warehouseLocation}\t${deliveryNoteNr}\t${confirmedQty}\t${targetReservoir}\n`;
+                allData.push([
+                    row[0] || '',
+                    row[10] ? new Date(row[10]).toLocaleDateString() : '',
+                    row[1] || '',
+                    row[2] || '',
+                    parseFloat(row[3]) || 0,
+                    row[7] || 'Created',
+                    row[5] || '',
+                    row[8] ? new Date(row[8]).toLocaleDateString() : '',
+                    row[18] || '',
+                    row[19] || '',
+                    row[20] || '',
+                    row[21] || '',
+                    row[22] || '',
+                    parseFloat(row[33]) || '',
+                    row[16] || ''
+                ]);
             });
             
-            // Create download (Excel will auto-recognize tab-separated)
-            const blob = new Blob([tsv], { type: 'text/plain;charset=utf-8;' });
-            const link = document.createElement('a');
-            const url = URL.createObjectURL(blob);
+            // Create worksheet
+            const ws = XLSX.utils.aoa_to_sheet(allData);
+            
+            // Set column widths (max 19 characters)
+            const maxWidth = 19;
+            const colWidths = [];
+            
+            for (let c = 0; c < 15; c++) {
+                let maxLen = 0;
+                for (let r = 0; r < allData.length; r++) {
+                    if (allData[r] && allData[r][c]) {
+                        const cellLen = String(allData[r][c]).length;
+                        maxLen = Math.max(maxLen, cellLen);
+                    }
+                }
+                colWidths.push({ wch: Math.min(Math.max(maxLen, 8), maxWidth) });
+            }
+            ws['!cols'] = colWidths;
+            
+            // Add borders to all cells
+            const range = XLSX.utils.decode_range(ws['!ref']);
+            for (let R = range.s.r; R <= range.e.r; ++R) {
+                for (let C = range.s.c; C <= range.e.c; ++C) {
+                    const cellAddress = XLSX.utils.encode_cell({ r: R, c: C });
+                    if (!ws[cellAddress]) continue;
+                    
+                    if (!ws[cellAddress].s) ws[cellAddress].s = {};
+                    ws[cellAddress].s.border = {
+                        top: { style: 'thin', color: { rgb: '000000' } },
+                        bottom: { style: 'thin', color: { rgb: '000000' } },
+                        left: { style: 'thin', color: { rgb: '000000' } },
+                        right: { style: 'thin', color: { rgb: '000000' } }
+                    };
+                }
+            }
+            
+            // Add worksheet to workbook
+            XLSX.utils.book_append_sheet(wb, ws, 'Inbound Shipments');
+            
+            // Generate filename
             const dateFrom = document.getElementById('reportDateFrom').value;
             const dateTo = document.getElementById('reportDateTo').value;
-            const fileName = `Inbound_Report_${dateFrom}_to_${dateTo}.xls`;
+            const fileName = `Inbound_Report_${dateFrom}_to_${dateTo}.xlsx`;
             
-            link.setAttribute('href', url);
-            link.setAttribute('download', fileName);
-            link.style.visibility = 'hidden';
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
+            // Write file
+            XLSX.writeFile(wb, fileName);
             
-            alert(`✅ Report exported to ${fileName}!\n\nOpen in Excel - columns will be separated automatically.`);
+            alert(`✅ Report exported to ${fileName}!\n\nColumns auto-fitted with borders.\nMax width: 19 characters.`);
         }
         
         function exportReservoirToExcel() {
-            // Group by reservoir for cleaner export
+            // Create new workbook
+            const wb = XLSX.utils.book_new();
+            
+            // Group by reservoir
             const byReservoir = {};
             reportData.forEach(row => {
                 const reservoir = row[16] || 'Unknown';
@@ -7373,20 +7414,24 @@ window.onclick = function(event) {
                 byReservoir[reservoir].push(row);
             });
             
-            // Prepare TSV (Tab-Separated Values) with sections by reservoir
-            let tsv = '';
+            // Create data array for each reservoir
+            const allData = [];
             
             Object.keys(byReservoir).sort().forEach((reservoir, resIdx) => {
                 const shipments = byReservoir[reservoir];
                 const total = shipments.reduce((sum, row) => sum + (parseFloat(row[33]) || 0), 0);
                 
-                // Reservoir header
-                if (resIdx > 0) tsv += '\n'; // Blank line between reservoirs
-                tsv += `RESERVOIR: ${reservoir}\tTotal: ${total} L\tShipments: ${shipments.length}\n`;
-                tsv += '\n';
+                // Add blank row between reservoirs
+                if (resIdx > 0) {
+                    allData.push([]);
+                }
                 
-                // Column headers (TAB-SEPARATED)
-                tsv += 'R.br.\tCompany\tSupplier\tDriver\tDelivery Note\tTruck\tDensity (kg/l)\tScale Inlet (kg)\tScale Outlet (kg)\tScale Diff (kg)\tVvAGA (L)\tFlow Start\tFlow Stop\tFlow Diff (L)\tConfirmed (L)\tE-AD Number\n';
+                // Reservoir header
+                allData.push([`RESERVOIR: ${reservoir}`, `Total: ${new Intl.NumberFormat().format(total)} L`, `Shipments: ${shipments.length}`]);
+                allData.push([]); // Blank row
+                
+                // Column headers
+                allData.push(['R.br.', 'Company', 'Supplier', 'Driver', 'Delivery Note', 'Truck', 'Density (kg/l)', 'Scale Inlet (kg)', 'Scale Outlet (kg)', 'Scale Diff (kg)', 'VvAGA (L)', 'Flow Start', 'Flow Stop', 'Flow Diff (L)', 'Confirmed (L)', 'E-AD Number']);
                 
                 // Data rows
                 shipments.forEach((row, idx) => {
@@ -7402,34 +7447,88 @@ window.onclick = function(event) {
                         if (companyMatch) company = companyMatch[1].trim();
                     }
                     
-                    // TAB-SEPARATED (no quotes needed)
-                    tsv += `${idx + 1}\t${company}\t${row[1] || ''}\t${driver}\t${row[22] || ''}\t${row[18] || ''}\t${row[24] || ''}\t${row[25] || ''}\t${row[26] || ''}\t${row[27] || ''}\t${row[28] || ''}\t${row[30] || ''}\t${row[31] || ''}\t${row[32] || ''}\t${row[33] || ''}\t${row[35] || ''}\n`;
+                    allData.push([
+                        idx + 1,
+                        company,
+                        row[1] || '',
+                        driver,
+                        row[22] || '',
+                        row[18] || '',
+                        parseFloat(row[24]) || '',
+                        parseFloat(row[25]) || '',
+                        parseFloat(row[26]) || '',
+                        parseFloat(row[27]) || '',
+                        parseFloat(row[28]) || '',
+                        parseFloat(row[30]) || '',
+                        parseFloat(row[31]) || '',
+                        parseFloat(row[32]) || '',
+                        parseFloat(row[33]) || '',
+                        row[35] || ''
+                    ]);
                 });
                 
-                // Reservoir total
-                tsv += `\nTOTAL\t\t\t\t\t\t\t\t\t\t\t\t\t\t${total}\n`;
+                // Total row
+                allData.push(['TOTAL', '', '', '', '', '', '', '', '', '', '', '', '', '', total, '']);
             });
             
-            // Create download (Excel will auto-recognize tab-separated)
-            const blob = new Blob([tsv], { type: 'text/plain;charset=utf-8;' });
-            const link = document.createElement('a');
-            const url = URL.createObjectURL(blob);
+            // Create worksheet
+            const ws = XLSX.utils.aoa_to_sheet(allData);
+            
+            // Set column widths (max 19 characters)
+            const maxWidth = 19;
+            const colWidths = [];
+            
+            // Calculate optimal width for each column
+            for (let c = 0; c < 16; c++) {
+                let maxLen = 0;
+                for (let r = 0; r < allData.length; r++) {
+                    if (allData[r] && allData[r][c]) {
+                        const cellLen = String(allData[r][c]).length;
+                        maxLen = Math.max(maxLen, cellLen);
+                    }
+                }
+                // Set width: min 8, max 19 characters
+                colWidths.push({ wch: Math.min(Math.max(maxLen, 8), maxWidth) });
+            }
+            ws['!cols'] = colWidths;
+            
+            // Add borders to all cells
+            const range = XLSX.utils.decode_range(ws['!ref']);
+            for (let R = range.s.r; R <= range.e.r; ++R) {
+                for (let C = range.s.c; C <= range.e.c; ++C) {
+                    const cellAddress = XLSX.utils.encode_cell({ r: R, c: C });
+                    if (!ws[cellAddress]) continue;
+                    
+                    // Add border style
+                    if (!ws[cellAddress].s) ws[cellAddress].s = {};
+                    ws[cellAddress].s.border = {
+                        top: { style: 'thin', color: { rgb: '000000' } },
+                        bottom: { style: 'thin', color: { rgb: '000000' } },
+                        left: { style: 'thin', color: { rgb: '000000' } },
+                        right: { style: 'thin', color: { rgb: '000000' } }
+                    };
+                }
+            }
+            
+            // Add worksheet to workbook
+            XLSX.utils.book_append_sheet(wb, ws, 'Reservoir Report');
+            
+            // Generate filename
             const dateFrom = document.getElementById('reportDateFrom').value;
             const dateTo = document.getElementById('reportDateTo').value;
             const dateStr = dateFrom === dateTo ? dateFrom.replace(/-/g, '.') : `${dateFrom}_to_${dateTo}`.replace(/-/g, '.');
-            const fileName = `Reservoir_Report_${dateStr}.xls`;
+            const fileName = `Reservoir_Report_${dateStr}.xlsx`;
             
-            link.setAttribute('href', url);
-            link.setAttribute('download', fileName);
-            link.style.visibility = 'hidden';
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
+            // Write file
+            XLSX.writeFile(wb, fileName);
             
-            alert(`✅ Reservoir Report exported to ${fileName}!\n\nOpen in Excel - columns will be separated automatically.\nContains ${Object.keys(byReservoir).length} reservoirs.`);
+            alert(`✅ Reservoir Report exported to ${fileName}!\n\nColumns auto-fitted with borders.\nMax width: 19 characters.\nContains ${Object.keys(byReservoir).length} reservoirs.`);
         }
         
         function exportImportToExcel() {
+            // Create new workbook
+            const wb = XLSX.utils.book_new();
+            
             // Group by supplier
             const bySupplier = {};
             reportData.forEach(row => {
@@ -7440,20 +7539,24 @@ window.onclick = function(event) {
                 bySupplier[supplier].push(row);
             });
             
-            // Prepare TSV (Tab-Separated Values) with sections by supplier
-            let tsv = '';
+            // Create data array
+            const allData = [];
             
             Object.keys(bySupplier).sort().forEach((supplier, suppIdx) => {
                 const shipments = bySupplier[supplier];
                 const total = shipments.reduce((sum, row) => sum + (parseFloat(row[3]) || 0), 0);
                 
-                // Supplier header
-                if (suppIdx > 0) tsv += '\n'; // Blank line between suppliers
-                tsv += `SUPPLIER: ${supplier}\tTotal: ${total} L\tShipments: ${shipments.length}\n`;
-                tsv += '\n';
+                // Add blank row between suppliers
+                if (suppIdx > 0) {
+                    allData.push([]);
+                }
                 
-                // Column headers (TAB-SEPARATED)
-                tsv += 'BR\tLoading Date\tProduct\tQty (L)\tTruck\tTrailer\tDriver\tCompany\tFreight Forwarder\tWarehouse\tStatus\n';
+                // Supplier header
+                allData.push([`SUPPLIER: ${supplier}`, `Total: ${new Intl.NumberFormat().format(total)} L`, `Shipments: ${shipments.length}`]);
+                allData.push([]); // Blank row
+                
+                // Column headers
+                allData.push(['BR', 'Loading Date', 'Product', 'Qty (L)', 'Truck', 'Trailer', 'Driver', 'Company', 'Freight Forwarder', 'Warehouse', 'Status']);
                 
                 // Data rows
                 shipments.forEach((row, idx) => {
@@ -7469,31 +7572,74 @@ window.onclick = function(event) {
                         if (companyMatch) company = companyMatch[1].trim();
                     }
                     
-                    // TAB-SEPARATED (no quotes needed)
-                    tsv += `${idx + 1}\t${row[5] || ''}\t${row[2] || ''}\t${row[3] || '0'}\t${row[18] || ''}\t${row[19] || ''}\t${driver}\t${company}\t${row[20] || ''}\t${row[21] || ''}\t${row[7] || 'Created'}\n`;
+                    allData.push([
+                        idx + 1,
+                        row[5] || '',
+                        row[2] || '',
+                        parseFloat(row[3]) || 0,
+                        row[18] || '',
+                        row[19] || '',
+                        driver,
+                        company,
+                        row[20] || '',
+                        row[21] || '',
+                        row[7] || 'Created'
+                    ]);
                 });
                 
-                // Supplier total
-                tsv += `\nTOTAL\t\t\t${total}\n`;
+                // Total row
+                allData.push(['TOTAL', '', '', total, '', '', '', '', '', '', '']);
             });
             
-            // Create download (Excel will auto-recognize tab-separated)
-            const blob = new Blob([tsv], { type: 'text/plain;charset=utf-8;' });
-            const link = document.createElement('a');
-            const url = URL.createObjectURL(blob);
+            // Create worksheet
+            const ws = XLSX.utils.aoa_to_sheet(allData);
+            
+            // Set column widths (max 19 characters)
+            const maxWidth = 19;
+            const colWidths = [];
+            
+            for (let c = 0; c < 11; c++) {
+                let maxLen = 0;
+                for (let r = 0; r < allData.length; r++) {
+                    if (allData[r] && allData[r][c]) {
+                        const cellLen = String(allData[r][c]).length;
+                        maxLen = Math.max(maxLen, cellLen);
+                    }
+                }
+                colWidths.push({ wch: Math.min(Math.max(maxLen, 8), maxWidth) });
+            }
+            ws['!cols'] = colWidths;
+            
+            // Add borders to all cells
+            const range = XLSX.utils.decode_range(ws['!ref']);
+            for (let R = range.s.r; R <= range.e.r; ++R) {
+                for (let C = range.s.c; C <= range.e.c; ++C) {
+                    const cellAddress = XLSX.utils.encode_cell({ r: R, c: C });
+                    if (!ws[cellAddress]) continue;
+                    
+                    if (!ws[cellAddress].s) ws[cellAddress].s = {};
+                    ws[cellAddress].s.border = {
+                        top: { style: 'thin', color: { rgb: '000000' } },
+                        bottom: { style: 'thin', color: { rgb: '000000' } },
+                        left: { style: 'thin', color: { rgb: '000000' } },
+                        right: { style: 'thin', color: { rgb: '000000' } }
+                    };
+                }
+            }
+            
+            // Add worksheet to workbook
+            XLSX.utils.book_append_sheet(wb, ws, 'Import Tracker');
+            
+            // Generate filename
             const dateFrom = document.getElementById('reportDateFrom').value;
             const dateTo = document.getElementById('reportDateTo').value;
             const dateStr = dateFrom === dateTo ? dateFrom.replace(/-/g, '.') : `${dateFrom}_to_${dateTo}`.replace(/-/g, '.');
-            const fileName = `Import_${dateStr}.xls`;
+            const fileName = `Import_${dateStr}.xlsx`;
             
-            link.setAttribute('href', url);
-            link.setAttribute('download', fileName);
-            link.style.visibility = 'hidden';
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
+            // Write file
+            XLSX.writeFile(wb, fileName);
             
-            alert(`✅ Import Report exported to ${fileName}!\n\nOpen in Excel - columns will be separated automatically.\nContains ${Object.keys(bySupplier).length} suppliers.`);
+            alert(`✅ Import Report exported to ${fileName}!\n\nColumns auto-fitted with borders.\nMax width: 19 characters.\nContains ${Object.keys(bySupplier).length} suppliers.`);
         }
         
         
