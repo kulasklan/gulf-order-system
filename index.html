@@ -7369,12 +7369,14 @@ window.onclick = function(event) {
             }
             ws['!cols'] = colWidths;
             
-            // Add borders to all cells
+            // Add borders ONLY to cells with data (table borders)
             const range = XLSX.utils.decode_range(ws['!ref']);
             for (let R = range.s.r; R <= range.e.r; ++R) {
                 for (let C = range.s.c; C <= range.e.c; ++C) {
                     const cellAddress = XLSX.utils.encode_cell({ r: R, c: C });
-                    if (!ws[cellAddress]) continue;
+                    
+                    // Only add borders if cell has data
+                    if (!ws[cellAddress] || !ws[cellAddress].v) continue;
                     
                     if (!ws[cellAddress].s) ws[cellAddress].s = {};
                     ws[cellAddress].s.border = {
@@ -7397,7 +7399,7 @@ window.onclick = function(event) {
             // Write file
             XLSX.writeFile(wb, fileName);
             
-            alert(`✅ Report exported to ${fileName}!\n\nColumns auto-fitted with borders.\nMax width: 19 characters.`);
+            alert(`✅ Report exported to ${fileName}!\n\nTable borders on data cells only.\nColumns auto-fitted (max 19 chars).`);
         }
         
         function exportReservoirToExcel() {
@@ -7492,12 +7494,14 @@ window.onclick = function(event) {
             }
             ws['!cols'] = colWidths;
             
-            // Add borders to all cells
+            // Add borders ONLY to cells with data (table borders)
             const range = XLSX.utils.decode_range(ws['!ref']);
             for (let R = range.s.r; R <= range.e.r; ++R) {
                 for (let C = range.s.c; C <= range.e.c; ++C) {
                     const cellAddress = XLSX.utils.encode_cell({ r: R, c: C });
-                    if (!ws[cellAddress]) continue;
+                    
+                    // Only add borders if cell has data
+                    if (!ws[cellAddress] || !ws[cellAddress].v) continue;
                     
                     // Add border style
                     if (!ws[cellAddress].s) ws[cellAddress].s = {};
@@ -7522,7 +7526,7 @@ window.onclick = function(event) {
             // Write file
             XLSX.writeFile(wb, fileName);
             
-            alert(`✅ Reservoir Report exported to ${fileName}!\n\nColumns auto-fitted with borders.\nMax width: 19 characters.\nContains ${Object.keys(byReservoir).length} reservoirs.`);
+            alert(`✅ Reservoir Report exported to ${fileName}!\n\nTable borders applied only to data cells.\nColumns auto-fitted (max 19 chars).\nContains ${Object.keys(byReservoir).length} reservoirs.`);
         }
         
         function exportImportToExcel() {
@@ -7610,12 +7614,14 @@ window.onclick = function(event) {
             }
             ws['!cols'] = colWidths;
             
-            // Add borders to all cells
+            // Add borders ONLY to cells with data (table borders)
             const range = XLSX.utils.decode_range(ws['!ref']);
             for (let R = range.s.r; R <= range.e.r; ++R) {
                 for (let C = range.s.c; C <= range.e.c; ++C) {
                     const cellAddress = XLSX.utils.encode_cell({ r: R, c: C });
-                    if (!ws[cellAddress]) continue;
+                    
+                    // Only add borders if cell has data
+                    if (!ws[cellAddress] || !ws[cellAddress].v) continue;
                     
                     if (!ws[cellAddress].s) ws[cellAddress].s = {};
                     ws[cellAddress].s.border = {
@@ -7639,7 +7645,7 @@ window.onclick = function(event) {
             // Write file
             XLSX.writeFile(wb, fileName);
             
-            alert(`✅ Import Report exported to ${fileName}!\n\nColumns auto-fitted with borders.\nMax width: 19 characters.\nContains ${Object.keys(bySupplier).length} suppliers.`);
+            alert(`✅ Import Report exported to ${fileName}!\n\nTable borders on data cells only.\nColumns auto-fitted (max 19 chars).\nContains ${Object.keys(bySupplier).length} suppliers.`);
         }
         
         
