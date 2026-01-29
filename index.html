@@ -6993,10 +6993,130 @@ window.onclick = function(event) {
         }
         
         async function generateOrdersReport(dateFrom, dateTo) {
+            showLoading('Loading sales orders...');
+            
+            // Load sales orders from Google Sheets
+            const apiUrl = `https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_ID}/values/Sales_Orders!A2:P1000?key=${API_KEY}`;
+            
+            try {
+                const response = await fetch(apiUrl);
+                const data = await response.json();
+                
+                if (!data.values || data.values.length === 0) {
+                    document.getElementById('reportResults').style.display = 'block';
+                    document.getElementById('reportSummary').innerHTML = 'No sales orders found';
+                    document.getElementById('reportTable').innerHTML = '<p>No orders in the system</p>';
+                    reportData = [];
+                    hideLoading();
+                    return;
+                }
+                
+                // Filter by order date
+                const fromDate = new Date(dateFrom);
+                const toDate = new Date(dateTo);
+                toDate.setHours(23, 59, 59, 999);
+                
+                const filteredOrders = data.values.filter(row => {
+                    const orderDate = row[1] ? new Date(row[1]) : null; // Column B: Order_Date
+                    return orderDate && orderDate >= fromDate && orderDate <= toDate;
+                });
+                
+                reportData = filteredOrders;
+                
+                if (filteredOrders.length === 0) {
+                    document.getElementById('reportResults').style.display = 'block';
+                    document.getElementById('reportSummary').innerHTML = 'No orders found for this date range';
+                    document.getElementById('reportTable').innerHTML = '<p>No sales orders within selected dates</p>';
+                    hideLoading();
+                    return;
+                }
+                
+                // Display results
+                displayOrdersReport(filteredOrders);
+                hideLoading();
+                
+            } catch (error) {
+                console.error('Error loading sales orders:', error);
+                document.getElementById('reportResults').style.display = 'block';
+                document.getElementById('reportSummary').innerHTML = 'Error loading sales orders - Sheet may not exist';
+                document.getElementById('reportTable').innerHTML = '<p>Please ensure Sales_Orders sheet exists in your spreadsheet</p>';
+                reportData = [];
+                hideLoading();
+            }
+        }
+        
+        function displayOrdersReport(orders) {
             document.getElementById('reportResults').style.display = 'block';
-            document.getElementById('reportSummary').innerHTML = 'Orders report coming soon! This will show sales orders within the date range.';
-            document.getElementById('reportTable').innerHTML = '<p>Feature under development...</p>';
-            reportData = [];
+            
+            // Summary
+            const totalOrders = orders.length;
+            const totalQuantity = orders.reduce((sum, row) => sum + (parseFloat(row[4]) || 0), 0);
+            
+            document.getElementById('reportSummary').innerHTML = `
+                <strong>Total Orders:</strong> ${totalOrders} | 
+                <strong>Total Quantity:</strong> ${new Intl.NumberFormat().format(totalQuantity)} L
+            `;
+            
+            // Build table
+            let tableHTML = `
+                <div style="overflow-x: auto;">
+                    <table style="width: 100%; border-collapse: collapse;">
+                        <thead>
+                            <tr style="background: #4F46E5; color: white;">
+                                <th style="padding: 12px; text-align: left; border: 1px solid #ddd;">Order ID</th>
+                                <th style="padding: 12px; text-align: left; border: 1px solid #ddd;">Order Date</th>
+                                <th style="padding: 12px; text-align: left; border: 1px solid #ddd;">Customer</th>
+                                <th style="padding: 12px; text-align: left; border: 1px solid #ddd;">Product</th>
+                                <th style="padding: 12px; text-align: right; border: 1px solid #ddd;">Quantity (L)</th>
+                                <th style="padding: 12px; text-align: left; border: 1px solid #ddd;">Status</th>
+                                <th style="padding: 12px; text-align: left; border: 1px solid #ddd;">Delivery Date</th>
+                                <th style="padding: 12px; text-align: left; border: 1px solid #ddd;">Driver</th>
+                                <th style="padding: 12px; text-align: left; border: 1px solid #ddd;">Truck</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+            `;
+            
+            orders.forEach((row, idx) => {
+                const bgColor = idx % 2 === 0 ? '#F9FAFB' : 'white';
+                const orderID = row[0] || '';
+                const orderDate = row[1] ? new Date(row[1]).toLocaleDateString() : '';
+                const customer = row[2] || '';
+                const product = row[3] || '';
+                const quantity = parseFloat(row[4]) || 0;
+                const status = row[5] || 'Pending';
+                const deliveryDate = row[6] ? new Date(row[6]).toLocaleDateString() : '';
+                const driver = row[7] || '';
+                const truck = row[8] || '';
+                
+                // Status color
+                let statusColor = '#6B7280';
+                if (status === 'Delivered') statusColor = '#10B981';
+                else if (status === 'In Transit') statusColor = '#3B82F6';
+                else if (status === 'Cancelled') statusColor = '#EF4444';
+                
+                tableHTML += `
+                    <tr style="background: ${bgColor};">
+                        <td style="padding: 10px; border: 1px solid #ddd;">${orderID}</td>
+                        <td style="padding: 10px; border: 1px solid #ddd;">${orderDate}</td>
+                        <td style="padding: 10px; border: 1px solid #ddd;">${customer}</td>
+                        <td style="padding: 10px; border: 1px solid #ddd;">${product}</td>
+                        <td style="padding: 10px; border: 1px solid #ddd; text-align: right;">${new Intl.NumberFormat().format(quantity)}</td>
+                        <td style="padding: 10px; border: 1px solid #ddd;"><span style="color: ${statusColor}; font-weight: 600;">●</span> ${status}</td>
+                        <td style="padding: 10px; border: 1px solid #ddd;">${deliveryDate}</td>
+                        <td style="padding: 10px; border: 1px solid #ddd;">${driver}</td>
+                        <td style="padding: 10px; border: 1px solid #ddd;">${truck}</td>
+                    </tr>
+                `;
+            });
+            
+            tableHTML += `
+                        </tbody>
+                    </table>
+                </div>
+            `;
+            
+            document.getElementById('reportTable').innerHTML = tableHTML;
         }
         
         async function generateInventoryReport(dateFrom, dateTo) {
@@ -7314,6 +7434,8 @@ window.onclick = function(event) {
                 exportReservoirToExcel();
             } else if (reportType === 'import') {
                 exportImportToExcel();
+            } else if (reportType === 'orders') {
+                exportSalesOrdersToExcel();
             } else {
                 alert('Export for this report type coming soon!');
             }
@@ -7699,6 +7821,84 @@ window.onclick = function(event) {
             document.body.removeChild(link);
             
             alert(`✅ Import Report exported to ${fileName}!\n\nHTML table with borders - Excel will open it perfectly.\nContains ${Object.keys(bySupplier).length} suppliers.`);
+        }
+        
+        function exportSalesOrdersToExcel() {
+            // Build HTML with embedded CSS for Excel
+            let html = `<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <style>
+        table {
+            border-collapse: collapse;
+            font-family: Arial, sans-serif;
+            font-size: 11pt;
+        }
+        th, td {
+            border: 1px solid black;
+            padding: 5px 8px;
+            text-align: left;
+            max-width: 150px;
+            white-space: nowrap;
+            overflow: hidden;
+        }
+        th {
+            background-color: #E7E6E6;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+<table>
+<tr>
+    <th>Order ID</th>
+    <th>Order Date</th>
+    <th>Customer</th>
+    <th>Product</th>
+    <th>Quantity (L)</th>
+    <th>Status</th>
+    <th>Delivery Date</th>
+    <th>Driver</th>
+    <th>Truck</th>
+    <th>Notes</th>
+</tr>
+`;
+            
+            // Data rows
+            reportData.forEach(row => {
+                html += `<tr>
+                    <td>${row[0] || ''}</td>
+                    <td>${row[1] ? new Date(row[1]).toLocaleDateString() : ''}</td>
+                    <td>${row[2] || ''}</td>
+                    <td>${row[3] || ''}</td>
+                    <td>${new Intl.NumberFormat().format(parseFloat(row[4]) || 0)}</td>
+                    <td>${row[5] || 'Pending'}</td>
+                    <td>${row[6] ? new Date(row[6]).toLocaleDateString() : ''}</td>
+                    <td>${row[7] || ''}</td>
+                    <td>${row[8] || ''}</td>
+                    <td>${row[9] || ''}</td>
+                </tr>\n`;
+            });
+            
+            html += '</table>\n</body>\n</html>';
+            
+            // Create download
+            const blob = new Blob([html], { type: 'application/vnd.ms-excel' });
+            const link = document.createElement('a');
+            const url = URL.createObjectURL(blob);
+            const dateFrom = document.getElementById('reportDateFrom').value;
+            const dateTo = document.getElementById('reportDateTo').value;
+            const fileName = `Sales_Orders_${dateFrom}_to_${dateTo}.xls`;
+            
+            link.setAttribute('href', url);
+            link.setAttribute('download', fileName);
+            link.style.visibility = 'hidden';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            
+            alert(`✅ Sales Orders exported to ${fileName}!\n\nHTML table with borders - Excel will open it perfectly.\nTotal orders: ${reportData.length}`);
         }
         
         
