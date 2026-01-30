@@ -720,6 +720,64 @@
 
             <!-- Create Order View (Sales Managers) -->
             <div id="createOrderView" class="view-content hidden">
+                <!-- Daily Prices Display (Sales Manager Only) -->
+                <div id="salesManagerPricesDisplay" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 1.5rem; border-radius: 12px; margin-bottom: 2rem; color: white; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; flex-wrap: wrap; gap: 1rem;">
+                        <h3 style="margin: 0; font-size: 18px; display: flex; align-items: center; gap: 0.5rem;">
+                            💰 Current Prices
+                        </h3>
+                        <div style="display: flex; align-items: center; gap: 0.5rem;">
+                            <label style="font-size: 13px;">Date:</label>
+                            <input type="date" id="priceDisplayDate" onchange="loadDailyPricesForDate()" 
+                                   style="padding: 0.5rem; border: none; border-radius: 4px; font-size: 13px;">
+                        </div>
+                    </div>
+                    
+                    <div id="pricesContent">
+                        <!-- Regulatory Agencies Prices -->
+                        <div style="margin-bottom: 1rem;">
+                            <h4 style="margin: 0 0 0.5rem 0; font-size: 14px; opacity: 0.9;">Regulatory Agencies Prices</h4>
+                            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 0.75rem;">
+                                <div style="background: rgba(255,255,255,0.15); padding: 0.75rem; border-radius: 6px;">
+                                    <div style="font-size: 11px; opacity: 0.8; margin-bottom: 0.25rem;">DIESEL</div>
+                                    <div style="font-size: 20px; font-weight: 600;" id="displayRegDiesel">--</div>
+                                </div>
+                                <div style="background: rgba(255,255,255,0.15); padding: 0.75rem; border-radius: 6px;">
+                                    <div style="font-size: 11px; opacity: 0.8; margin-bottom: 0.25rem;">EUROSUPER 95</div>
+                                    <div style="font-size: 20px; font-weight: 600;" id="displayRegEurosuper95">--</div>
+                                </div>
+                                <div style="background: rgba(255,255,255,0.15); padding: 0.75rem; border-radius: 6px;">
+                                    <div style="font-size: 11px; opacity: 0.8; margin-bottom: 0.25rem;">EUROSUPER 98</div>
+                                    <div style="font-size: 20px; font-weight: 600;" id="displayRegEurosuper98">--</div>
+                                </div>
+                                <div style="background: rgba(255,255,255,0.15); padding: 0.75rem; border-radius: 6px;">
+                                    <div style="font-size: 11px; opacity: 0.8; margin-bottom: 0.25rem;">Extra Light</div>
+                                    <div style="font-size: 20px; font-weight: 600;" id="displayRegExtraLight">--</div>
+                                </div>
+                                <div style="background: rgba(255,255,255,0.15); padding: 0.75rem; border-radius: 6px;">
+                                    <div style="font-size: 11px; opacity: 0.8; margin-bottom: 0.25rem;">Fuel Oil M-1 HC</div>
+                                    <div style="font-size: 20px; font-weight: 600;" id="displayRegFuelOilM1HC">--</div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Daily ST Prices -->
+                        <div>
+                            <h4 style="margin: 0 0 0.5rem 0; font-size: 14px; opacity: 0.9;">Daily ST Prices</h4>
+                            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 0.75rem;">
+                                <div style="background: rgba(255,255,255,0.15); padding: 0.75rem; border-radius: 6px;">
+                                    <div style="font-size: 11px; opacity: 0.8; margin-bottom: 0.25rem;">Diesel Advance Payment</div>
+                                    <div style="font-size: 20px; font-weight: 600;" id="displayDieselAdvance">--</div>
+                                </div>
+                                <div style="background: rgba(255,255,255,0.15); padding: 0.75rem; border-radius: 6px;">
+                                    <div style="font-size: 11px; opacity: 0.8; margin-bottom: 0.25rem;">EUROSUPER 95 Advance Payment</div>
+                                    <div style="font-size: 20px; font-weight: 600;" id="displayEurosuper95Advance">--</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
                 <div class="card">
                     <div class="card-header">
                         <h2 class="card-title">➕ Create New Order</h2>
@@ -1043,9 +1101,14 @@
                     <div class="card">
                         <div class="card-header">
                             <h2 class="card-title">📦 Inventory Management</h2>
-                            <button class="btn btn-success" onclick="loadInventoryDashboard()" style="display: flex; align-items: center; gap: 0.5rem;">
-                                🔄 Refresh
-                            </button>
+                            <div style="display: flex; gap: 0.5rem;">
+                                <button class="btn btn-primary" onclick="openDailyDataModal()" style="display: flex; align-items: center; gap: 0.5rem;">
+                                    💰 Daily Data
+                                </button>
+                                <button class="btn btn-success" onclick="loadInventoryDashboard()" style="display: flex; align-items: center; gap: 0.5rem;">
+                                    🔄 Refresh
+                                </button>
+                            </div>
                         </div>
                         
                         <div style="padding: 1.5rem;">
@@ -1698,6 +1761,126 @@
         </div>
     </div>
 
+    <!-- Daily Data Modal -->
+    <div id="dailyDataModal" class="modal">
+        <div class="modal-content" style="max-width: 650px;">
+            <div class="modal-header">
+                <h3 style="margin: 0;">💰 Daily Data Entry</h3>
+                <span class="close-btn" onclick="closeDailyDataModal()">&times;</span>
+            </div>
+            <div class="modal-body" style="max-height: 70vh; overflow-y: auto; padding: 1.5rem;">
+                <form id="dailyDataForm" onsubmit="saveDailyData(event); return false;">
+                    <!-- Exchange Section -->
+                    <div style="margin-bottom: 1.25rem;">
+                        <h4 style="margin: 0 0 0.75rem 0; color: var(--secondary); font-size: 15px; font-weight: 600;">Exchange</h4>
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem;">
+                            <div>
+                                <label style="display: block; font-size: 12px; margin-bottom: 0.35rem; font-weight: 500;">EUR/MKD NBRM</label>
+                                <input type="number" step="0.01" id="eurMkdNbrm" placeholder="63.25" 
+                                       style="width: 100%; padding: 0.6rem; border: 1px solid #D1D5DB; border-radius: 6px; font-size: 14px;">
+                            </div>
+                            <div>
+                                <label style="display: block; font-size: 12px; margin-bottom: 0.35rem; font-weight: 500;">USD/MKD NBRM</label>
+                                <input type="number" step="0.01" id="usdMkdNbrm" placeholder="57.80" 
+                                       style="width: 100%; padding: 0.6rem; border: 1px solid #D1D5DB; border-radius: 6px; font-size: 14px;">
+                            </div>
+                        </div>
+                        <div style="margin-top: 0.75rem;">
+                            <label style="display: block; font-size: 12px; margin-bottom: 0.35rem; font-weight: 500;">USD Banks</label>
+                            <input type="number" step="0.01" id="usdBanks" placeholder="58.20" 
+                                   style="width: 100%; padding: 0.6rem; border: 1px solid #D1D5DB; border-radius: 6px; font-size: 14px;">
+                        </div>
+                    </div>
+
+                    <!-- CIF/FOB Section -->
+                    <div style="margin-bottom: 1.25rem;">
+                        <h4 style="margin: 0 0 0.75rem 0; color: var(--secondary); font-size: 15px; font-weight: 600;">CIF/FOB</h4>
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem;">
+                            <div>
+                                <label style="display: block; font-size: 12px; margin-bottom: 0.35rem; font-weight: 500;">CIF Diesel</label>
+                                <input type="number" step="0.01" id="cifDiesel" placeholder="685.00" 
+                                       style="width: 100%; padding: 0.6rem; border: 1px solid #D1D5DB; border-radius: 6px; font-size: 14px;">
+                            </div>
+                            <div>
+                                <label style="display: block; font-size: 12px; margin-bottom: 0.35rem; font-weight: 500;">FOB Diesel</label>
+                                <input type="number" step="0.01" id="fobDiesel" placeholder="650.00" 
+                                       style="width: 100%; padding: 0.6rem; border: 1px solid #D1D5DB; border-radius: 6px; font-size: 14px;">
+                            </div>
+                        </div>
+                        <div style="margin-top: 0.75rem;">
+                            <label style="display: block; font-size: 12px; margin-bottom: 0.35rem; font-weight: 500;">FOB Gas</label>
+                            <input type="number" step="0.01" id="fobGas" placeholder="720.00" 
+                                   style="width: 100%; padding: 0.6rem; border: 1px solid #D1D5DB; border-radius: 6px; font-size: 14px;">
+                        </div>
+                    </div>
+
+                    <!-- Regulatory Agencies Prices Section -->
+                    <div style="margin-bottom: 1.25rem;">
+                        <h4 style="margin: 0 0 0.75rem 0; color: var(--secondary); font-size: 15px; font-weight: 600;">Regulatory Agencies Prices</h4>
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem;">
+                            <div>
+                                <label style="display: block; font-size: 12px; margin-bottom: 0.35rem; font-weight: 500;">DIESEL</label>
+                                <input type="number" step="0.01" id="regDiesel" placeholder="68.50" 
+                                       style="width: 100%; padding: 0.6rem; border: 1px solid #D1D5DB; border-radius: 6px; font-size: 14px;">
+                            </div>
+                            <div>
+                                <label style="display: block; font-size: 12px; margin-bottom: 0.35rem; font-weight: 500;">EUROSUPER 95</label>
+                                <input type="number" step="0.01" id="regEurosuper95" placeholder="71.00" 
+                                       style="width: 100%; padding: 0.6rem; border: 1px solid #D1D5DB; border-radius: 6px; font-size: 14px;">
+                            </div>
+                            <div>
+                                <label style="display: block; font-size: 12px; margin-bottom: 0.35rem; font-weight: 500;">EUROSUPER 98</label>
+                                <input type="number" step="0.01" id="regEurosuper98" placeholder="73.00" 
+                                       style="width: 100%; padding: 0.6rem; border: 1px solid #D1D5DB; border-radius: 6px; font-size: 14px;">
+                            </div>
+                            <div>
+                                <label style="display: block; font-size: 12px; margin-bottom: 0.35rem; font-weight: 500;">Extra Light</label>
+                                <input type="number" step="0.01" id="regExtraLight" placeholder="52.00" 
+                                       style="width: 100%; padding: 0.6rem; border: 1px solid #D1D5DB; border-radius: 6px; font-size: 14px;">
+                            </div>
+                        </div>
+                        <div style="margin-top: 0.75rem;">
+                            <label style="display: block; font-size: 12px; margin-bottom: 0.35rem; font-weight: 500;">Fuel Oil M-1 HC</label>
+                            <input type="number" step="0.01" id="regFuelOilM1HC" placeholder="45.00" 
+                                   style="width: 100%; padding: 0.6rem; border: 1px solid #D1D5DB; border-radius: 6px; font-size: 14px;">
+                        </div>
+                    </div>
+
+                    <!-- Daily ST Prices Section -->
+                    <div style="margin-bottom: 1.25rem;">
+                        <h4 style="margin: 0 0 0.75rem 0; color: var(--secondary); font-size: 15px; font-weight: 600;">Daily ST Prices</h4>
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem;">
+                            <div>
+                                <label style="display: block; font-size: 12px; margin-bottom: 0.35rem; font-weight: 500;">Diesel Advance Payment</label>
+                                <input type="number" step="0.01" id="dailyDieselAdvance" placeholder="66.00" 
+                                       style="width: 100%; padding: 0.6rem; border: 1px solid #D1D5DB; border-radius: 6px; font-size: 14px;">
+                            </div>
+                            <div>
+                                <label style="display: block; font-size: 12px; margin-bottom: 0.35rem; font-weight: 500;">EUROSUPER 95 Advance Payment</label>
+                                <input type="number" step="0.01" id="dailyEurosuper95Advance" placeholder="68.50" 
+                                       style="width: 100%; padding: 0.6rem; border: 1px solid #D1D5DB; border-radius: 6px; font-size: 14px;">
+                            </div>
+                            <div>
+                                <label style="display: block; font-size: 12px; margin-bottom: 0.35rem; font-weight: 500;">Diesel Commercial Price</label>
+                                <input type="number" step="0.01" id="dailyDieselCommercial" placeholder="69.00" 
+                                       style="width: 100%; padding: 0.6rem; border: 1px solid #D1D5DB; border-radius: 6px; font-size: 14px;">
+                            </div>
+                            <div>
+                                <label style="display: block; font-size: 12px; margin-bottom: 0.35rem; font-weight: 500;">EUROSUPER 95 Commercial Price</label>
+                                <input type="number" step="0.01" id="dailyEurosuper95Commercial" placeholder="72.00" 
+                                       style="width: 100%; padding: 0.6rem; border: 1px solid #D1D5DB; border-radius: 6px; font-size: 14px;">
+                            </div>
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary" style="width: 100%; padding: 0.75rem; font-size: 15px; font-weight: 600;">
+                        ✅ Apply
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
     <script>
         // ===== CONFIGURATION =====
         const SPREADSHEET_ID = '1z_SLqYvVJ2f0k6i3dK8DMC-CkI5jFOXH2Rfnx2jkNEk';
@@ -1845,6 +2028,10 @@ if (currentUser.department === 'Transport') {
             } else if (viewName === 'createOrder') {
                 document.getElementById('createOrderView').classList.remove('hidden');
                 loadCreateOrderForm();
+                // Load daily prices for Sales Manager
+                if (currentUser && currentUser.department === 'Sales') {
+                    loadDailyPricesForDate();
+                }
 		} else if (viewName === 'approval') {
             document.getElementById('approvalView').classList.remove('hidden');
             loadApprovals();
@@ -7899,6 +8086,159 @@ window.onclick = function(event) {
             document.body.removeChild(link);
             
             alert(`✅ Sales Orders exported to ${fileName}!\n\nHTML table with borders - Excel will open it perfectly.\nTotal orders: ${reportData.length}`);
+        }
+        
+        // ===== DAILY DATA FUNCTIONS =====
+        
+        async function openDailyDataModal() {
+            // Load previous values as placeholders
+            await loadPreviousDailyData();
+            document.getElementById('dailyDataModal').classList.remove('hidden');
+        }
+        
+        function closeDailyDataModal() {
+            document.getElementById('dailyDataModal').classList.add('hidden');
+            document.getElementById('dailyDataForm').reset();
+        }
+        
+        async function loadPreviousDailyData() {
+            try {
+                const apiUrl = `https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_ID}/values/Daily_Prices!A2:Q1000?key=${API_KEY}`;
+                const response = await fetch(apiUrl);
+                const data = await response.json();
+                
+                if (data.values && data.values.length > 0) {
+                    // Get most recent entry (last row)
+                    const lastRow = data.values[data.values.length - 1];
+                    
+                    // Set placeholders with previous values (faded appearance)
+                    document.getElementById('eurMkdNbrm').placeholder = lastRow[2] || '63.25';
+                    document.getElementById('usdMkdNbrm').placeholder = lastRow[3] || '57.80';
+                    document.getElementById('usdBanks').placeholder = lastRow[4] || '58.20';
+                    document.getElementById('cifDiesel').placeholder = lastRow[5] || '685.00';
+                    document.getElementById('fobDiesel').placeholder = lastRow[6] || '650.00';
+                    document.getElementById('fobGas').placeholder = lastRow[7] || '720.00';
+                    document.getElementById('regDiesel').placeholder = lastRow[8] || '68.50';
+                    document.getElementById('regEurosuper95').placeholder = lastRow[9] || '71.00';
+                    document.getElementById('regEurosuper98').placeholder = lastRow[10] || '73.00';
+                    document.getElementById('regExtraLight').placeholder = lastRow[11] || '52.00';
+                    document.getElementById('regFuelOilM1HC').placeholder = lastRow[12] || '45.00';
+                    document.getElementById('dailyDieselAdvance').placeholder = lastRow[13] || '66.00';
+                    document.getElementById('dailyEurosuper95Advance').placeholder = lastRow[14] || '68.50';
+                    document.getElementById('dailyDieselCommercial').placeholder = lastRow[15] || '69.00';
+                    document.getElementById('dailyEurosuper95Commercial').placeholder = lastRow[16] || '72.00';
+                }
+            } catch (error) {
+                console.log('No previous daily data found or error loading:', error);
+                // If no data exists yet, use default placeholders (already set in HTML)
+            }
+        }
+        
+        async function saveDailyData(event) {
+            event.preventDefault();
+            
+            showLoading('Saving daily data...');
+            
+            try {
+                // Get current date and timestamp
+                const now = new Date();
+                const date = now.toISOString().split('T')[0]; // YYYY-MM-DD
+                const timestamp = now.toISOString().slice(0, 19).replace('T', ' '); // YYYY-MM-DD HH:MM:SS
+                
+                // Helper function: get value from field or use placeholder
+                const getFieldValue = (id) => {
+                    const input = document.getElementById(id);
+                    return input.value || input.placeholder || '';
+                };
+                
+                // Collect all values (use entered value or fallback to placeholder/previous value)
+                const rowData = [
+                    date,
+                    timestamp,
+                    getFieldValue('eurMkdNbrm'),
+                    getFieldValue('usdMkdNbrm'),
+                    getFieldValue('usdBanks'),
+                    getFieldValue('cifDiesel'),
+                    getFieldValue('fobDiesel'),
+                    getFieldValue('fobGas'),
+                    getFieldValue('regDiesel'),
+                    getFieldValue('regEurosuper95'),
+                    getFieldValue('regEurosuper98'),
+                    getFieldValue('regExtraLight'),
+                    getFieldValue('regFuelOilM1HC'),
+                    getFieldValue('dailyDieselAdvance'),
+                    getFieldValue('dailyEurosuper95Advance'),
+                    getFieldValue('dailyDieselCommercial'),
+                    getFieldValue('dailyEurosuper95Commercial')
+                ];
+                
+                // Append row to Google Sheets
+                const response = await fetch(APPS_SCRIPT_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        action: 'appendRow',
+                        sheetName: 'Daily_Prices',
+                        rowData: rowData
+                    })
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    hideLoading();
+                    alert('✅ Daily data saved successfully!');
+                    closeDailyDataModal();
+                } else {
+                    throw new Error(result.error || 'Failed to save data');
+                }
+                
+            } catch (error) {
+                hideLoading();
+                console.error('Error saving daily data:', error);
+                alert('❌ Error saving daily data: ' + error.message + '\n\nPlease ensure Daily_Prices sheet exists.');
+            }
+        }
+        
+        // Load Daily Prices for Sales Manager Display
+        async function loadDailyPricesForDate() {
+            const selectedDate = document.getElementById('priceDisplayDate').value;
+            if (!selectedDate) {
+                // Load today's prices
+                document.getElementById('priceDisplayDate').value = new Date().toISOString().split('T')[0];
+                await loadDailyPricesForDate();
+                return;
+            }
+            
+            try {
+                const apiUrl = `https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_ID}/values/Daily_Prices!A2:Q1000?key=${API_KEY}`;
+                const response = await fetch(apiUrl);
+                const data = await response.json();
+                
+                if (data.values && data.values.length > 0) {
+                    // Find row matching selected date (or most recent before)
+                    const matchingRow = data.values.reverse().find(row => row[0] <= selectedDate);
+                    
+                    if (matchingRow) {
+                        document.getElementById('displayRegDiesel').textContent = matchingRow[8] || '--';
+                        document.getElementById('displayRegEurosuper95').textContent = matchingRow[9] || '--';
+                        document.getElementById('displayRegEurosuper98').textContent = matchingRow[10] || '--';
+                        document.getElementById('displayRegExtraLight').textContent = matchingRow[11] || '--';
+                        document.getElementById('displayRegFuelOilM1HC').textContent = matchingRow[12] || '--';
+                        document.getElementById('displayDieselAdvance').textContent = matchingRow[13] || '--';
+                        document.getElementById('displayEurosuper95Advance').textContent = matchingRow[14] || '--';
+                    } else {
+                        // No data found
+                        document.querySelectorAll('[id^="display"]').forEach(el => el.textContent = '--');
+                    }
+                } else {
+                    // No data in sheet yet
+                    document.querySelectorAll('[id^="display"]').forEach(el => el.textContent = '--');
+                }
+            } catch (error) {
+                console.error('Error loading daily prices:', error);
+                // Show error or keep showing --
+            }
         }
         
         
