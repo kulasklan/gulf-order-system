@@ -1348,6 +1348,145 @@
                 </div>
             </div>
 
+            <!-- Daily Data View (Management Only) -->
+            <div id="dailyDataView" class="view-content hidden">
+                <h1 style="margin-bottom: 1.5rem;">💰 Daily Data & Price History</h1>
+                
+                <!-- Price Entry Card -->
+                <div class="card" style="margin-bottom: 2rem;">
+                    <div class="card-header">
+                        <h2 class="card-title">📝 Enter Today's Prices</h2>
+                    </div>
+                    <div style="padding: 1.5rem;">
+                        <form id="dailyDataForm" onsubmit="saveDailyData(event); return false;">
+                            <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 1.5rem;">
+                                
+                                <!-- Exchange Section -->
+                                <div>
+                                    <h4 style="margin: 0 0 1rem 0; color: var(--secondary); font-size: 16px; font-weight: 600; border-bottom: 2px solid var(--secondary); padding-bottom: 0.5rem;">Exchange</h4>
+                                    <div style="display: grid; gap: 0.75rem;">
+                                        <div>
+                                            <label style="display: block; font-size: 13px; margin-bottom: 0.35rem; font-weight: 500; color: #6B7280;">EUR/MKD NBRM</label>
+                                            <input type="number" step="0.01" id="eurMkdNbrm" placeholder="63.25" class="form-control">
+                                        </div>
+                                        <div>
+                                            <label style="display: block; font-size: 13px; margin-bottom: 0.35rem; font-weight: 500; color: #6B7280;">USD/MKD NBRM</label>
+                                            <input type="number" step="0.01" id="usdMkdNbrm" placeholder="57.80" class="form-control">
+                                        </div>
+                                        <div>
+                                            <label style="display: block; font-size: 13px; margin-bottom: 0.35rem; font-weight: 500; color: #6B7280;">USD Banks</label>
+                                            <input type="number" step="0.01" id="usdBanks" placeholder="58.20" class="form-control">
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- CIF/FOB Section -->
+                                <div>
+                                    <h4 style="margin: 0 0 1rem 0; color: var(--secondary); font-size: 16px; font-weight: 600; border-bottom: 2px solid var(--secondary); padding-bottom: 0.5rem;">CIF/FOB</h4>
+                                    <div style="display: grid; gap: 0.75rem;">
+                                        <div>
+                                            <label style="display: block; font-size: 13px; margin-bottom: 0.35rem; font-weight: 500; color: #6B7280;">CIF Diesel</label>
+                                            <input type="number" step="0.01" id="cifDiesel" placeholder="685.00" class="form-control">
+                                        </div>
+                                        <div>
+                                            <label style="display: block; font-size: 13px; margin-bottom: 0.35rem; font-weight: 500; color: #6B7280;">FOB Diesel</label>
+                                            <input type="number" step="0.01" id="fobDiesel" placeholder="650.00" class="form-control">
+                                        </div>
+                                        <div>
+                                            <label style="display: block; font-size: 13px; margin-bottom: 0.35rem; font-weight: 500; color: #6B7280;">FOB Gas</label>
+                                            <input type="number" step="0.01" id="fobGas" placeholder="720.00" class="form-control">
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Regulatory Agencies Prices Section -->
+                                <div>
+                                    <h4 style="margin: 0 0 1rem 0; color: var(--secondary); font-size: 16px; font-weight: 600; border-bottom: 2px solid var(--secondary); padding-bottom: 0.5rem;">Regulatory Agencies Prices</h4>
+                                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem;">
+                                        <div>
+                                            <label style="display: block; font-size: 13px; margin-bottom: 0.35rem; font-weight: 500; color: #6B7280;">DIESEL</label>
+                                            <input type="number" step="0.01" id="regDiesel" placeholder="68.50" class="form-control">
+                                        </div>
+                                        <div>
+                                            <label style="display: block; font-size: 13px; margin-bottom: 0.35rem; font-weight: 500; color: #6B7280;">EUROSUPER 95</label>
+                                            <input type="number" step="0.01" id="regEurosuper95" placeholder="71.00" class="form-control">
+                                        </div>
+                                        <div>
+                                            <label style="display: block; font-size: 13px; margin-bottom: 0.35rem; font-weight: 500; color: #6B7280;">EUROSUPER 98</label>
+                                            <input type="number" step="0.01" id="regEurosuper98" placeholder="73.00" class="form-control">
+                                        </div>
+                                        <div>
+                                            <label style="display: block; font-size: 13px; margin-bottom: 0.35rem; font-weight: 500; color: #6B7280;">Extra Light</label>
+                                            <input type="number" step="0.01" id="regExtraLight" placeholder="52.00" class="form-control">
+                                        </div>
+                                        <div style="grid-column: span 2;">
+                                            <label style="display: block; font-size: 13px; margin-bottom: 0.35rem; font-weight: 500; color: #6B7280;">Fuel Oil M-1 HC</label>
+                                            <input type="number" step="0.01" id="regFuelOilM1HC" placeholder="45.00" class="form-control">
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Daily ST Prices Section -->
+                                <div>
+                                    <h4 style="margin: 0 0 1rem 0; color: var(--secondary); font-size: 16px; font-weight: 600; border-bottom: 2px solid var(--secondary); padding-bottom: 0.5rem;">Daily ST Prices</h4>
+                                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem;">
+                                        <div>
+                                            <label style="display: block; font-size: 13px; margin-bottom: 0.35rem; font-weight: 500; color: #6B7280;">Diesel Advance Payment</label>
+                                            <input type="number" step="0.01" id="dailyDieselAdvance" placeholder="66.00" class="form-control">
+                                        </div>
+                                        <div>
+                                            <label style="display: block; font-size: 13px; margin-bottom: 0.35rem; font-weight: 500; color: #6B7280;">EUROSUPER 95 Advance Payment</label>
+                                            <input type="number" step="0.01" id="dailyEurosuper95Advance" placeholder="68.50" class="form-control">
+                                        </div>
+                                        <div>
+                                            <label style="display: block; font-size: 13px; margin-bottom: 0.35rem; font-weight: 500; color: #6B7280;">Diesel Commercial Price</label>
+                                            <input type="number" step="0.01" id="dailyDieselCommercial" placeholder="69.00" class="form-control">
+                                        </div>
+                                        <div>
+                                            <label style="display: block; font-size: 13px; margin-bottom: 0.35rem; font-weight: 500; color: #6B7280;">EUROSUPER 95 Commercial Price</label>
+                                            <input type="number" step="0.01" id="dailyEurosuper95Commercial" placeholder="72.00" class="form-control">
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div style="margin-top: 1.5rem; display: flex; gap: 1rem;">
+                                <button type="submit" class="btn btn-primary" style="flex: 1; padding: 0.75rem; font-size: 16px; font-weight: 600;">
+                                    ✅ Save Prices
+                                </button>
+                                <button type="button" class="btn btn-secondary" onclick="document.getElementById('dailyDataForm').reset()" style="padding: 0.75rem;">
+                                    🔄 Reset
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- Price History Card -->
+                <div class="card">
+                    <div class="card-header" style="display: flex; justify-content: space-between; align-items: center;">
+                        <h2 class="card-title">📊 Price History</h2>
+                        <div style="display: flex; gap: 1rem; align-items: center;">
+                            <div>
+                                <label style="font-size: 13px; margin-right: 0.5rem;">From:</label>
+                                <input type="date" id="historyDateFrom" style="padding: 0.5rem; border: 1px solid #D1D5DB; border-radius: 4px;">
+                            </div>
+                            <div>
+                                <label style="font-size: 13px; margin-right: 0.5rem;">To:</label>
+                                <input type="date" id="historyDateTo" style="padding: 0.5rem; border: 1px solid #D1D5DB; border-radius: 4px;">
+                            </div>
+                            <button class="btn btn-primary" onclick="loadPriceHistory()">🔍 Search</button>
+                        </div>
+                    </div>
+                    <div style="padding: 1.5rem;">
+                        <div id="priceHistoryTable" style="overflow-x: auto;">
+                            <!-- Price history table will be loaded here -->
+                            <p style="text-align: center; color: #6B7280; padding: 2rem;">Select a date range and click Search to view price history</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             <!-- Mark Arrived Modal (Warehouse) - COMPREHENSIVE FORM -->
             <div id="markArrivedModal" class="modal">
                 <div class="modal-content" style="max-width: 800px; max-height: 90vh; overflow-y: auto;">
@@ -1715,125 +1854,6 @@
         </div>
     </div>
 
-    <!-- Daily Data Modal -->
-    <div id="dailyDataModal" class="modal">
-        <div class="modal-content" style="max-width: 650px;">
-            <div class="modal-header">
-                <h3 style="margin: 0;">💰 Daily Data Entry</h3>
-                <span class="close-btn" onclick="closeDailyDataModal()">&times;</span>
-            </div>
-            <div class="modal-body" style="max-height: 70vh; overflow-y: auto; padding: 1.5rem;">
-                <form id="dailyDataForm" onsubmit="saveDailyData(event); return false;">
-                    <!-- Exchange Section -->
-                    <div style="margin-bottom: 1.25rem;">
-                        <h4 style="margin: 0 0 0.75rem 0; color: var(--secondary); font-size: 15px; font-weight: 600;">Exchange</h4>
-                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem;">
-                            <div>
-                                <label style="display: block; font-size: 12px; margin-bottom: 0.35rem; font-weight: 500;">EUR/MKD NBRM</label>
-                                <input type="number" step="0.01" id="eurMkdNbrm" placeholder="63.25" 
-                                       style="width: 100%; padding: 0.6rem; border: 1px solid #D1D5DB; border-radius: 6px; font-size: 14px;">
-                            </div>
-                            <div>
-                                <label style="display: block; font-size: 12px; margin-bottom: 0.35rem; font-weight: 500;">USD/MKD NBRM</label>
-                                <input type="number" step="0.01" id="usdMkdNbrm" placeholder="57.80" 
-                                       style="width: 100%; padding: 0.6rem; border: 1px solid #D1D5DB; border-radius: 6px; font-size: 14px;">
-                            </div>
-                        </div>
-                        <div style="margin-top: 0.75rem;">
-                            <label style="display: block; font-size: 12px; margin-bottom: 0.35rem; font-weight: 500;">USD Banks</label>
-                            <input type="number" step="0.01" id="usdBanks" placeholder="58.20" 
-                                   style="width: 100%; padding: 0.6rem; border: 1px solid #D1D5DB; border-radius: 6px; font-size: 14px;">
-                        </div>
-                    </div>
-
-                    <!-- CIF/FOB Section -->
-                    <div style="margin-bottom: 1.25rem;">
-                        <h4 style="margin: 0 0 0.75rem 0; color: var(--secondary); font-size: 15px; font-weight: 600;">CIF/FOB</h4>
-                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem;">
-                            <div>
-                                <label style="display: block; font-size: 12px; margin-bottom: 0.35rem; font-weight: 500;">CIF Diesel</label>
-                                <input type="number" step="0.01" id="cifDiesel" placeholder="685.00" 
-                                       style="width: 100%; padding: 0.6rem; border: 1px solid #D1D5DB; border-radius: 6px; font-size: 14px;">
-                            </div>
-                            <div>
-                                <label style="display: block; font-size: 12px; margin-bottom: 0.35rem; font-weight: 500;">FOB Diesel</label>
-                                <input type="number" step="0.01" id="fobDiesel" placeholder="650.00" 
-                                       style="width: 100%; padding: 0.6rem; border: 1px solid #D1D5DB; border-radius: 6px; font-size: 14px;">
-                            </div>
-                        </div>
-                        <div style="margin-top: 0.75rem;">
-                            <label style="display: block; font-size: 12px; margin-bottom: 0.35rem; font-weight: 500;">FOB Gas</label>
-                            <input type="number" step="0.01" id="fobGas" placeholder="720.00" 
-                                   style="width: 100%; padding: 0.6rem; border: 1px solid #D1D5DB; border-radius: 6px; font-size: 14px;">
-                        </div>
-                    </div>
-
-                    <!-- Regulatory Agencies Prices Section -->
-                    <div style="margin-bottom: 1.25rem;">
-                        <h4 style="margin: 0 0 0.75rem 0; color: var(--secondary); font-size: 15px; font-weight: 600;">Regulatory Agencies Prices</h4>
-                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem;">
-                            <div>
-                                <label style="display: block; font-size: 12px; margin-bottom: 0.35rem; font-weight: 500;">DIESEL</label>
-                                <input type="number" step="0.01" id="regDiesel" placeholder="68.50" 
-                                       style="width: 100%; padding: 0.6rem; border: 1px solid #D1D5DB; border-radius: 6px; font-size: 14px;">
-                            </div>
-                            <div>
-                                <label style="display: block; font-size: 12px; margin-bottom: 0.35rem; font-weight: 500;">EUROSUPER 95</label>
-                                <input type="number" step="0.01" id="regEurosuper95" placeholder="71.00" 
-                                       style="width: 100%; padding: 0.6rem; border: 1px solid #D1D5DB; border-radius: 6px; font-size: 14px;">
-                            </div>
-                            <div>
-                                <label style="display: block; font-size: 12px; margin-bottom: 0.35rem; font-weight: 500;">EUROSUPER 98</label>
-                                <input type="number" step="0.01" id="regEurosuper98" placeholder="73.00" 
-                                       style="width: 100%; padding: 0.6rem; border: 1px solid #D1D5DB; border-radius: 6px; font-size: 14px;">
-                            </div>
-                            <div>
-                                <label style="display: block; font-size: 12px; margin-bottom: 0.35rem; font-weight: 500;">Extra Light</label>
-                                <input type="number" step="0.01" id="regExtraLight" placeholder="52.00" 
-                                       style="width: 100%; padding: 0.6rem; border: 1px solid #D1D5DB; border-radius: 6px; font-size: 14px;">
-                            </div>
-                        </div>
-                        <div style="margin-top: 0.75rem;">
-                            <label style="display: block; font-size: 12px; margin-bottom: 0.35rem; font-weight: 500;">Fuel Oil M-1 HC</label>
-                            <input type="number" step="0.01" id="regFuelOilM1HC" placeholder="45.00" 
-                                   style="width: 100%; padding: 0.6rem; border: 1px solid #D1D5DB; border-radius: 6px; font-size: 14px;">
-                        </div>
-                    </div>
-
-                    <!-- Daily ST Prices Section -->
-                    <div style="margin-bottom: 1.25rem;">
-                        <h4 style="margin: 0 0 0.75rem 0; color: var(--secondary); font-size: 15px; font-weight: 600;">Daily ST Prices</h4>
-                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem;">
-                            <div>
-                                <label style="display: block; font-size: 12px; margin-bottom: 0.35rem; font-weight: 500;">Diesel Advance Payment</label>
-                                <input type="number" step="0.01" id="dailyDieselAdvance" placeholder="66.00" 
-                                       style="width: 100%; padding: 0.6rem; border: 1px solid #D1D5DB; border-radius: 6px; font-size: 14px;">
-                            </div>
-                            <div>
-                                <label style="display: block; font-size: 12px; margin-bottom: 0.35rem; font-weight: 500;">EUROSUPER 95 Advance Payment</label>
-                                <input type="number" step="0.01" id="dailyEurosuper95Advance" placeholder="68.50" 
-                                       style="width: 100%; padding: 0.6rem; border: 1px solid #D1D5DB; border-radius: 6px; font-size: 14px;">
-                            </div>
-                            <div>
-                                <label style="display: block; font-size: 12px; margin-bottom: 0.35rem; font-weight: 500;">Diesel Commercial Price</label>
-                                <input type="number" step="0.01" id="dailyDieselCommercial" placeholder="69.00" 
-                                       style="width: 100%; padding: 0.6rem; border: 1px solid #D1D5DB; border-radius: 6px; font-size: 14px;">
-                            </div>
-                            <div>
-                                <label style="display: block; font-size: 12px; margin-bottom: 0.35rem; font-weight: 500;">EUROSUPER 95 Commercial Price</label>
-                                <input type="number" step="0.01" id="dailyEurosuper95Commercial" placeholder="72.00" 
-                                       style="width: 100%; padding: 0.6rem; border: 1px solid #D1D5DB; border-radius: 6px; font-size: 14px;">
-                            </div>
-                        </div>
-                    </div>
-
-                    <button type="submit" class="btn btn-primary" style="width: 100%; padding: 0.75rem; font-size: 15px; font-weight: 600;">
-                        ✅ Apply
-                    </button>
-                </form>
-            </div>
-        </div>
-    </div>
 
     <script>
         // ===== CONFIGURATION =====
@@ -1938,7 +1958,7 @@
 if (currentUser.department === 'Management') {
             tabs += '<div class="nav-tab" onclick="showView(\'approval\')">✅ For Approval</div>';
             tabs += '<div class="nav-tab" onclick="showView(\'disputes\')">⚠️ Resolve Disputes</div>';
-            tabs += '<div class="nav-tab" onclick="event.preventDefault(); event.stopPropagation(); openDailyDataModal(); return false;">💰 Daily Data</div>';
+            tabs += '<div class="nav-tab" onclick="showView(\'dailyData\')">💰 Daily Data</div>';
             tabs += '<div class="nav-tab" onclick="showView(\'analytics\')">📊 Analytics</div>';
             tabs += '<div class="nav-tab" onclick="showView(\'inventory\')">📦 Inventory</div>';
         }
@@ -2018,6 +2038,9 @@ if (currentUser.department === 'Transport') {
                 if (startInput && !startInput.value) startInput.valueAsDate = dateFilterStart;
                 if (endInput && !endInput.value) endInput.valueAsDate = dateFilterEnd;
                 loadAnalytics();
+            } else if (viewName === 'dailyData') {
+                document.getElementById('dailyDataView').classList.remove('hidden');
+                loadDailyDataView();
             } else if (viewName === 'inventory') {
                 document.getElementById('inventoryView').classList.remove('hidden');
                 
@@ -7963,21 +7986,19 @@ window.onclick = function(event) {
         
         // ===== DAILY DATA FUNCTIONS =====
         
-        async function openDailyDataModal() {
-            console.log('💰 Opening Daily Data modal...');
-            // Load previous values as placeholders
+        async function loadDailyDataView() {
+            console.log('💰 Loading Daily Data View...');
+            // Set default date range for history (last 30 days)
+            const today = new Date();
+            const thirtyDaysAgo = new Date(today);
+            thirtyDaysAgo.setDate(today.getDate() - 30);
+            
+            document.getElementById('historyDateFrom').valueAsDate = thirtyDaysAgo;
+            document.getElementById('historyDateTo').valueAsDate = today;
+            
+            // Load previous values as placeholders for form
             await loadPreviousDailyData();
-            const modal = document.getElementById('dailyDataModal');
-            modal.classList.remove('hidden');
-            modal.classList.add('active');
-            console.log('✅ Daily Data modal opened');
-        }
-        
-        function closeDailyDataModal() {
-            const modal = document.getElementById('dailyDataModal');
-            modal.classList.remove('active');
-            modal.classList.add('hidden');
-            document.getElementById('dailyDataForm').reset();
+            console.log('✅ Daily Data View loaded');
         }
         
         async function loadPreviousDailyData() {
@@ -8066,8 +8087,15 @@ window.onclick = function(event) {
                 
                 if (result.success) {
                     hideLoading();
-                    alert('✅ Daily data saved successfully!');
-                    closeDailyDataModal();
+                    alert('✅ Daily prices saved successfully!');
+                    // Reset form
+                    document.getElementById('dailyDataForm').reset();
+                    // Reload previous data as placeholders
+                    await loadPreviousDailyData();
+                    // Reload price history if it's displayed
+                    if (document.getElementById('priceHistoryTable').innerHTML.includes('<table')) {
+                        loadPriceHistory();
+                    }
                 } else {
                     throw new Error(result.error || 'Failed to save data');
                 }
@@ -8076,6 +8104,89 @@ window.onclick = function(event) {
                 hideLoading();
                 console.error('Error saving daily data:', error);
                 alert('❌ Error saving daily data: ' + error.message + '\n\nPlease ensure Daily_Prices sheet exists.');
+            }
+        }
+        
+        // Load Price History for Management
+        async function loadPriceHistory() {
+            const dateFrom = document.getElementById('historyDateFrom').value;
+            const dateTo = document.getElementById('historyDateTo').value;
+            
+            if (!dateFrom || !dateTo) {
+                alert('⚠️ Please select both From and To dates');
+                return;
+            }
+            
+            showLoading('Loading price history...');
+            
+            try {
+                const apiUrl = `https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_ID}/values/Daily_Prices!A2:Q1000?key=${API_KEY}`;
+                const response = await fetch(apiUrl);
+                const data = await response.json();
+                
+                if (data.values && data.values.length > 0) {
+                    // Filter by date range
+                    const filteredData = data.values.filter(row => {
+                        const rowDate = row[0];
+                        return rowDate >= dateFrom && rowDate <= dateTo;
+                    });
+                    
+                    if (filteredData.length === 0) {
+                        document.getElementById('priceHistoryTable').innerHTML = '<p style="text-align: center; color: #6B7280; padding: 2rem;">No price data found for the selected date range</p>';
+                        hideLoading();
+                        return;
+                    }
+                    
+                    // Build table
+                    let html = '<table style="width: 100%; border-collapse: collapse; font-size: 13px;">';
+                    html += '<thead style="background: var(--secondary); color: white; position: sticky; top: 0;">';
+                    html += '<tr>';
+                    html += '<th style="padding: 0.75rem; text-align: left; border: 1px solid #D1D5DB;">Date</th>';
+                    html += '<th style="padding: 0.75rem; text-align: center; border: 1px solid #D1D5DB;">EUR/MKD</th>';
+                    html += '<th style="padding: 0.75rem; text-align: center; border: 1px solid #D1D5DB;">USD/MKD</th>';
+                    html += '<th style="padding: 0.75rem; text-align: center; border: 1px solid #D1D5DB;">Diesel Reg</th>';
+                    html += '<th style="padding: 0.75rem; text-align: center; border: 1px solid #D1D5DB;">BS95 Reg</th>';
+                    html += '<th style="padding: 0.75rem; text-align: center; border: 1px solid #D1D5DB;">BS98 Reg</th>';
+                    html += '<th style="padding: 0.75rem; text-align: center; border: 1px solid #D1D5DB;">Diesel Adv</th>';
+                    html += '<th style="padding: 0.75rem; text-align: center; border: 1px solid #D1D5DB;">BS95 Adv</th>';
+                    html += '<th style="padding: 0.75rem; text-align: center; border: 1px solid #D1D5DB;">Diesel Com</th>';
+                    html += '<th style="padding: 0.75rem; text-align: center; border: 1px solid #D1D5DB;">BS95 Com</th>';
+                    html += '</tr>';
+                    html += '</thead>';
+                    html += '<tbody>';
+                    
+                    // Reverse to show most recent first
+                    filteredData.reverse().forEach((row, index) => {
+                        const bgColor = index % 2 === 0 ? '#F9FAFB' : 'white';
+                        html += `<tr style="background: ${bgColor};">`;
+                        html += `<td style="padding: 0.75rem; border: 1px solid #D1D5DB; font-weight: 600;">${row[0] || '-'}</td>`;
+                        html += `<td style="padding: 0.75rem; border: 1px solid #D1D5DB; text-align: center;">${row[2] || '-'}</td>`;
+                        html += `<td style="padding: 0.75rem; border: 1px solid #D1D5DB; text-align: center;">${row[3] || '-'}</td>`;
+                        html += `<td style="padding: 0.75rem; border: 1px solid #D1D5DB; text-align: center;">${row[8] || '-'}</td>`;
+                        html += `<td style="padding: 0.75rem; border: 1px solid #D1D5DB; text-align: center;">${row[9] || '-'}</td>`;
+                        html += `<td style="padding: 0.75rem; border: 1px solid #D1D5DB; text-align: center;">${row[10] || '-'}</td>`;
+                        html += `<td style="padding: 0.75rem; border: 1px solid #D1D5DB; text-align: center;">${row[13] || '-'}</td>`;
+                        html += `<td style="padding: 0.75rem; border: 1px solid #D1D5DB; text-align: center;">${row[14] || '-'}</td>`;
+                        html += `<td style="padding: 0.75rem; border: 1px solid #D1D5DB; text-align: center;">${row[15] || '-'}</td>`;
+                        html += `<td style="padding: 0.75rem; border: 1px solid #D1D5DB; text-align: center;">${row[16] || '-'}</td>`;
+                        html += '</tr>';
+                    });
+                    
+                    html += '</tbody>';
+                    html += '</table>';
+                    
+                    document.getElementById('priceHistoryTable').innerHTML = html;
+                    
+                } else {
+                    document.getElementById('priceHistoryTable').innerHTML = '<p style="text-align: center; color: #6B7280; padding: 2rem;">No price data available</p>';
+                }
+                
+                hideLoading();
+                
+            } catch (error) {
+                hideLoading();
+                console.error('Error loading price history:', error);
+                alert('❌ Error loading price history: ' + error.message);
             }
         }
         
