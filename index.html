@@ -1060,14 +1060,9 @@
                     <div class="card">
                         <div class="card-header">
                             <h2 class="card-title">📦 Inventory Management</h2>
-                            <div style="display: flex; gap: 0.5rem;">
-                                <button class="btn btn-primary" onclick="openDailyDataModal()" style="display: flex; align-items: center; gap: 0.5rem;">
-                                    💰 Daily Data
-                                </button>
-                                <button class="btn btn-success" onclick="loadInventoryDashboard()" style="display: flex; align-items: center; gap: 0.5rem;">
-                                    🔄 Refresh
-                                </button>
-                            </div>
+                            <button class="btn btn-success" onclick="loadInventoryDashboard()" style="display: flex; align-items: center; gap: 0.5rem;">
+                                🔄 Refresh
+                            </button>
                         </div>
                         
                         <div style="padding: 1.5rem;">
@@ -1943,7 +1938,7 @@
 if (currentUser.department === 'Management') {
             tabs += '<div class="nav-tab" onclick="showView(\'approval\')">✅ For Approval</div>';
             tabs += '<div class="nav-tab" onclick="showView(\'disputes\')">⚠️ Resolve Disputes</div>';
-            tabs += '<div class="nav-tab" onclick="openDailyDataModal()">💰 Daily Data</div>';
+            tabs += '<div class="nav-tab" onclick="event.preventDefault(); event.stopPropagation(); openDailyDataModal(); return false;">💰 Daily Data</div>';
             tabs += '<div class="nav-tab" onclick="showView(\'analytics\')">📊 Analytics</div>';
             tabs += '<div class="nav-tab" onclick="showView(\'inventory\')">📦 Inventory</div>';
         }
@@ -7969,13 +7964,19 @@ window.onclick = function(event) {
         // ===== DAILY DATA FUNCTIONS =====
         
         async function openDailyDataModal() {
+            console.log('💰 Opening Daily Data modal...');
             // Load previous values as placeholders
             await loadPreviousDailyData();
-            document.getElementById('dailyDataModal').classList.remove('hidden');
+            const modal = document.getElementById('dailyDataModal');
+            modal.classList.remove('hidden');
+            modal.classList.add('active');
+            console.log('✅ Daily Data modal opened');
         }
         
         function closeDailyDataModal() {
-            document.getElementById('dailyDataModal').classList.add('hidden');
+            const modal = document.getElementById('dailyDataModal');
+            modal.classList.remove('active');
+            modal.classList.add('hidden');
             document.getElementById('dailyDataForm').reset();
         }
         
