@@ -773,6 +773,14 @@
                                     <div style="font-size: 11px; opacity: 0.8; margin-bottom: 0.25rem;">EUROSUPER 95 Advance Payment</div>
                                     <div style="font-size: 20px; font-weight: 600;" id="displayEurosuper95Advance">--</div>
                                 </div>
+                                <div style="background: rgba(255,255,255,0.15); padding: 0.75rem; border-radius: 6px;">
+                                    <div style="font-size: 11px; opacity: 0.8; margin-bottom: 0.25rem;">Diesel Commercial Price</div>
+                                    <div style="font-size: 20px; font-weight: 600;" id="displayDieselCommercial">--</div>
+                                </div>
+                                <div style="background: rgba(255,255,255,0.15); padding: 0.75rem; border-radius: 6px;">
+                                    <div style="font-size: 11px; opacity: 0.8; margin-bottom: 0.25rem;">EUROSUPER 95 Commercial Price</div>
+                                    <div style="font-size: 20px; font-weight: 600;" id="displayEurosuper95Commercial">--</div>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -948,55 +956,6 @@
                     </div>
                     <div id="invoiceOrdersList">
                         <!-- Orders needing invoice -->
-                    </div>
-                </div>
-            </div>
-
-            <!-- Regulatory Prices View (Finance Only) -->
-            <div id="regulatoryPricesView" class="view-content hidden">
-                <div class="card">
-                    <div class="card-header">
-                        <h2 class="card-title">📊 Daily Regulatory Prices</h2>
-                        <button class="btn btn-secondary" onclick="loadRegulatoryPrices()">Refresh</button>
-                    </div>
-                    <div class="card-body">
-                        <p style="color: #6b7280; margin-bottom: 1rem;">
-                            Enter today's regulatory fuel prices from 
-                            <a href="https://www.erc.org.mk/page.aspx?id=290" target="_blank" style="color: #3b82f6;">ERC Website</a>
-                        </p>
-                        <form onsubmit="saveRegulatoryPrices(event)">
-                            <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 1rem;">
-                                <div class="form-group">
-                                    <label>Eurodiesel (MKD/L)</label>
-                                    <input type="number" step="0.01" id="price_eurodiesel" class="form-control">
-                                </div>
-                                <div class="form-group">
-                                    <label>Eurosuper 98 BS (MKD/L)</label>
-                                    <input type="number" step="0.01" id="price_eurosuper98BS" class="form-control">
-                                </div>
-                                <div class="form-group">
-                                    <label>GeForce 95 Plus (MKD/L)</label>
-                                    <input type="number" step="0.01" id="price_geForce95Plus" class="form-control">
-                                </div>
-                                <div class="form-group">
-                                    <label>Extreme Diesel (MKD/L)</label>
-                                    <input type="number" step="0.01" id="price_extremeDiesel" class="form-control">
-                                </div>
-                                <div class="form-group">
-                                    <label>Extra Lesno (MKD/L)</label>
-                                    <input type="number" step="0.01" id="price_extraLesno" class="form-control">
-                                </div>
-                                <div class="form-group">
-                                    <label>Mazut (MKD/L)</label>
-                                    <input type="number" step="0.01" id="price_mazut" class="form-control">
-                                </div>
-                            </div>
-                            <button type="submit" class="btn btn-primary" style="margin-top: 1rem;">Save Prices</button>
-                        </form>
-                        <div id="currentPrices" style="margin-top: 2rem; padding: 1rem; background: #f9fafb; border-radius: 8px;">
-                            <h4>Current Prices</h4>
-                            <p id="pricesDisplay">Loading...</p>
-                        </div>
                     </div>
                 </div>
             </div>
@@ -1989,7 +1948,6 @@ if (currentUser.department === 'Management') {
         }
 
 if (currentUser.department === 'Finance') {
-            tabs += '<div class="nav-tab" onclick="showView(\'regulatoryPrices\')">📊 Regulatory Prices</div>';
             tabs += '<div class="nav-tab" onclick="showView(\'proforma\')">🧾 Enter Proforma</div>';
             tabs += '<div class="nav-tab" onclick="showView(\'invoice\')">📄 Enter Invoice</div>';
         }
@@ -2044,9 +2002,6 @@ if (currentUser.department === 'Transport') {
         } else if (viewName === 'invoice') {
             document.getElementById('invoiceView').classList.remove('hidden');
             loadInvoiceView();
-        } else if (viewName === 'regulatoryPrices') {
-            document.getElementById('regulatoryPricesView').classList.remove('hidden');
-            loadRegulatoryPrices();
 } else if (viewName === 'transport') {
             document.getElementById('transportView').classList.remove('hidden');
             loadTransportDashboard();
@@ -5437,84 +5392,6 @@ window.onclick = function(event) {
         
         // ===== REGULATORY PRICES MANAGEMENT (FINANCE) =====
         
-        async function loadRegulatoryPrices() {
-            try {
-                console.log('Loading regulatory prices...');
-                
-                // Load from RegulatoryPrices sheet
-                const pricesUrl = `https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_ID}/values/RegulatoryPrices!A2:H1000?key=${API_KEY}&t=${Date.now()}`;
-                const response = await fetch(pricesUrl);
-                const data = await response.json();
-                
-                if (data.values && data.values.length > 0) {
-                    // Get last row (most recent prices)
-                    const lastRow = data.values[data.values.length - 1];
-                    
-                    document.getElementById('price_eurodiesel').value = lastRow[1] || '';
-                    document.getElementById('price_eurosuper98BS').value = lastRow[2] || '';
-                    document.getElementById('price_geForce95Plus').value = lastRow[3] || '';
-                    document.getElementById('price_extremeDiesel').value = lastRow[4] || '';
-                    document.getElementById('price_extraLesno').value = lastRow[5] || '';
-                    document.getElementById('price_mazut').value = lastRow[6] || '';
-                    
-                    document.getElementById('pricesDisplay').innerHTML = `
-                        <p><strong>Last updated:</strong> ${new Date(lastRow[0]).toLocaleDateString()}</p>
-                        <p><strong>By:</strong> ${lastRow[7] || 'Unknown'}</p>
-                    `;
-                } else {
-                    document.getElementById('pricesDisplay').innerHTML = '<p style="color: #6b7280;">No prices entered yet. Enter the first set of prices below.</p>';
-                }
-            } catch (error) {
-                console.error('Error loading prices:', error);
-                document.getElementById('pricesDisplay').innerHTML = '<p style="color: #ef4444;">Error loading prices. Please refresh the page.</p>';
-            }
-        }
-
-        async function saveRegulatoryPrices(event) {
-            event.preventDefault();
-            
-            const prices = {
-                eurodiesel: document.getElementById('price_eurodiesel').value,
-                eurosuper98BS: document.getElementById('price_eurosuper98BS').value,
-                geForce95Plus: document.getElementById('price_geForce95Plus').value,
-                extremeDiesel: document.getElementById('price_extremeDiesel').value,
-                extraLesno: document.getElementById('price_extraLesno').value,
-                mazut: document.getElementById('price_mazut').value
-            };
-            
-            // Check if at least one price is entered
-            if (!Object.values(prices).some(p => p)) {
-                alert('⚠️ Please enter at least one price');
-                return;
-            }
-            
-            showLoading('Saving regulatory prices...');
-            
-            try {
-                await fetch(APPS_SCRIPT_URL, {
-                    method: 'POST',
-                    mode: 'no-cors',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        action: 'updateRegulatoryPrices',
-                        prices: prices,
-                        updatedBy: currentUser.id
-                    })
-                });
-                
-                // Reload to show updated info
-                await new Promise(resolve => setTimeout(resolve, 1500));
-                loadRegulatoryPrices();
-                
-                hideLoading();
-                alert('✅ Regulatory prices updated successfully!');
-                
-            } catch (error) {
-                hideLoading();
-                console.error('Error saving prices:', error);
-                alert('❌ Error saving prices. Please try again.');
-            }
-        }
         
         // ===== PHASE 1d: INVENTORY MANAGEMENT DASHBOARD =====
         
@@ -8227,6 +8104,8 @@ window.onclick = function(event) {
                         document.getElementById('displayRegFuelOilM1HC').textContent = matchingRow[12] || '--';
                         document.getElementById('displayDieselAdvance').textContent = matchingRow[13] || '--';
                         document.getElementById('displayEurosuper95Advance').textContent = matchingRow[14] || '--';
+                        document.getElementById('displayDieselCommercial').textContent = matchingRow[15] || '--';
+                        document.getElementById('displayEurosuper95Commercial').textContent = matchingRow[16] || '--';
                     } else {
                         // No data found
                         document.querySelectorAll('[id^="display"]').forEach(el => el.textContent = '--');
