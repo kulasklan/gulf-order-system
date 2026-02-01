@@ -794,9 +794,14 @@
                         <div class="form-grid">
                             <div class="form-group">
                                 <label>Client *</label>
-                                <select id="clientSelect" required>
+                                <select id="clientSelect" required onchange="toggleCustomClientInput()">
                                     <option value="">-- Select Client --</option>
+                                    <option value="__CUSTOM__">✏️ Custom Client (Enter Name)</option>
                                 </select>
+                            </div>
+                            <div class="form-group" id="customClientGroup" style="display: none;">
+                                <label>Custom Client Name *</label>
+                                <input type="text" id="customClientInput" class="form-control" placeholder="Enter client company name">
                             </div>
                             <div class="form-group">
                                 <label>Product Type *</label>
@@ -2522,7 +2527,7 @@ if (currentUser.department === 'Transport') {
         function loadCreateOrderForm() {
             // Load clients for this SM
             const clientSelect = document.getElementById('clientSelect');
-            clientSelect.innerHTML = '<option value="">-- Select Client --</option>';
+            clientSelect.innerHTML = '<option value="">-- Select Client --</option><option value="__CUSTOM__">✏️ Custom Client (Enter Name)</option>';
             
             // Filter clients by current SM (if Sales role)
             const myClients = currentUser.department === 'Sales' 
@@ -2555,6 +2560,22 @@ if (currentUser.department === 'Transport') {
                 // Add new listener
                 deliveryDateInput.addEventListener('change', checkAvailability);
                 console.log('✅ Delivery date listener attached');
+            }
+        }
+        
+        function toggleCustomClientInput() {
+            const clientSelect = document.getElementById('clientSelect');
+            const customGroup = document.getElementById('customClientGroup');
+            const customInput = document.getElementById('customClientInput');
+            
+            if (clientSelect.value === '__CUSTOM__') {
+                customGroup.style.display = 'block';
+                customInput.required = true;
+                customInput.focus();
+            } else {
+                customGroup.style.display = 'none';
+                customInput.required = false;
+                customInput.value = '';
             }
         }
 
@@ -3391,8 +3412,26 @@ document.getElementById('createOrderForm').addEventListener('submit', async (e) 
     e.preventDefault();
 
     // Get form data (Backend will generate Order ID!)
-    const clientID = document.getElementById('clientSelect').value;
-    const client = clientsData.find(c => c.clientID === clientID);
+    const clientSelectValue = document.getElementById('clientSelect').value;
+    
+    // Handle custom client or selected client
+    let clientID = clientSelectValue;
+    let clientName = '';
+    
+    if (clientSelectValue === '__CUSTOM__') {
+        // Custom client - use input value
+        clientName = document.getElementById('customClientInput').value.trim();
+        if (!clientName) {
+            alert('Please enter a custom client name');
+            return;
+        }
+        clientID = '__CUSTOM__'; // Mark as custom in backend
+    } else {
+        // Regular client from list
+        const client = clientsData.find(c => c.clientID === clientSelectValue);
+        clientName = client ? client.clientName : '';
+    }
+    
     const productType = document.getElementById('productTypeSelect').value;
     const requestedQty = parseFloat(document.getElementById('quantityInput').value);
     const deliveryDate = document.getElementById('deliveryDateInput').value;
@@ -3466,7 +3505,7 @@ Do you want to proceed anyway?
         action: 'createOrder',
         createdBy: currentUser.id,
         clientID: clientID,
-        clientName: client ? client.clientName : '',
+        clientName: clientName,
         productType: productType,
         unit: document.getElementById('unitSelect').value,
         quantity: requestedQty,
@@ -5013,18 +5052,30 @@ async function getAvailabilityData(productType, deliveryDate) {
                     
                     <div class="form-group">
                         <label>Select Driver *</label>
-                        <select id="transportDriverSelect" required style="width: 100%;">
+                        <select id="transportDriverSelect" required style="width: 100%;" onchange="toggleCustomDriverInput()">
                             <option value="">-- Select Driver --</option>
+                            <option value="__CUSTOM__">✏️ Custom Driver (Enter Name)</option>
                             ${driversData.map(d => `<option value="${d.driverName}">${d.driverName} (${d.licenseNumber || 'N/A'})</option>`).join('')}
                         </select>
                     </div>
                     
+                    <div class="form-group" id="customDriverGroup" style="display: none;">
+                        <label>Custom Driver Name *</label>
+                        <input type="text" id="customDriverInput" class="form-control" placeholder="Enter driver name">
+                    </div>
+                    
                     <div class="form-group">
                         <label>Select Transport Company *</label>
-                        <select id="transportCompanySelect" required style="width: 100%;" onchange="updateTruckList()">
+                        <select id="transportCompanySelect" required style="width: 100%;" onchange="toggleCustomCompanyInput(); updateTruckList()">
                             <option value="">-- Select Company --</option>
+                            <option value="__CUSTOM__">✏️ Custom Company (Enter Name)</option>
                             ${transportCompaniesData.map(c => `<option value="${c.companyName}">${c.companyName}</option>`).join('')}
                         </select>
+                    </div>
+                    
+                    <div class="form-group" id="customCompanyGroup" style="display: none;">
+                        <label>Custom Company Name *</label>
+                        <input type="text" id="customCompanyInput" class="form-control" placeholder="Enter company name">
                     </div>
                     
                     <div class="form-group">
@@ -5062,6 +5113,38 @@ async function getAvailabilityData(productType, deliveryDate) {
             }
         }
         
+        function toggleCustomDriverInput() {
+            const driverSelect = document.getElementById('transportDriverSelect');
+            const customGroup = document.getElementById('customDriverGroup');
+            const customInput = document.getElementById('customDriverInput');
+            
+            if (driverSelect.value === '__CUSTOM__') {
+                customGroup.style.display = 'block';
+                customInput.required = true;
+                customInput.focus();
+            } else {
+                customGroup.style.display = 'none';
+                customInput.required = false;
+                customInput.value = '';
+            }
+        }
+        
+        function toggleCustomCompanyInput() {
+            const companySelect = document.getElementById('transportCompanySelect');
+            const customGroup = document.getElementById('customCompanyGroup');
+            const customInput = document.getElementById('customCompanyInput');
+            
+            if (companySelect.value === '__CUSTOM__') {
+                customGroup.style.display = 'block';
+                customInput.required = true;
+                customInput.focus();
+            } else {
+                customGroup.style.display = 'none';
+                customInput.required = false;
+                customInput.value = '';
+            }
+        }
+        
         function updateTruckList() {
             const companySelect = document.getElementById('transportCompanySelect');
             const truckInput = document.getElementById('transportTruckInput');
@@ -5078,11 +5161,23 @@ async function getAvailabilityData(productType, deliveryDate) {
         }
         
         async function submitTransportAssignment(orderID) {
-            const driverName = document.getElementById('transportDriverSelect').value;
-            const transportCompany = document.getElementById('transportCompanySelect').value;
+            const driverSelect = document.getElementById('transportDriverSelect').value;
+            const companySelect = document.getElementById('transportCompanySelect').value;
             const truckPlate = document.getElementById('transportTruckInput').value.trim();
             const estimatedDelivery = document.getElementById('transportEstimatedInput').value;
             const note = document.getElementById('transportNoteInput').value.trim();
+            
+            // Get actual driver name (custom or selected)
+            let driverName = driverSelect;
+            if (driverSelect === '__CUSTOM__') {
+                driverName = document.getElementById('customDriverInput').value.trim();
+            }
+            
+            // Get actual company name (custom or selected)
+            let transportCompany = companySelect;
+            if (companySelect === '__CUSTOM__') {
+                transportCompany = document.getElementById('customCompanyInput').value.trim();
+            }
             
             // Validation
             if (!driverName || !transportCompany || !truckPlate || !estimatedDelivery) {
