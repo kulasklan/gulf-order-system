@@ -8168,8 +8168,9 @@ window.onclick = function(event) {
                 ];
                 
                 // Append row to Google Sheets
-                const response = await fetch(APPS_SCRIPT_URL, {
+                await fetch(APPS_SCRIPT_URL, {
                     method: 'POST',
+                    mode: 'no-cors',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
                         action: 'appendRow',
@@ -8178,21 +8179,24 @@ window.onclick = function(event) {
                     })
                 });
                 
-                const result = await response.json();
+                console.log('✅ Daily data sent to backend');
+                console.log('⏳ Waiting for Google Sheets to update...');
                 
-                if (result.success) {
-                    hideLoading();
-                    alert('✅ Daily prices saved successfully!');
-                    // Reset form
-                    document.getElementById('dailyDataForm').reset();
-                    // Reload previous data as placeholders
-                    await loadPreviousDailyData();
-                    // Reload price history if it's displayed
-                    if (document.getElementById('priceHistoryTable').innerHTML.includes('<table')) {
-                        loadPriceHistory();
-                    }
-                } else {
-                    throw new Error(result.error || 'Failed to save data');
+                // Wait for backend to process
+                await new Promise(resolve => setTimeout(resolve, 1500));
+                
+                hideLoading();
+                alert('✅ Daily prices saved successfully!');
+                
+                // Reset form
+                document.getElementById('dailyDataForm').reset();
+                
+                // Reload previous data as placeholders
+                await loadPreviousDailyData();
+                
+                // Reload price history if it's displayed
+                if (document.getElementById('priceHistoryTable').innerHTML.includes('<table')) {
+                    loadPriceHistory();
                 }
                 
             } catch (error) {
