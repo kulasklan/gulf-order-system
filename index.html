@@ -6268,8 +6268,8 @@ window.onclick = function(event) {
                 const data = await response.json();
                 
                 if (data.values) {
-                    // Filter: only In Transit shipments
-                    const inTransit = data.values.filter(row => row[7] === 'In Transit');
+                    // Filter: only In Transit shipments (Column K = row[10])
+                    const inTransit = data.values.filter(row => row[10] === 'In Transit');
                     
                     const container = document.getElementById('warehouseInboundTable');
                     
@@ -6287,7 +6287,8 @@ window.onclick = function(event) {
                                     <th>Product</th>
                                     <th>Quantity</th>
                                     <th>ETA</th>
-                                    <th>Action</th>
+                                    <th>Status</th>
+                                    <th>Actions</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -6295,11 +6296,12 @@ window.onclick = function(event) {
                     
                     inTransit.forEach(row => {
                         const shipmentID = row[0];
-                        const supplier = row[1];
-                        const product = row[2];
-                        const quantity = parseFloat(row[3]) || 0;
-                        const unit = row[4] || 'L';
-                        const eta = row[5] || 'Not set';
+                        const supplier = row[4];
+                        const product = row[5];
+                        const quantity = parseFloat(row[7]) || 0;
+                        const unit = row[6] || 'L';
+                        const eta = row[8] || 'Not set';
+                        const status = row[10] || 'Created';
                         const notes = row[15] || '';
                         const truckLicence = row[18] || '';
                         const trailerLicence = row[19] || '';
@@ -6323,9 +6325,13 @@ window.onclick = function(event) {
                                 <td>${product}</td>
                                 <td>${new Intl.NumberFormat().format(quantity)} ${unit}</td>
                                 <td>${eta}</td>
+                                <td><span class="status-badge" style="background: #DBEAFE; color: #3B82F6;">${status}</span></td>
                                 <td>
-                                    <button class="btn btn-success" onclick="showMarkArrivedModal('${shipmentID}', '${product}', ${quantity}, '${supplier}', '${driver}', '${company}', '${truckLicence}', '${trailerLicence}')" style="padding: 0.375rem 0.75rem; font-size: 0.85rem;">
+                                    <button class="btn btn-success" onclick="showMarkArrivedModal('${shipmentID}', '${product}', ${quantity}, '${supplier}', '${driver}', '${company}', '${truckLicence}', '${trailerLicence}')" style="padding: 0.375rem 0.75rem; font-size: 0.85rem; margin-right: 0.5rem;">
                                         📦 Mark Arrived
+                                    </button>
+                                    <button class="btn btn-secondary" onclick="updateWarehouseInboundStatus('${shipmentID}', 'Cancelled')" style="padding: 0.375rem 0.75rem; font-size: 0.85rem;">
+                                        ❌ Cancel
                                     </button>
                                 </td>
                             </tr>
@@ -6339,6 +6345,53 @@ window.onclick = function(event) {
                 }
             } catch (error) {
                 console.error('Error loading inbound:', error);
+            }
+        }
+        
+        async function updateWarehouseInboundStatus(shipmentID, newStatus) {
+            if (!confirm(`Update shipment ${shipmentID} to "${newStatus}"?`)) {
+                return;
+            }
+            
+            let reason = '';
+            if (newStatus === 'Cancelled') {
+                reason = prompt('Please enter cancellation reason:');
+                if (!reason || reason.trim() === '') {
+                    alert('Cancellation reason is required');
+                    return;
+                }
+            }
+            
+            showLoading(`Updating to ${newStatus}...`);
+            
+            try {
+                await fetch(APPS_SCRIPT_URL, {
+                    method: 'POST',
+                    mode: 'no-cors',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        action: newStatus === 'Cancelled' ? 'cancelInboundShipment' : 'updateInboundStatus',
+                        shipmentID: shipmentID,
+                        newStatus: newStatus,
+                        reason: reason,
+                        cancelledBy: currentUser.name,
+                        updatedBy: currentUser.name
+                    })
+                });
+                
+                // Wait for processing
+                await new Promise(resolve => setTimeout(resolve, 1500));
+                
+                // Reload warehouse inbound list
+                await loadWarehouseInbound();
+                
+                hideLoading();
+                alert(`✅ Shipment ${newStatus.toLowerCase()} successfully`);
+                
+            } catch (error) {
+                hideLoading();
+                console.error('Error updating status:', error);
+                alert('❌ Error updating status. Please try again.');
             }
         }
         
