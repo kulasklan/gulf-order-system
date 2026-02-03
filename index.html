@@ -1157,7 +1157,7 @@
                                     <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1rem; margin-bottom: 1rem;">
                                         <div>
                                             <label style="display: block; font-weight: 600; margin-bottom: 0.5rem; color: #1F2937; font-size: 0.95rem;">📦 Shipment Type: *</label>
-                                           <select id="transportShipmentType" onchange="toggleWarehouseField()" required style="...">
+                                            <select id="transportShipmentType" style="width: 100%; padding: 0.75rem; border: 2px solid #3B82F6; border-radius: 4px; font-weight: bold; background: #EFF6FF;">
                                                 <option value="Inbound">📦 Inbound Shipment</option>
                                                 <option value="Re-export">🌍 Re-export Shipment</option>
                                             </select>
@@ -6664,23 +6664,6 @@ await fetch(APPS_SCRIPT_URL, {
             }
         }
 		
-		function toggleWarehouseField() {
-            const shipmentType = document.getElementById('transportShipmentType').value;
-            const warehouseDiv = document.getElementById('transportWarehouseLocation').parentElement;
-            const warehouseField = document.getElementById('transportWarehouseLocation');
-            
-            if (shipmentType === 'Re-export') {
-                // Hide warehouse for Re-export
-                warehouseDiv.style.display = 'none';
-                warehouseField.required = false;
-                warehouseField.value = '';
-            } else {
-                // Show warehouse for Inbound and Export
-                warehouseDiv.style.display = 'block';
-                warehouseField.required = true;
-            }
-        }
-		
 		function toggleEditCustomSupplier() {
             const supplierSelect = document.getElementById('editSupplier');
             const customInput = document.getElementById('editSupplierCustom');
@@ -6766,10 +6749,7 @@ async function submitTransportInbound() {
                 return;
             }
             
-            const shipmentType = document.getElementById('transportShipmentType').value;
-			const shipmentTypeName = shipmentType === 'Inbound' ? 'Inbound' : shipmentType === 'Re-export' ? 'Re-export' : 'Export';
-
-			if (!confirm(`Create this ${shipmentTypeName} shipment?`)) {
+            if (!confirm('Create this inbound shipment?')) {
                 return;
             }
             
