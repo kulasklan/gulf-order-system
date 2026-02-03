@@ -6768,7 +6768,10 @@ async function submitTransportInbound() {
                 return;
             }
             
-            if (!confirm('Create this inbound shipment?')) {
+            const shipmentTypeName = shipmentType === 'Inbound' ? 'Inbound' : 
+                                     shipmentType === 'Re-export' ? 'Re-export' : 'Export';
+            
+            if (!confirm(`Create this ${shipmentTypeName} shipment?`)) {
                 return;
             }
             
