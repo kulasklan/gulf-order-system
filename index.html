@@ -1157,7 +1157,7 @@
                                     <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1rem; margin-bottom: 1rem;">
                                         <div>
                                             <label style="display: block; font-weight: 600; margin-bottom: 0.5rem; color: #1F2937; font-size: 0.95rem;">📦 Shipment Type: *</label>
-                                           <select id="transportShipmentType" onchange="toggleWarehouseField()" required style="...">
+                                            <<select id="transportShipmentType" onchange="toggleWarehouseField()" required style="...">
                                                 <option value="Inbound">📦 Inbound Shipment</option>
                                                 <option value="Re-export">🌍 Re-export Shipment</option>
                                             </select>
@@ -6767,9 +6767,9 @@ async function submitTransportInbound() {
             }
             
             const shipmentType = document.getElementById('transportShipmentType').value;
-			const shipmentTypeName = shipmentType === 'Inbound' ? 'Inbound' : shipmentType === 'Re-export' ? 'Re-export' : 'Export';
+const shipmentTypeName = shipmentType === 'Inbound' ? 'Inbound' : shipmentType === 'Re-export' ? 'Re-export' : 'Export';
 
-			if (!confirm(`Create this ${shipmentTypeName} shipment?`)) {
+if (!confirm(`Create this ${shipmentTypeName} shipment?`)) {
                 return;
             }
             
