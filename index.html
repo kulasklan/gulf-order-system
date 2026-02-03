@@ -1166,19 +1166,20 @@
                                         <div></div>
                                     </div>
                                     <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1rem; margin-bottom: 1rem;">
-                                        <div>
-                                            <label style="display: block; font-weight: 600; margin-bottom: 0.5rem;">Supplier: *</label>
-                                            <select id="transportSupplier" style="width: 100%; padding: 0.75rem; border: 1px solid #D1D5DB; border-radius: 4px;">
-                                                <option value="">-- Select Supplier --</option>
-                                                <option value="OKTA">OKTA</option>
-                                                <option value="Makpetrol">Makpetrol</option>
-                                                <option value="Lukoil">Lukoil</option>
-                                                <option value="Shell">Shell</option>
-                                                <option value="OMV">OMV</option>
-                                                <option value="Hellenic Petroleum">Hellenic Petroleum</option>
-                                                <option value="Other">Other</option>
-                                            </select>
-                                        </div>
+									<div>
+									<label style="display: block; font-weight: 600; margin-bottom: 0.5rem;">Supplier: *</label>
+										<select id="transportSupplier" onchange="toggleCustomSupplier()" style="width: 100%; padding: 0.75rem; border: 1px solid #D1D5DB; border-radius: 4px;">
+										<option value="">-- Select Supplier --</option>
+										<option value="OKTA">OKTA</option>
+										<option value="Makpetrol">Makpetrol</option>
+										<option value="Lukoil">Lukoil</option>
+										<option value="Shell">Shell</option>
+										<option value="OMV">OMV</option>
+										<option value="Hellenic Petroleum">Hellenic Petroleum</option>
+										<option value="Other">Other</option>
+								</select>
+    <input type="text" id="transportSupplierCustom" placeholder="Enter supplier name" style="width: 100%; padding: 0.75rem; border: 1px solid #D1D5DB; border-radius: 4px; margin-top: 0.5rem; display: none;">
+</div>
                                         <div>
                                             <label style="display: block; font-weight: 600; margin-bottom: 0.5rem;">Fuel Type: *</label>
                                             <select id="transportFuelType" style="width: 100%; padding: 0.75rem; border: 1px solid #D1D5DB; border-radius: 4px;">
@@ -1680,17 +1681,18 @@
                         
                         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem;">
                             <div>
-                                <label style="display: block; font-weight: 600; margin-bottom: 0.5rem;">Supplier: *</label>
-                                <select id="editSupplier" style="width: 100%; padding: 0.75rem; border: 1px solid #D1D5DB; border-radius: 4px;">
-                                    <option value="OKTA">OKTA</option>
-                                    <option value="Makpetrol">Makpetrol</option>
-                                    <option value="Lukoil">Lukoil</option>
-                                    <option value="Shell">Shell</option>
-                                    <option value="OMV">OMV</option>
-                                    <option value="Hellenic Petroleum">Hellenic Petroleum</option>
-                                    <option value="Other">Other</option>
-                                </select>
-                            </div>
+								<label style="display: block; font-weight: 600; margin-bottom: 0.5rem;">Supplier: *</label>
+								<select id="editSupplier" onchange="toggleEditCustomSupplier()" style="width: 100%; padding: 0.75rem; border: 1px solid #D1D5DB; border-radius: 4px;">
+								<option value="OKTA">OKTA</option>
+								<option value="Makpetrol">Makpetrol</option>
+								<option value="Lukoil">Lukoil</option>
+								<option value="Shell">Shell</option>
+								<option value="OMV">OMV</option>
+								<option value="Hellenic Petroleum">Hellenic Petroleum</option>
+								<option value="Other">Other</option>
+								</select>
+								<input type="text" id="editSupplierCustom" placeholder="Enter supplier name" style="width: 100%; padding: 0.75rem; border: 1px solid #D1D5DB; border-radius: 4px; margin-top: 0.5rem; display: none;">
+							</div>
                             <div>
                                 <label style="display: block; font-weight: 600; margin-bottom: 0.5rem;">Fuel Type: *</label>
                                 <select id="editFuelType" style="width: 100%; padding: 0.75rem; border: 1px solid #D1D5DB; border-radius: 4px;">
@@ -1796,16 +1798,17 @@
                     <div style="padding: 1.5rem;">
                         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem;">
                             <div>
-                                <label style="display: block; font-weight: 600; margin-bottom: 0.5rem;">Supplier: *</label>
-                                <select id="addShipmentSupplier" required style="width: 100%; padding: 0.5rem; border: 1px solid #d1d5db; border-radius: 4px;">
-                                    <option value="">-- Select Supplier --</option>
-                                    <option value="Supplier A">Supplier A</option>
-                                    <option value="Supplier B">Supplier B</option>
-                                    <option value="Supplier C">Supplier C</option>
-                                    <option value="Local Provider D">Local Provider D</option>
-                                    <option value="Other">Other</option>
-                                </select>
-                            </div>
+    <label style="display: block; font-weight: 600; margin-bottom: 0.5rem;">Supplier: *</label>
+    <select id="addShipmentSupplier" onchange="toggleAddCustomSupplier()" required style="width: 100%; padding: 0.5rem; border: 1px solid #d1d5db; border-radius: 4px;">
+        <option value="">-- Select Supplier --</option>
+        <option value="Supplier A">Supplier A</option>
+        <option value="Supplier B">Supplier B</option>
+        <option value="Supplier C">Supplier C</option>
+        <option value="Local Provider D">Local Provider D</option>
+        <option value="Other">Other</option>
+    </select>
+    <input type="text" id="addShipmentSupplierCustom" placeholder="Enter supplier name" style="width: 100%; padding: 0.5rem; border: 1px solid #d1d5db; border-radius: 4px; margin-top: 0.5rem; display: none;">
+</div>
                             <div>
                                 <label style="display: block; font-weight: 600; margin-bottom: 0.5rem;">Product: *</label>
                                 <select id="addShipmentProduct" required style="width: 100%; padding: 0.5rem; border: 1px solid #d1d5db; border-radius: 4px;">
@@ -6007,7 +6010,8 @@ window.onclick = function(event) {
         }
         
         async function submitAddShipment() {
-            const supplier = document.getElementById('addShipmentSupplier').value;
+let supplier = document.getElementById('addShipmentSupplier').value;
+if (supplier === 'Other') supplier = document.getElementById('addShipmentSupplierCustom').value;
             const product = document.getElementById('addShipmentProduct').value;
             const quantity = parseFloat(document.getElementById('addShipmentQuantity').value);
             const unit = document.getElementById('addShipmentUnit').value;
@@ -6283,8 +6287,10 @@ await fetch(APPS_SCRIPT_URL, {
                 
                 if (data.values) {
                     // Filter: only In Transit shipments (Column K = row[10])
-                    const inTransit = data.values.filter(row => row[10] === 'In Transit');
-                    
+                    const inTransit = data.values.filter(row => row[7] === 'In Transit');
+                    console.log('📊 Total rows:', data.values.length);
+					console.log('📊 In Transit count:', inTransit.length);
+					if (inTransit.length > 0) console.log('📊 First shipment:', inTransit[0]);
                     const container = document.getElementById('warehouseInboundTable');
                     
                     if (inTransit.length === 0) {
@@ -6384,7 +6390,7 @@ await fetch(APPS_SCRIPT_URL, {
                     mode: 'no-cors',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
-                        action: newStatus === 'Cancelled' ? 'cancelInboundShipment' : 'updateInboundStatus',
+                        action: newStatus === 'Cancelled' ? '	' : 'updateInboundStatus',
                         shipmentID: shipmentID,
                         newStatus: newStatus,
                         reason: reason,
@@ -6644,6 +6650,48 @@ await fetch(APPS_SCRIPT_URL, {
             }
         }
         
+		function toggleCustomSupplier() {
+            const supplierSelect = document.getElementById('transportSupplier');
+            const customInput = document.getElementById('transportSupplierCustom');
+            
+            if (supplierSelect.value === 'Other') {
+                customInput.style.display = 'block';
+                customInput.required = true;
+            } else {
+                customInput.style.display = 'none';
+                customInput.required = false;
+                customInput.value = '';
+            }
+        }
+		
+		function toggleEditCustomSupplier() {
+            const supplierSelect = document.getElementById('editSupplier');
+            const customInput = document.getElementById('editSupplierCustom');
+            
+            if (supplierSelect.value === 'Other') {
+                customInput.style.display = 'block';
+                customInput.required = true;
+            } else {
+                customInput.style.display = 'none';
+                customInput.required = false;
+                customInput.value = '';
+            }
+        }
+        
+        function toggleAddCustomSupplier() {
+            const supplierSelect = document.getElementById('addShipmentSupplier');
+            const customInput = document.getElementById('addShipmentSupplierCustom');
+            
+            if (supplierSelect.value === 'Other') {
+                customInput.style.display = 'block';
+                customInput.required = true;
+            } else {
+                customInput.style.display = 'none';
+                customInput.required = false;
+                customInput.value = '';
+            }
+        }
+		
         // Toggle custom company input
         function toggleCustomCompany() {
             const companySelect = document.getElementById('transportCompany');
@@ -6658,8 +6706,13 @@ await fetch(APPS_SCRIPT_URL, {
             }
         }
         
-        async function submitTransportInbound() {
-            const supplier = document.getElementById('transportSupplier').value;
+async function submitTransportInbound() {
+            let supplier = document.getElementById('transportSupplier').value;
+            
+            // If "Other" selected, use custom input
+            if (supplier === 'Other') {
+                supplier = document.getElementById('transportSupplierCustom').value;
+            }
             const fuelType = document.getElementById('transportFuelType').value;
             const quantity = document.getElementById('transportQuantity').value;
 			const shipmentType = document.getElementById('transportShipmentType').value;
@@ -7005,47 +7058,48 @@ await fetch(APPS_SCRIPT_URL, {
             }
         }
         
-        async function cancelShipment(shipmentID) {
-            const reason = prompt('Enter cancellation reason:', 'Cancelled by transport department');
-            
-            if (!reason) {
-                return;
-            }
-            
-            if (!confirm(`Cancel shipment ${shipmentID}?\n\nThis action cannot be undone.`)) {
-                return;
-            }
-            
-            showLoading('Cancelling shipment...');
-            
-            try {
-                await fetch(APPS_SCRIPT_URL, {
-                    method: 'POST',
-                    mode: 'no-cors',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        action: 'cancelInboundShipment',
-                        shipmentID: shipmentID,
-                        updatedBy: currentUser.name,
-                        reason: reason
-                    })
-                });
-                
-                // Wait for processing
-                await new Promise(resolve => setTimeout(resolve, 2000));
-                
-                // Reload data
-                await loadTransportInbound();
-                
-                hideLoading();
-                alert('✅ Shipment cancelled successfully');
-                
-            } catch (error) {
-                hideLoading();
-                console.error('Error cancelling shipment:', error);
-                alert('❌ Error cancelling shipment. Please try again.');
-            }
-        }
+async function cancelShipment(shipmentID) {
+    const reason = prompt('⚠️ Enter cancellation reason:');
+    
+    if (!reason || reason.trim() === '') {
+        alert('❌ Cancellation reason is required!');
+        return;
+    }
+    
+    if (!confirm(`Cancel shipment ${shipmentID}?\n\nReason: ${reason}\n\nThis action cannot be undone.`)) {
+        return;
+    }
+    
+    showLoading('Cancelling shipment...');
+    
+    try {
+        await fetch(APPS_SCRIPT_URL, {
+            method: 'POST',
+            mode: 'no-cors',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                action: 'cancelShipment',
+                shipmentID: shipmentID,
+                cancelledBy: currentUser.name,
+                reason: reason
+            })
+        });
+        
+        // Wait for processing
+        await new Promise(resolve => setTimeout(resolve, 2000));
+        
+        // Reload data
+        await loadTransportInbound();
+        
+        hideLoading();
+        alert(`✅ Shipment ${shipmentID} cancelled`);
+        
+    } catch (error) {
+        hideLoading();
+        console.error('Error cancelling shipment:', error);
+        alert('❌ Error cancelling shipment. Please try again.');
+    }
+}
         
         // Enhanced Mark Arrived Functions (Warehouse)
         function calculateArrivedDifferences() {
