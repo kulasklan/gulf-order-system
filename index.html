@@ -1151,107 +1151,121 @@
                             <!-- Create Inbound Shipment Form -->
                             <div style="margin-bottom: 2rem;">
 								<h3 style="margin-bottom: 1rem; color: var(--secondary);">➕ Create Shipment</h3>
-                                <div style="background: #F9FAFB; padding: 1.5rem; border-radius: 8px; border: 1px solid #E5E7EB;">
-                                    <!-- Row 1 -->
-								 <!-- Row 0 - Shipment Type -->
-                                    <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1rem; margin-bottom: 1rem;">
-                                        <div>
-                                            <label style="display: block; font-weight: 600; margin-bottom: 0.5rem; color: #1F2937; font-size: 0.95rem;">📦 Shipment Type: *</label>
-                                            <select id="transportShipmentType" onchange="toggleWarehouseField()" style="width: 100%; padding: 0.75rem; border: 2px solid #3B82F6; border-radius: 4px; font-weight: bold; background: #EFF6FF;">
-                                                <option value="Inbound">📦 Inbound Shipment</option>
-                                                <option value="Re-export">🌍 Re-export Shipment</option>
-                                            </select>
-                                        </div>
-                                        <div></div>
-                                        <div></div>
-                                    </div>
-                                    <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1rem; margin-bottom: 1rem;">
-									<div>
-									<label style="display: block; font-weight: 600; margin-bottom: 0.5rem;">Supplier: *</label>
-										<select id="transportSupplier" onchange="toggleCustomSupplier()" style="width: 100%; padding: 0.75rem; border: 1px solid #D1D5DB; border-radius: 4px;">
-										<option value="">-- Select Supplier --</option>
-										<option value="OKTA">OKTA</option>
-										<option value="Makpetrol">Makpetrol</option>
-										<option value="Lukoil">Lukoil</option>
-										<option value="Shell">Shell</option>
-										<option value="OMV">OMV</option>
-										<option value="Hellenic Petroleum">Hellenic Petroleum</option>
-										<option value="Other">Other</option>
-								</select>
-    <input type="text" id="transportSupplierCustom" placeholder="Enter supplier name" style="width: 100%; padding: 0.75rem; border: 1px solid #D1D5DB; border-radius: 4px; margin-top: 0.5rem; display: none;">
+<div style="background: #F9FAFB; padding: 1.5rem; border-radius: 8px; border: 1px solid #E5E7EB;">
+    <!-- Row 0 - Shipment Type -->
+    <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1rem; margin-bottom: 1rem;">
+        <div>
+            <label style="display: block; font-weight: 600; margin-bottom: 0.5rem; color: #1F2937; font-size: 0.95rem;">📦 Shipment Type:</label>
+            <select id="transportShipmentType" onchange="toggleShipmentFields()" style="width: 100%; padding: 0.75rem; border: 2px solid #3B82F6; border-radius: 4px; font-weight: bold; background: #EFF6FF;">
+                <option value="Inbound">📦 Inbound (Import)</option>
+                <option value="Re-export">🌍 Re-export</option>
+                <option value="Export">📤 Export (Sales Order)</option>
+            </select>
+        </div>
+        <div></div>
+        <div></div>
+    </div>
+    
+    <!-- Row 1 - Supplier / Client -->
+    <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1rem; margin-bottom: 1rem;">
+        <!-- SUPPLIER field (Inbound & Re-export only) -->
+        <div id="supplierFieldDiv">
+            <label style="display: block; font-weight: 600; margin-bottom: 0.5rem;">Supplier:</label>
+            <select id="transportSupplier" onchange="toggleCustomSupplier()" style="width: 100%; padding: 0.75rem; border: 1px solid #D1D5DB; border-radius: 4px;">
+                <option value="">-- Select Supplier --</option>
+                <option value="OKTA">OKTA</option>
+                <option value="Makpetrol">Makpetrol</option>
+                <option value="Lukoil">Lukoil</option>
+                <option value="Shell">Shell</option>
+                <option value="OMV">OMV</option>
+                <option value="Hellenic Petroleum">Hellenic Petroleum</option>
+                <option value="Other">Other</option>
+            </select>
+            <input type="text" id="transportSupplierCustom" placeholder="Enter supplier name" style="width: 100%; padding: 0.75rem; border: 1px solid #D1D5DB; border-radius: 4px; margin-top: 0.5rem; display: none;">
+        </div>
+        
+        <!-- CLIENT NAME field (Re-export & Export only) -->
+        <div id="clientNameFieldDiv" style="display: none;">
+            <label style="display: block; font-weight: 600; margin-bottom: 0.5rem;">Client Name:</label>
+            <input type="text" id="transportClientName" placeholder="Enter client/company name" style="width: 100%; padding: 0.75rem; border: 1px solid #D1D5DB; border-radius: 4px;">
+        </div>
+        
+        <div>
+            <label style="display: block; font-weight: 600; margin-bottom: 0.5rem;">Fuel Type:</label>
+            <select id="transportFuelType" style="width: 100%; padding: 0.75rem; border: 1px solid #D1D5DB; border-radius: 4px;">
+                <option value="">-- Select --</option>
+                <option value="Diesel">Diesel</option>
+                <option value="Gasoline">Gasoline</option>
+                <option value="Mazut">Mazut</option>
+                <option value="EL">EL (Extra Light)</option>
+            </select>
+        </div>
+        <div>
+            <label style="display: block; font-weight: 600; margin-bottom: 0.5rem;">Quantity (L):</label>
+            <input type="number" id="transportQuantity" style="width: 100%; padding: 0.75rem; border: 1px solid #D1D5DB; border-radius: 4px;" placeholder="Quantity">
+        </div>
+    </div>
+    
+    <!-- Row 2 -->
+    <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1rem; margin-bottom: 1rem;">
+        <div>
+            <label style="display: block; font-weight: 600; margin-bottom: 0.5rem;">Driver:</label>
+            <select id="transportDriver" onchange="toggleCustomDriver()" style="width: 100%; padding: 0.75rem; border: 1px solid #D1D5DB; border-radius: 4px;">
+                <option value="">-- Select Driver --</option>
+            </select>
+            <input type="text" id="transportDriverCustom" placeholder="Enter driver name" style="width: 100%; padding: 0.75rem; border: 1px solid #D1D5DB; border-radius: 4px; margin-top: 0.5rem; display: none;">
+        </div>
+        <div>
+            <label style="display: block; font-weight: 600; margin-bottom: 0.5rem;">Transport Company:</label>
+            <select id="transportCompany" onchange="toggleCustomCompany()" style="width: 100%; padding: 0.75rem; border: 1px solid #D1D5DB; border-radius: 4px;">
+                <option value="">-- Select Company --</option>
+            </select>
+            <input type="text" id="transportCompanyCustom" placeholder="Enter company name" style="width: 100%; padding: 0.75rem; border: 1px solid #D1D5DB; border-radius: 4px; margin-top: 0.5rem; display: none;">
+        </div>
+        <div>
+            <label style="display: block; font-weight: 600; margin-bottom: 0.5rem;">Expected Arrival:</label>
+            <input type="date" id="transportETA" style="width: 100%; padding: 0.75rem; border: 1px solid #D1D5DB; border-radius: 4px;">
+        </div>
+    </div>
+    
+    <!-- Row 3 -->
+    <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1rem; margin-bottom: 1rem;">
+        <div>
+            <label style="display: block; font-weight: 600; margin-bottom: 0.5rem;">Truck Licence Plate:</label>
+            <input type="text" id="transportTruckLicence" style="width: 100%; padding: 0.75rem; border: 1px solid #D1D5DB; border-radius: 4px;" placeholder="e.g. SK-123-AB">
+        </div>
+        <div>
+            <label style="display: block; font-weight: 600; margin-bottom: 0.5rem;">Semi-trailer Licence:</label>
+            <input type="text" id="transportTrailerLicence" style="width: 100%; padding: 0.75rem; border: 1px solid #D1D5DB; border-radius: 4px;" placeholder="Optional">
+        </div>
+        <div>
+            <label style="display: block; font-weight: 600; margin-bottom: 0.5rem;">Freight Forwarder:</label>
+            <select id="transportFreightForwarder" style="width: 100%; padding: 0.75rem; border: 1px solid #D1D5DB; border-radius: 4px;">
+                <option value="">-- Select --</option>
+                <option value="Fershped">Fershped</option>
+                <option value="Uniko">Uniko</option>
+                <option value="Gori">Gori</option>
+                <option value="Trajkov">Trajkov</option>
+                <option value="Other">Other</option>
+            </select>
+        </div>
+    </div>
+    
+    <!-- Row 4 - WAREHOUSE LOCATION (Inbound only) -->
+    <div id="warehouseLocationFieldDiv" style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1rem; margin-bottom: 1rem;">
+        <div>
+            <label style="display: block; font-weight: 600; margin-bottom: 0.5rem;">Warehouse Location:</label>
+            <select id="transportWarehouseLocation" style="width: 100%; padding: 0.75rem; border: 1px solid #D1D5DB; border-radius: 4px;">
+                <option value="">-- Select --</option>
+                <option value="Tetovo">Tetovo</option>
+                <option value="Ohis">Ohis</option>
+                <option value="Lisiche">Lisiche</option>
+            </select>
+        </div>
+    </div>
+    
+    <button class="btn btn-primary" onclick="submitTransportInbound()">🚚 Create Shipment</button>
 </div>
-                                        <div>
-                                            <label style="display: block; font-weight: 600; margin-bottom: 0.5rem;">Fuel Type: *</label>
-                                            <select id="transportFuelType" style="width: 100%; padding: 0.75rem; border: 1px solid #D1D5DB; border-radius: 4px;">
-                                                <option value="">-- Select --</option>
-                                                <option value="Diesel">Diesel</option>
-                                                <option value="Gasoline">Gasoline</option>
-                                                <option value="Mazut">Mazut</option>
-                                                <option value="EL">EL (Extra Light)</option>
-                                            </select>
-                                        </div>
-                                        <div>
-                                            <label style="display: block; font-weight: 600; margin-bottom: 0.5rem;">Quantity (L): *</label>
-                                            <input type="number" id="transportQuantity" style="width: 100%; padding: 0.75rem; border: 1px solid #D1D5DB; border-radius: 4px;" placeholder="Quantity">
-                                        </div>
-                                    </div>
-                                    <!-- Row 2 -->
-                                    <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1rem; margin-bottom: 1rem;">
-                                        <div>
-                                            <label style="display: block; font-weight: 600; margin-bottom: 0.5rem;">Driver: *</label>
-                                            <select id="transportDriver" onchange="toggleCustomDriver()" style="width: 100%; padding: 0.75rem; border: 1px solid #D1D5DB; border-radius: 4px;">
-                                                <option value="">-- Select Driver --</option>
-                                            </select>
-                                            <input type="text" id="transportDriverCustom" placeholder="Enter driver name" style="width: 100%; padding: 0.75rem; border: 1px solid #D1D5DB; border-radius: 4px; margin-top: 0.5rem; display: none;">
-                                        </div>
-                                        <div>
-                                            <label style="display: block; font-weight: 600; margin-bottom: 0.5rem;">Transport Company: *</label>
-                                            <select id="transportCompany" onchange="toggleCustomCompany()" style="width: 100%; padding: 0.75rem; border: 1px solid #D1D5DB; border-radius: 4px;">
-                                                <option value="">-- Select Company --</option>
-                                            </select>
-                                            <input type="text" id="transportCompanyCustom" placeholder="Enter company name" style="width: 100%; padding: 0.75rem; border: 1px solid #D1D5DB; border-radius: 4px; margin-top: 0.5rem; display: none;">
-                                        </div>
-                                        <div>
-                                            <label style="display: block; font-weight: 600; margin-bottom: 0.5rem;">Expected Arrival: *</label>
-                                            <input type="date" id="transportETA" style="width: 100%; padding: 0.75rem; border: 1px solid #D1D5DB; border-radius: 4px;">
-                                        </div>
-                                    </div>
-                                    <!-- Row 3 - NEW FIELDS -->
-                                    <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1rem; margin-bottom: 1rem;">
-                                        <div>
-                                            <label style="display: block; font-weight: 600; margin-bottom: 0.5rem;">Truck Licence Plate: *</label>
-                                            <input type="text" id="transportTruckLicence" style="width: 100%; padding: 0.75rem; border: 1px solid #D1D5DB; border-radius: 4px;" placeholder="e.g. SK-123-AB">
-                                        </div>
-                                        <div>
-                                            <label style="display: block; font-weight: 600; margin-bottom: 0.5rem;">Semi-trailer Licence:</label>
-                                            <input type="text" id="transportTrailerLicence" style="width: 100%; padding: 0.75rem; border: 1px solid #D1D5DB; border-radius: 4px;" placeholder="Optional">
-                                        </div>
-                                        <div>
-                                            <label style="display: block; font-weight: 600; margin-bottom: 0.5rem;">Freight Forwarder: *</label>
-                                            <select id="transportFreightForwarder" style="width: 100%; padding: 0.75rem; border: 1px solid #D1D5DB; border-radius: 4px;">
-                                                <option value="">-- Select --</option>
-                                                <option value="Fershped">Fershped</option>
-                                                <option value="Uniko">Uniko</option>
-                                                <option value="Gori">Gori</option>
-                                                <option value="Trajkov">Trajkov</option>
-                                                <option value="Other">Other</option>
-                                            </select>
-                                        </div>
-                                    </div>
-                                    <!-- Row 4 - NEW WAREHOUSE LOCATION -->
-                                    <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1rem; margin-bottom: 1rem;">
-<div>
-                                            <label style="display: block; font-weight: 600; margin-bottom: 0.5rem;">Warehouse Location: *</label>
-                                            <select id="transportWarehouseLocation" style="width: 100%; padding: 0.75rem; border: 1px solid #D1D5DB; border-radius: 4px;">
-                                                <option value="">-- Select --</option>
-                                                <option value="Tetovo">Tetovo</option>
-                                                <option value="Ohis">Ohis</option>
-                                                <option value="Lisiche">Lisiche</option>
-                                            </select>
-                                        </div>
-                                    </div>
-                                    </div>
-                                    <button class="btn btn-primary" onclick="submitTransportInbound()">🚚 Create Shipment</button>
                                 </div>
                             </div>
 
@@ -1892,7 +1906,7 @@
             return currentUser.department === 'Sales' || 
                    currentUser.department === 'Management' || 
                    currentUser.department === 'Finance';
-        }
+			
         
         // Loading overlay helpers
         function showLoading(message = 'Saving changes...') {
@@ -6736,120 +6750,154 @@ function toggleWarehouseField() {
                 customInput.value = '';
             }
         }
-        
-async function submitTransportInbound() {
-            let supplier = document.getElementById('transportSupplier').value;
-            
-            // If "Other" selected, use custom input
-            if (supplier === 'Other') {
-                supplier = document.getElementById('transportSupplierCustom').value;
-            }
-            const fuelType = document.getElementById('transportFuelType').value;
-            const quantity = document.getElementById('transportQuantity').value;
-			const shipmentType = document.getElementById('transportShipmentType').value;
-            let driver = document.getElementById('transportDriver').value;
-            let company = document.getElementById('transportCompany').value;
-            const eta = document.getElementById('transportETA').value;
-            const truckLicence = document.getElementById('transportTruckLicence').value;
-            const trailerLicence = document.getElementById('transportTrailerLicence').value;
-            const freightForwarder = document.getElementById('transportFreightForwarder').value;
-            const warehouseLocation = document.getElementById('transportWarehouseLocation').value;
-            
-            // Handle custom driver
-            if (driver === 'CUSTOM') {
-                const customDriver = document.getElementById('transportDriverCustom').value.trim();
-                if (!customDriver) {
-                    alert('Please enter a custom driver name');
-                    return;
-                }
-                driver = customDriver;
-            }
-            
-            // Handle custom company
-            if (company === 'CUSTOM') {
-                const customCompany = document.getElementById('transportCompanyCustom').value.trim();
-                if (!customCompany) {
-                    alert('Please enter a custom company name');
-                    return;
-                }
-                company = customCompany;
-            }
-            
-            // Warehouse not required for Re-export
-const clientName = document.getElementById('transportClientName') ? document.getElementById('transportClientName').value : '';
-const warehouseRequired = shipmentType !== 'Re-export';
-const clientRequired = shipmentType === 'Re-export';
-
-if (!supplier || !fuelType || !quantity || !driver || !company || !eta || !truckLicence || !freightForwarder || 
-    (warehouseRequired && !warehouseLocation) || (clientRequired && !clientName)) {
-    alert('Please fill in all required fields (marked with *)');
-    return;
+        function toggleShipmentFields() {
+    const shipmentType = document.getElementById('transportShipmentType').value;
+    const supplierDiv = document.getElementById('supplierFieldDiv');
+    const clientDiv = document.getElementById('clientNameFieldDiv');
+    const warehouseDiv = document.getElementById('warehouseLocationFieldDiv');
+    
+    if (shipmentType === 'Inbound') {
+        // Inbound: Show supplier, hide client, show warehouse
+        supplierDiv.style.display = 'block';
+        clientDiv.style.display = 'none';
+        warehouseDiv.style.display = 'grid';
+    } else if (shipmentType === 'Re-export') {
+        // Re-export: Show supplier, show client, hide warehouse
+        supplierDiv.style.display = 'block';
+        clientDiv.style.display = 'block';
+        warehouseDiv.style.display = 'none';
+    } else if (shipmentType === 'Export') {
+        // Export: Hide supplier (default to Gulf), show client, hide warehouse
+        supplierDiv.style.display = 'none';
+        clientDiv.style.display = 'block';
+        warehouseDiv.style.display = 'none';
+    }
 }
-            
-            const shipmentTypeName = shipmentType === 'Inbound' ? 'Inbound' : 
-                                     shipmentType === 'Re-export' ? 'Re-export' : 'Export';
-            
-            if (!confirm(`Create this ${shipmentTypeName} shipment?`)) {
-                return;
-            }
-            
-            showLoading('Creating shipment...');
-            
-            try {
-                await fetch(APPS_SCRIPT_URL, {
-                    method: 'POST',
-                    mode: 'no-cors',
-                    headers: { 'Content-Type': 'application/json' },
-					body: JSON.stringify({
-                        action: 'createShipment',
-                        shipmentType: shipmentType,
-                        supplier: supplier,
-                        productType: fuelType,
-                        quantity: parseFloat(quantity),
-                        unit: 'L',
-                        plannedArrival: eta,
-                        plannedTime: '',
-                        warehouse: '',
-                        notes: `Driver: ${driver}, Company: ${company}`,
-                        createdBy: currentUser.name,
-                        truckLicence: truckLicence,
-                        trailerLicence: trailerLicence,
-                        freightForwarder: freightForwarder,
-                        warehouseLocation: warehouseLocation
-                    })
-                });
-                
-                // Wait for processing
-                await new Promise(resolve => setTimeout(resolve, 2000));
-                
-                // Reload data
-                await loadTransportInbound();
-                
-                // Clear form
-                document.getElementById('transportSupplier').value = '';
-                document.getElementById('transportFuelType').value = '';
-                document.getElementById('transportQuantity').value = '';
-                document.getElementById('transportDriver').value = '';
-                document.getElementById('transportCompany').value = '';
-                document.getElementById('transportDriverCustom').value = '';
-                document.getElementById('transportDriverCustom').style.display = 'none';
-                document.getElementById('transportCompanyCustom').value = '';
-                document.getElementById('transportCompanyCustom').style.display = 'none';
-                document.getElementById('transportETA').value = '';
-                document.getElementById('transportTruckLicence').value = '';
-                document.getElementById('transportTrailerLicence').value = '';
-                document.getElementById('transportFreightForwarder').value = '';
-                document.getElementById('transportWarehouseLocation').value = '';
-                
-                hideLoading();
-                alert('✅ Inbound shipment created successfully!');
-                
-            } catch (error) {
-                hideLoading();
-                console.error('Error creating shipment:', error);
-                alert('❌ Error creating shipment. Please try again.');
-            }
+
+async function submitTransportInbound() {
+    const shipmentType = document.getElementById('transportShipmentType').value;
+    let supplier = document.getElementById('transportSupplier').value;
+    
+    // If "Other" selected, use custom input
+    if (supplier === 'Other') {
+        supplier = document.getElementById('transportSupplierCustom').value.trim();
+    }
+    
+    // For Export type, default supplier to "Gulf" (your company)
+    if (shipmentType === 'Export') {
+        supplier = 'Gulf';
+    }
+    
+    const fuelType = document.getElementById('transportFuelType').value;
+    const quantity = document.getElementById('transportQuantity').value;
+    let driver = document.getElementById('transportDriver').value;
+    let company = document.getElementById('transportCompany').value;
+    const eta = document.getElementById('transportETA').value;
+    const truckLicence = document.getElementById('transportTruckLicence').value;
+    const trailerLicence = document.getElementById('transportTrailerLicence').value;
+    const freightForwarder = document.getElementById('transportFreightForwarder').value;
+    const warehouseLocation = document.getElementById('transportWarehouseLocation').value;
+    const clientName = document.getElementById('transportClientName') ? document.getElementById('transportClientName').value.trim() : '';
+    
+    // Handle custom driver
+    if (driver === 'CUSTOM') {
+        const customDriver = document.getElementById('transportDriverCustom').value.trim();
+        if (customDriver) driver = customDriver;
+    }
+    
+    // Handle custom company
+    if (company === 'CUSTOM') {
+        const customCompany = document.getElementById('transportCompanyCustom').value.trim();
+        if (customCompany) company = customCompany;
+    }
+    
+    // RELAXED VALIDATION - only check essential fields
+    if (!fuelType || !quantity) {
+        alert('⚠️ Please fill in at least Fuel Type and Quantity');
+        return;
+    }
+    
+    // Type-specific validation
+    if (shipmentType === 'Inbound' && !supplier) {
+        alert('⚠️ Please select a supplier for Inbound shipment');
+        return;
+    }
+    
+    if ((shipmentType === 'Re-export' || shipmentType === 'Export') && !clientName) {
+        alert('⚠️ Please enter client name for ' + shipmentType + ' shipment');
+        return;
+    }
+    
+    const shipmentTypeName = shipmentType === 'Inbound' ? 'Inbound (Import)' : 
+                             shipmentType === 'Re-export' ? 'Re-export' : 'Export (Sales Order)';
+    
+    if (!confirm(`Create this ${shipmentTypeName} shipment?`)) {
+        return;
+    }
+    
+    showLoading('Creating shipment...');
+    
+    try {
+        await fetch(APPS_SCRIPT_URL, {
+            method: 'POST',
+            mode: 'no-cors',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                action: 'createShipment',
+                shipmentType: shipmentType,
+                supplier: supplier || '',
+                productType: fuelType,
+                quantity: parseFloat(quantity),
+                unit: 'L',
+                plannedArrival: eta || '',
+                plannedTime: '',
+                warehouse: '',
+                notes: `Driver: ${driver || 'TBD'}, Company: ${company || 'TBD'}, Client: ${clientName || 'N/A'}`,
+                createdBy: currentUser.name,
+                truckLicence: truckLicence || '',
+                trailerLicence: trailerLicence || '',
+                freightForwarder: freightForwarder || '',
+                warehouseLocation: warehouseLocation || '',
+                clientName: clientName || ''
+            })
+        });
+        
+        // Wait for processing
+        await new Promise(resolve => setTimeout(resolve, 2000));
+        
+        // Reload data
+        await loadTransportInbound();
+        
+        // Clear form
+        document.getElementById('transportShipmentType').value = 'Inbound';
+        document.getElementById('transportSupplier').value = '';
+        document.getElementById('transportFuelType').value = '';
+        document.getElementById('transportQuantity').value = '';
+        document.getElementById('transportDriver').value = '';
+        document.getElementById('transportCompany').value = '';
+        document.getElementById('transportDriverCustom').value = '';
+        document.getElementById('transportDriverCustom').style.display = 'none';
+        document.getElementById('transportCompanyCustom').value = '';
+        document.getElementById('transportCompanyCustom').style.display = 'none';
+        document.getElementById('transportETA').value = '';
+        document.getElementById('transportTruckLicence').value = '';
+        document.getElementById('transportTrailerLicence').value = '';
+        document.getElementById('transportFreightForwarder').value = '';
+        document.getElementById('transportWarehouseLocation').value = '';
+        if (document.getElementById('transportClientName')) {
+            document.getElementById('transportClientName').value = '';
         }
+        toggleShipmentFields(); // Reset field visibility
+        
+        hideLoading();
+        alert(`✅ ${shipmentTypeName} shipment created successfully!`);
+        
+    } catch (error) {
+        hideLoading();
+        console.error('Error creating shipment:', error);
+        alert('❌ Error creating shipment. Please try again.');
+    }
+}
         
         async function loadTransportInbound() {
             try {
