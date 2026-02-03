@@ -8537,12 +8537,12 @@ async function cancelShipment(shipmentID) {
                     // No data in sheet yet
                     document.querySelectorAll('[id^="display"]').forEach(el => el.textContent = '--');
                 }
-            } catch (error) {
+			} catch (error) {
                 console.error('Error loading daily prices:', error);
                 // Show error or keep showing --
             }
         }
-        
+    }
         
         
     </script>
