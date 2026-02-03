@@ -1240,7 +1240,7 @@
                                     </div>
                                     <!-- Row 4 - NEW WAREHOUSE LOCATION -->
                                     <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1rem; margin-bottom: 1rem;">
-                                        <div>
+<div>
                                             <label style="display: block; font-weight: 600; margin-bottom: 0.5rem;">Warehouse Location: *</label>
                                             <select id="transportWarehouseLocation" style="width: 100%; padding: 0.75rem; border: 1px solid #D1D5DB; border-radius: 4px;">
                                                 <option value="">-- Select --</option>
@@ -1249,6 +1249,7 @@
                                                 <option value="Lisiche">Lisiche</option>
                                             </select>
                                         </div>
+                                    </div>
                                     </div>
                                     <button class="btn btn-primary" onclick="submitTransportInbound()">🚚 Create Shipment</button>
                                 </div>
@@ -6664,22 +6665,33 @@ await fetch(APPS_SCRIPT_URL, {
             }
         }
 		
-		function toggleWarehouseField() {
+function toggleWarehouseField() {
             const shipmentType = document.getElementById('transportShipmentType');
             if (!shipmentType) return;
             
+            const warehouseDiv = document.getElementById('warehouseLocationDiv');
+            const clientDiv = document.getElementById('clientNameDiv');
             const warehouseField = document.getElementById('transportWarehouseLocation');
-            if (!warehouseField) return;
-            
-            const warehouseDiv = warehouseField.parentElement;
+            const clientField = document.getElementById('transportClientName');
             
             if (shipmentType.value === 'Re-export') {
-                warehouseDiv.style.display = 'none';
-                warehouseField.required = false;
-                warehouseField.value = '';
+                // Re-export: Show client, hide warehouse
+                if (warehouseDiv) warehouseDiv.style.display = 'none';
+                if (clientDiv) clientDiv.style.display = 'block';
+                if (warehouseField) {
+                    warehouseField.required = false;
+                    warehouseField.value = '';
+                }
+                if (clientField) clientField.required = true;
             } else {
-                warehouseDiv.style.display = 'block';
-                warehouseField.required = true;
+                // Inbound/Export: Show warehouse, hide client
+                if (warehouseDiv) warehouseDiv.style.display = 'block';
+                if (clientDiv) clientDiv.style.display = 'none';
+                if (warehouseField) warehouseField.required = true;
+                if (clientField) {
+                    clientField.required = false;
+                    clientField.value = '';
+                }
             }
         }
 		
@@ -6763,7 +6775,15 @@ async function submitTransportInbound() {
                 company = customCompany;
             }
             
-            if (!supplier || !fuelType || !quantity || !driver || !company || !eta || !truckLicence || !freightForwarder || !warehouseLocation) {
+            // Warehouse not required for Re-export
+const warehouseRequired = shipmentType !== 'Re-export';
+
+const clientName = document.getElementById('transportClientName') ? document.getElementById('transportClientName').value : '';
+const warehouseRequired = shipmentType !== 'Re-export';
+const clientRequired = shipmentType === 'Re-export';
+
+if (!supplier || !fuelType || !quantity || !driver || !company || !eta || !truckLicence || !freightForwarder || 
+    (warehouseRequired && !warehouseLocation) || (clientRequired && !clientName)) {
                 alert('Please fill in all required fields (marked with *)');
                 return;
             }
