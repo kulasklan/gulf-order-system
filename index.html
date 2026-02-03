@@ -6776,17 +6776,15 @@ async function submitTransportInbound() {
             }
             
             // Warehouse not required for Re-export
-const warehouseRequired = shipmentType !== 'Re-export';
-
 const clientName = document.getElementById('transportClientName') ? document.getElementById('transportClientName').value : '';
 const warehouseRequired = shipmentType !== 'Re-export';
 const clientRequired = shipmentType === 'Re-export';
 
 if (!supplier || !fuelType || !quantity || !driver || !company || !eta || !truckLicence || !freightForwarder || 
     (warehouseRequired && !warehouseLocation) || (clientRequired && !clientName)) {
-                alert('Please fill in all required fields (marked with *)');
-                return;
-            }
+    alert('Please fill in all required fields (marked with *)');
+    return;
+}
             
             const shipmentTypeName = shipmentType === 'Inbound' ? 'Inbound' : 
                                      shipmentType === 'Re-export' ? 'Re-export' : 'Export';
