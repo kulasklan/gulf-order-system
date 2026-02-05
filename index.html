@@ -1125,7 +1125,33 @@
                                     </button>
                                 </div>
                             </div>
-
+							<!-- Create Export Shipment Form (Warehouse) -->
+                            <div style="margin-top: 2rem;">
+                                <h3 style="margin-bottom: 1rem; color: var(--secondary);">📤 Create Export Shipment (Sales Order)</h3>
+                                <div style="background: #F9FAFB; padding: 1.5rem; border-radius: 8px; border: 1px solid #E5E7EB;">
+                                    <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1rem; margin-bottom: 1rem;">
+                                        <div>
+                                            <label style="display: block; font-weight: 600; margin-bottom: 0.5rem;">Client Name: *</label>
+                                            <input type="text" id="warehouseExportClient" placeholder="Enter client name" style="width: 100%; padding: 0.75rem; border: 1px solid #D1D5DB; border-radius: 4px;">
+                                        </div>
+                                        <div>
+                                            <label style="display: block; font-weight: 600; margin-bottom: 0.5rem;">Fuel Type: *</label>
+                                            <select id="warehouseExportFuel" style="width: 100%; padding: 0.75rem; border: 1px solid #D1D5DB; border-radius: 4px;">
+                                                <option value="">-- Select --</option>
+                                                <option value="Diesel">Diesel</option>
+                                                <option value="Gasoline">Gasoline</option>
+                                                <option value="Mazut">Mazut</option>
+                                                <option value="EL">EL (Extra Light)</option>
+                                            </select>
+                                        </div>
+                                        <div>
+                                            <label style="display: block; font-weight: 600; margin-bottom: 0.5rem;">Quantity (L): *</label>
+                                            <input type="number" id="warehouseExportQty" style="width: 100%; padding: 0.75rem; border: 1px solid #D1D5DB; border-radius: 4px;">
+                                        </div>
+                                    </div>
+                                    <button class="btn btn-primary" onclick="submitWarehouseExport()">📤 Create Export Shipment</button>
+                                </div>
+                            </div>
                             <!-- Inbound Shipments for Warehouse -->
                             <div style="margin-top: 2rem;">
                                 <h3 style="margin-bottom: 1rem; color: var(--secondary);">🚚 Inbound Shipments (In Transit)</h3>
@@ -5619,6 +5645,81 @@ window.onclick = function(event) {
             }
         }
         
+		async function loadManagementAllShipments() {
+    try {
+        const apiUrl = `https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_ID}/values/Inbound_Shipments!A2:AI100?key=${API_KEY}`;
+        const response = await fetch(apiUrl);
+        const data = await response.json();
+        
+        if (!data.values) return;
+        
+        const reexport = data.values.filter(row => {
+            const notes = row[15] || '';
+            return notes.includes('Type: Re-export');
+        });
+        
+        const exportShipments = data.values.filter(row => {
+            const notes = row[15] || '';
+            return notes.includes('Type: Export');
+        });
+        
+        let html = `
+            <h3 style="margin-top: 2rem; color: var(--secondary);">🌍 Re-export Shipments (${reexport.length})</h3>
+            ${generateManagementShipmentTable(reexport)}
+            
+            <h3 style="margin-top: 2rem; color: var(--secondary);">📤 Export Shipments (${exportShipments.length})</h3>
+            ${generateManagementShipmentTable(exportShipments)}
+        `;
+        
+        const container = document.getElementById('inboundShipmentsTable');
+        container.insertAdjacentHTML('afterend', html);
+        
+    } catch (error) {
+        console.error('Error loading all shipments:', error);
+    }
+}
+
+function generateManagementShipmentTable(shipments) {
+    if (shipments.length === 0) {
+        return '<p style="color: #6B7280; padding: 1rem;">No shipments</p>';
+    }
+    
+    let html = '<table class="orders-table"><thead><tr>';
+    html += '<th>Shipment ID</th><th>Supplier</th><th>Client</th><th>Product</th><th>Quantity</th><th>ETA</th><th>Status</th>';
+    html += '</tr></thead><tbody>';
+    
+    shipments.forEach(row => {
+        const notes = row[15] || '';
+        let client = '';
+        if (notes.includes('Client:')) {
+            const match = notes.match(/Client:\s*([^,]+)/);
+            if (match) client = match[1].trim();
+        }
+        
+        const statusColors = {
+            'Created': { bg: '#F3F4F6', text: '#6B7280' },
+            'In Transit': { bg: '#DBEAFE', text: '#3B82F6' },
+            'Arrived': { bg: '#D1FAE5', text: '#059669' },
+            'Cancelled': { bg: '#FEE2E2', text: '#DC2626' }
+        };
+        const status = row[7] || 'Created';
+        const colors = statusColors[status] || { bg: '#F3F4F6', text: '#6B7280' };
+        
+        html += `<tr>
+            <td><strong>${row[0]}</strong></td>
+            <td>${row[1] || 'Gulf'}</td>
+            <td>${client || 'N/A'}</td>
+            <td>${row[2]}</td>
+            <td>${new Intl.NumberFormat().format(parseFloat(row[3]))} L</td>
+            <td>${row[5] || 'Not set'}</td>
+            <td><span style="background: ${colors.bg}; color: ${colors.text}; padding: 0.25rem 0.75rem; border-radius: 12px; font-size: 0.875rem; font-weight: 600;">${status}</span></td>
+        </tr>`;
+    });
+    
+    html += '</tbody></table>';
+    return html;
+}
+		
         async function loadInventoryCards() {
             const container = document.getElementById('inventoryCards');
             
@@ -6140,6 +6241,7 @@ if (supplier === 'Other') supplier = document.getElementById('addShipmentSupplie
                 
                 // Load inbound shipments (In Transit only)
                 await loadWarehouseInbound();
+				await loadManagementAllShipments();
                 
                 hideLoading();
                 
@@ -6150,6 +6252,56 @@ if (supplier === 'Other') supplier = document.getElementById('addShipmentSupplie
             }
         }
         
+		async function submitWarehouseExport() {
+    const clientName = document.getElementById('warehouseExportClient').value.trim();
+    const fuelType = document.getElementById('warehouseExportFuel').value;
+    const quantity = document.getElementById('warehouseExportQty').value;
+    
+    if (!clientName || !fuelType || !quantity) {
+        alert('⚠️ Please fill in all required fields');
+        return;
+    }
+    
+    if (!confirm('Create Export shipment for ' + clientName + '?')) return;
+    
+    showLoading('Creating export shipment...');
+    
+    try {
+        await fetch(APPS_SCRIPT_URL, {
+            method: 'POST',
+            mode: 'no-cors',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                action: 'createShipment',
+                shipmentType: 'Export',
+                supplier: 'Gulf',
+                productType: fuelType,
+                quantity: parseFloat(quantity),
+                unit: 'L',
+                plannedArrival: '',
+                notes: `Type: Export, Client: ${clientName}, Supplier: Gulf`,
+                createdBy: currentUser.name,
+                clientName: clientName
+            })
+        });
+        
+        await new Promise(resolve => setTimeout(resolve, 2000));
+        await loadWarehouseInventory();
+        
+        document.getElementById('warehouseExportClient').value = '';
+        document.getElementById('warehouseExportFuel').value = '';
+        document.getElementById('warehouseExportQty').value = '';
+        
+        hideLoading();
+        alert('✅ Export shipment created!');
+        
+    } catch (error) {
+        hideLoading();
+        console.error('Error:', error);
+        alert('❌ Error creating shipment');
+    }
+}
+		
         async function loadWarehouseReservoirs() {
             try {
                 const response = await fetch(APPS_SCRIPT_URL, {
@@ -6302,7 +6454,12 @@ await fetch(APPS_SCRIPT_URL, {
                 
                 if (data.values) {
                     // Filter: only In Transit shipments (Column K = row[10])
-                    const inTransit = data.values.filter(row => row[7] === 'In Transit');
+                    const inTransit = data.values.filter(row => {
+            const status = row[7];
+            const notes = row[15] || '';
+            const shipmentType = notes.includes('Type:') ? notes.match(/Type:\s*(\w+)/)?.[1] : 'Inbound';
+            return status === 'In Transit' && (shipmentType === 'Inbound' || shipmentType === 'Export');
+        });
                     console.log('📊 Total rows:', data.values.length);
 					console.log('📊 In Transit count:', inTransit.length);
 					if (inTransit.length > 0) console.log('📊 First shipment:', inTransit[0]);
@@ -6900,133 +7057,250 @@ async function submitTransportInbound() {
 }
         
         async function loadTransportInbound() {
-            try {
-                const apiUrl = `https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_ID}/values/Inbound_Shipments!A2:AI100?key=${API_KEY}`;
-                const response = await fetch(apiUrl);
-                const data = await response.json();
-                
-                const container = document.getElementById('transportInboundTable');
-                
-                if (!data.values || data.values.length === 0) {
-                    container.innerHTML = '<p style="text-align: center; color: #6B7280; padding: 2rem;">No shipments found</p>';
-                    return;
-                }
-                
-                // Apply filter
-                let filteredShipments = data.values;
-                if (transportInboundFilter !== 'all') {
-                    filteredShipments = data.values.filter(row => row[7] === transportInboundFilter);
-                }
-                
-                if (filteredShipments.length === 0) {
-                    container.innerHTML = '<p style="text-align: center; color: #6B7280; padding: 2rem;">No shipments found</p>';
-                    return;
-                }
-                
-                let html = `
-                    <table class="orders-table">
-                        <thead>
-                            <tr>
-                                <th>Shipment ID</th>
-                                <th>Supplier</th>
-                                <th>Product</th>
-                                <th>Quantity</th>
-                                <th>ETA</th>
-                                <th>Status</th>
-                                <th>Action</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                `;
-                
-                filteredShipments.forEach(row => {
-                    const shipmentID = row[0];
-                    const supplier = row[1];
-                    const product = row[2];
-                    const quantity = parseFloat(row[3]) || 0;
-                    const unit = row[4] || 'L';
-                    const eta = row[5] || 'Not set';
-                    const status = row[7] || 'Created';
-                    const truckLicence = row[18] || '';
-                    const trailerLicence = row[19] || '';
-                    const freightForwarder = row[20] || '';
-                    const warehouseLocation = row[21] || '';
-                    
-                    const statusColors = {
-                        'Created': { bg: '#F3F4F6', text: '#6B7280' },
-                        'In Transit': { bg: '#DBEAFE', text: '#3B82F6' },
-                        'Arrived': { bg: '#D1FAE5', text: '#059669' },
-                        'Cancelled': { bg: '#FEE2E2', text: '#DC2626' }
-                    };
-                    
-                    const colors = statusColors[status] || { bg: '#F3F4F6', text: '#6B7280' };
-                    
-                    // Escape quotes in data for onclick
-                    const shipmentData = {
-                        shipmentID: shipmentID,
-                        supplier: supplier,
-                        productType: product,
-                        quantity: quantity,
-                        plannedArrival: eta,
-                        truckLicence: truckLicence,
-                        trailerLicence: trailerLicence,
-                        freightForwarder: freightForwarder,
-                        warehouseLocation: warehouseLocation
-                    };
-                    const shipmentDataJson = JSON.stringify(shipmentData).replace(/"/g, '&quot;');
-                    
-                    html += `
-                        <tr>
-                            <td><strong>${shipmentID}</strong></td>
-                            <td>${supplier}</td>
-                            <td>${product}</td>
-                            <td>${new Intl.NumberFormat().format(quantity)} ${unit}</td>
-                            <td>${eta}</td>
-                            <td>
-                                <span style="background: ${colors.bg}; color: ${colors.text}; padding: 0.25rem 0.75rem; border-radius: 12px; font-size: 0.875rem; font-weight: 600;">
-                                    ${status}
-                                </span>
-                            </td>
-                            <td style="white-space: nowrap;">
-                                ${(status === 'Created' || status === 'In Transit') ? `
-                                    <button class="btn btn-secondary" onclick='showEditShipmentModal(${shipmentDataJson})' style="padding: 0.375rem 0.75rem; font-size: 0.85rem; margin-right: 0.5rem;">
-                                        ✏️ Edit
-                                    </button>
-                                ` : ''}
-                                ${status === 'Created' ? `
-                                    <button class="btn btn-primary" onclick="updateTransportStatus('${shipmentID}', 'In Transit')" style="padding: 0.375rem 0.75rem; font-size: 0.85rem; margin-right: 0.5rem;">
-                                        🚚 In Transit
-                                    </button>
-                                ` : ''}
-                                ${(status === 'Created' || status === 'In Transit') ? `
-                                    <button class="btn btn-danger" onclick="cancelShipment('${shipmentID}')" style="padding: 0.375rem 0.75rem; font-size: 0.85rem; background: #DC2626;">
-                                        ❌ Cancel
-                                    </button>
-                                ` : ''}
-                                ${status === 'In Transit' ? `
-                                    <span style="color: #6B7280; font-size: 0.85rem; display: block; margin-top: 0.25rem;">Warehouse marks arrived</span>
-                                ` : ''}
-                                ${status === 'Arrived' ? `
-                                    <span style="color: #059669; font-size: 0.85rem;">✅ Completed</span>
-                                ` : ''}
-                                ${status === 'Cancelled' ? `
-                                    <span style="color: #DC2626; font-size: 0.85rem;">❌ Cancelled</span>
-                                ` : ''}
-                            </td>
-                        </tr>
-                    `;
-                });
-                
-                html += '</tbody></table>';
-                container.innerHTML = html;
-                
-                console.log('✅ Loaded', filteredShipments.length, 'shipments');
-                
-            } catch (error) {
-                console.error('Error loading inbound:', error);
-            }
+    try {
+        const apiUrl = `https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_ID}/values/Inbound_Shipments!A2:AI100?key=${API_KEY}`;
+        const response = await fetch(apiUrl);
+        const data = await response.json();
+        
+        const container = document.getElementById('transportInboundTable');
+        
+        if (!data.values || data.values.length === 0) {
+            container.innerHTML = '<p style="text-align: center; color: #6B7280; padding: 2rem;">No shipments found</p>';
+            return;
         }
         
+        // Get shipment type from column (we need to add this column - for now check notes or default to Inbound)
+        const inboundShipments = data.values.filter(row => {
+            const notes = row[15] || '';
+            const shipmentType = notes.includes('Type:') ? notes.match(/Type:\s*(\w+)/)?.[1] : 'Inbound';
+            return shipmentType === 'Inbound';
+        });
+        
+        const reexportShipments = data.values.filter(row => {
+            const notes = row[15] || '';
+            const shipmentType = notes.includes('Type:') ? notes.match(/Type:\s*(\w+)/)?.[1] : 'Inbound';
+            return shipmentType === 'Re-export';
+        });
+        
+        // Apply status filter
+        let filteredInbound = inboundShipments;
+        let filteredReexport = reexportShipments;
+        
+        if (transportInboundFilter !== 'all') {
+            filteredInbound = inboundShipments.filter(row => row[7] === transportInboundFilter);
+            filteredReexport = reexportShipments.filter(row => row[7] === transportInboundFilter);
+        }
+        
+        // Display with tabs
+        let html = `
+            <div style="margin-bottom: 1rem;">
+                <button class="btn ${transportInboundFilter === 'all' ? 'btn-primary' : 'btn-secondary'}" onclick="filterTransportInbound('all')" style="margin-right: 0.5rem;">All</button>
+                <button class="btn ${transportInboundFilter === 'Created' ? 'btn-primary' : 'btn-secondary'}" onclick="filterTransportInbound('Created')" style="margin-right: 0.5rem;">Created</button>
+                <button class="btn ${transportInboundFilter === 'In Transit' ? 'btn-primary' : 'btn-secondary'}" onclick="filterTransportInbound('In Transit')">In Transit</button>
+            </div>
+        `;
+        
+        // INBOUND SECTION
+        html += `
+            <h3 style="margin-top: 2rem; margin-bottom: 1rem; color: var(--secondary);">📦 Inbound Shipments (${filteredInbound.length})</h3>
+            ${generateShipmentTable(filteredInbound, 'Inbound')}
+        `;
+        
+        // RE-EXPORT SECTION
+        html += `
+            <h3 style="margin-top: 2rem; margin-bottom: 1rem; color: var(--secondary);">🌍 Re-export Shipments (${filteredReexport.length})</h3>
+            ${generateShipmentTable(filteredReexport, 'Re-export')}
+        `;
+        
+        container.innerHTML = html;
+        
+    } catch (error) {
+        console.error('Error loading inbound:', error);
+    }
+}
+
+function generateShipmentTable(shipments, shipmentType) {
+    if (shipments.length === 0) {
+        return '<p style="text-align: center; color: #6B7280; padding: 1rem;">No shipments</p>';
+    }
+    
+    let html = `
+        <table class="orders-table">
+            <thead>
+                <tr>
+                    <th>Shipment ID</th>
+                    <th>${shipmentType === 'Inbound' ? 'Supplier' : 'Supplier'}</th>
+                    ${shipmentType !== 'Inbound' ? '<th>Client</th>' : ''}
+                    <th>Product</th>
+                    <th>Quantity</th>
+                    <th>ETA</th>
+                    <th>Status</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+    `;
+    
+    shipments.forEach(row => {
+        const shipmentID = row[0];
+        const supplier = row[1];
+        const product = row[2];
+        const quantity = parseFloat(row[3]) || 0;
+        const unit = row[4] || 'L';
+        const eta = row[5] || 'Not set';
+        const status = row[7] || 'Created';
+        const notes = row[15] || '';
+        
+        // Extract client from notes
+        let client = '';
+        if (notes.includes('Client:')) {
+            const clientMatch = notes.match(/Client:\s*([^,]+)/);
+            if (clientMatch) client = clientMatch[1].trim();
+        }
+        
+        const statusColors = {
+            'Created': { bg: '#F3F4F6', text: '#6B7280' },
+            'In Transit': { bg: '#DBEAFE', text: '#3B82F6' },
+            'Arrived': { bg: '#D1FAE5', text: '#059669' },
+            'Cancelled': { bg: '#FEE2E2', text: '#DC2626' }
+        };
+        
+        const colors = statusColors[status] || { bg: '#F3F4F6', text: '#6B7280' };
+        
+        const shipmentData = {
+            shipmentID: shipmentID,
+            supplier: supplier,
+            productType: product,
+            quantity: quantity,
+            plannedArrival: eta,
+            truckLicence: row[18] || '',
+            trailerLicence: row[19] || '',
+            freightForwarder: row[20] || '',
+            warehouseLocation: row[21] || '',
+            clientName: client,
+            shipmentType: shipmentType
+        };
+        const shipmentDataJson = JSON.stringify(shipmentData).replace(/"/g, '&quot;');
+        
+        html += `
+            <tr>
+                <td><strong>${shipmentID}</strong></td>
+                <td>${supplier}</td>
+                ${shipmentType !== 'Inbound' ? `<td>${client || 'N/A'}</td>` : ''}
+                <td>${product}</td>
+                <td>${new Intl.NumberFormat().format(quantity)} ${unit}</td>
+                <td>${eta}</td>
+                <td><span style="background: ${colors.bg}; color: ${colors.text}; padding: 0.25rem 0.75rem; border-radius: 12px; font-size: 0.875rem; font-weight: 600;">${status}</span></td>
+                <td style="white-space: nowrap;">
+                    ${(status === 'Created' || status === 'In Transit') ? `
+                        <button class="btn btn-secondary" onclick='showEditShipmentModal(${shipmentDataJson})' style="padding: 0.375rem 0.75rem; font-size: 0.85rem; margin-right: 0.5rem;">✏️ Edit</button>
+                    ` : ''}
+                    ${status === 'Created' ? `
+                        <button class="btn btn-primary" onclick="updateTransportStatus('${shipmentID}', 'In Transit')" style="padding: 0.375rem 0.75rem; font-size: 0.85rem; margin-right: 0.5rem;">🚚 In Transit</button>
+                    ` : ''}
+                    ${(status === 'Created' || status === 'In Transit') ? `
+                        <button class="btn btn-danger" onclick="cancelShipment('${shipmentID}')" style="padding: 0.375rem 0.75rem; font-size: 0.85rem;">❌ Cancel</button>
+                    ` : ''}
+                </td>
+            </tr>
+        `;
+    });
+    
+    html += '</tbody></table>';
+    return html;
+}
+
+function generateShipmentTable(shipments, shipmentType) {
+    if (shipments.length === 0) {
+        return '<p style="text-align: center; color: #6B7280; padding: 1rem;">No shipments</p>';
+    }
+    
+    let html = `
+        <table class="orders-table">
+            <thead>
+                <tr>
+                    <th>Shipment ID</th>
+                    <th>${shipmentType === 'Inbound' ? 'Supplier' : 'Supplier'}</th>
+                    ${shipmentType !== 'Inbound' ? '<th>Client</th>' : ''}
+                    <th>Product</th>
+                    <th>Quantity</th>
+                    <th>ETA</th>
+                    <th>Status</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+    `;
+    
+    shipments.forEach(row => {
+        const shipmentID = row[0];
+        const supplier = row[1];
+        const product = row[2];
+        const quantity = parseFloat(row[3]) || 0;
+        const unit = row[4] || 'L';
+        const eta = row[5] || 'Not set';
+        const status = row[7] || 'Created';
+        const notes = row[15] || '';
+        
+        // Extract client from notes
+        let client = '';
+        if (notes.includes('Client:')) {
+            const clientMatch = notes.match(/Client:\s*([^,]+)/);
+            if (clientMatch) client = clientMatch[1].trim();
+        }
+        
+        const statusColors = {
+            'Created': { bg: '#F3F4F6', text: '#6B7280' },
+            'In Transit': { bg: '#DBEAFE', text: '#3B82F6' },
+            'Arrived': { bg: '#D1FAE5', text: '#059669' },
+            'Cancelled': { bg: '#FEE2E2', text: '#DC2626' }
+        };
+        
+        const colors = statusColors[status] || { bg: '#F3F4F6', text: '#6B7280' };
+        
+        const shipmentData = {
+            shipmentID: shipmentID,
+            supplier: supplier,
+            productType: product,
+            quantity: quantity,
+            plannedArrival: eta,
+            truckLicence: row[18] || '',
+            trailerLicence: row[19] || '',
+            freightForwarder: row[20] || '',
+            warehouseLocation: row[21] || '',
+            clientName: client,
+            shipmentType: shipmentType
+        };
+        const shipmentDataJson = JSON.stringify(shipmentData).replace(/"/g, '&quot;');
+        
+        html += `
+            <tr>
+                <td><strong>${shipmentID}</strong></td>
+                <td>${supplier}</td>
+                ${shipmentType !== 'Inbound' ? `<td>${client || 'N/A'}</td>` : ''}
+                <td>${product}</td>
+                <td>${new Intl.NumberFormat().format(quantity)} ${unit}</td>
+                <td>${eta}</td>
+                <td><span style="background: ${colors.bg}; color: ${colors.text}; padding: 0.25rem 0.75rem; border-radius: 12px; font-size: 0.875rem; font-weight: 600;">${status}</span></td>
+                <td style="white-space: nowrap;">
+                    ${(status === 'Created' || status === 'In Transit') ? `
+                        <button class="btn btn-secondary" onclick='showEditShipmentModal(${shipmentDataJson})' style="padding: 0.375rem 0.75rem; font-size: 0.85rem; margin-right: 0.5rem;">✏️ Edit</button>
+                    ` : ''}
+                    ${status === 'Created' ? `
+                        <button class="btn btn-primary" onclick="updateTransportStatus('${shipmentID}', 'In Transit')" style="padding: 0.375rem 0.75rem; font-size: 0.85rem; margin-right: 0.5rem;">🚚 In Transit</button>
+                    ` : ''}
+                    ${(status === 'Created' || status === 'In Transit') ? `
+                        <button class="btn btn-danger" onclick="cancelShipment('${shipmentID}')" style="padding: 0.375rem 0.75rem; font-size: 0.85rem;">❌ Cancel</button>
+                    ` : ''}
+                </td>
+            </tr>
+        `;
+    });
+    
+    html += '</tbody></table>';
+    return html;
+}
+			
         function filterTransportInbound(filter) {
             transportInboundFilter = filter;
             loadTransportInbound();
@@ -7069,19 +7343,60 @@ async function submitTransportInbound() {
         }
         
         // Edit Shipment Functions (Transport)
-        function showEditShipmentModal(shipmentData) {
-            document.getElementById('editShipmentID').value = shipmentData.shipmentID;
-            document.getElementById('editSupplier').value = shipmentData.supplier;
-            document.getElementById('editFuelType').value = shipmentData.productType;
-            document.getElementById('editQuantity').value = shipmentData.quantity;
-            document.getElementById('editETA').value = shipmentData.plannedArrival;
-            document.getElementById('editTruckLicence').value = shipmentData.truckLicence || '';
-            document.getElementById('editTrailerLicence').value = shipmentData.trailerLicence || '';
-            document.getElementById('editFreightForwarder').value = shipmentData.freightForwarder || 'Fershped';
-            document.getElementById('editWarehouseLocation').value = shipmentData.warehouseLocation || 'Tetovo';
-            
-            document.getElementById('editShipmentModal').style.display = 'block';
-        }
+function showEditShipmentModal(shipmentData) {
+    const shipmentType = shipmentData.shipmentType || 'Inbound';
+    
+    document.getElementById('editShipmentID').value = shipmentData.shipmentID;
+    document.getElementById('editSupplier').value = shipmentData.supplier || '';
+    document.getElementById('editFuelType').value = shipmentData.productType;
+    document.getElementById('editQuantity').value = shipmentData.quantity;
+    document.getElementById('editETA').value = shipmentData.plannedArrival;
+    document.getElementById('editTruckLicence').value = shipmentData.truckLicence || '';
+    document.getElementById('editTrailerLicence').value = shipmentData.trailerLicence || '';
+    document.getElementById('editFreightForwarder').value = shipmentData.freightForwarder || 'Fershped';
+    document.getElementById('editWarehouseLocation').value = shipmentData.warehouseLocation || 'Tetovo';
+    
+    // Show/hide fields based on shipment type
+    const supplierRow = document.getElementById('editSupplier').closest('div').parentElement;
+    const warehouseRow = document.getElementById('editWarehouseLocation').closest('div').parentElement;
+    
+    // Add client field if doesn't exist
+    let clientField = document.getElementById('editClientName');
+    if (!clientField) {
+        const clientDiv = document.createElement('div');
+        clientDiv.innerHTML = `
+            <div>
+                <label style="display: block; font-weight: 600; margin-bottom: 0.5rem;">Client Name: *</label>
+                <input type="text" id="editClientName" style="width: 100%; padding: 0.75rem; border: 1px solid #D1D5DB; border-radius: 4px;">
+            </div>
+        `;
+        supplierRow.appendChild(clientDiv.firstElementChild);
+        clientField = document.getElementById('editClientName');
+    }
+    
+    // Set client value
+    clientField.value = shipmentData.clientName || '';
+    
+    // Configure visibility based on shipment type
+    if (shipmentType === 'Inbound') {
+        supplierRow.querySelector('div:first-child').style.display = 'block'; // Show supplier
+        clientField.parentElement.style.display = 'none'; // Hide client
+        warehouseRow.style.display = 'grid'; // Show warehouse
+    } else if (shipmentType === 'Re-export') {
+        supplierRow.querySelector('div:first-child').style.display = 'block'; // Show supplier
+        clientField.parentElement.style.display = 'block'; // Show client
+        warehouseRow.style.display = 'none'; // Hide warehouse
+    } else if (shipmentType === 'Export') {
+        supplierRow.querySelector('div:first-child').style.display = 'none'; // Hide supplier (Gulf by default)
+        clientField.parentElement.style.display = 'block'; // Show client
+        warehouseRow.style.display = 'none'; // Hide warehouse
+    }
+    
+    // Store shipment type for submit
+    document.getElementById('editShipmentModal').dataset.shipmentType = shipmentType;
+    
+    document.getElementById('editShipmentModal').style.display = 'block';
+}
         
         function closeEditShipmentModal() {
             document.getElementById('editShipmentModal').style.display = 'none';
