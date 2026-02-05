@@ -1714,7 +1714,7 @@
             <div id="editShipmentModal" class="modal">
                 <div class="modal-content" style="max-width: 700px;">
                     <div class="modal-header">
-                        <h2 class="card-title">✏️ Edit Inbound Shipment</h2>
+                        <h2 id="editShipmentModalTitle" class="card-title">✏️ Edit Shipment</h2>
                         <span class="close-btn" onclick="closeEditShipmentModal()">&times;</span>
                     </div>
                     <div style="padding: 1.5rem;">
@@ -5645,7 +5645,7 @@ window.onclick = function(event) {
             }
         }
         
-		async function loadManagementAllShipments() {
+async function loadManagementAllShipments() {
     try {
         const apiUrl = `https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_ID}/values/Inbound_Shipments!A2:AI100?key=${API_KEY}`;
         const response = await fetch(apiUrl);
@@ -5664,11 +5664,15 @@ window.onclick = function(event) {
         });
         
         let html = `
-            <h3 style="margin-top: 2rem; color: var(--secondary);">🌍 Re-export Shipments (${reexport.length})</h3>
-            ${generateManagementShipmentTable(reexport)}
+            <div style="margin-top: 2rem;">
+                <h3 style="margin-bottom: 1rem; color: var(--secondary);">🌍 Re-export Shipments (${reexport.length})</h3>
+                ${generateManagementShipmentTable(reexport)}
+            </div>
             
-            <h3 style="margin-top: 2rem; color: var(--secondary);">📤 Export Shipments (${exportShipments.length})</h3>
-            ${generateManagementShipmentTable(exportShipments)}
+            <div style="margin-top: 2rem;">
+                <h3 style="margin-bottom: 1rem; color: var(--secondary);">📤 Export Shipments (${exportShipments.length})</h3>
+                ${generateManagementShipmentTable(exportShipments)}
+            </div>
         `;
         
         const container = document.getElementById('inboundShipmentsTable');
@@ -6446,99 +6450,82 @@ await fetch(APPS_SCRIPT_URL, {
         }
         
         
-        async function loadWarehouseInbound() {
-            try {
-                const apiUrl = `https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_ID}/values/Inbound_Shipments!A2:AI100?key=${API_KEY}`;
-                const response = await fetch(apiUrl);
-                const data = await response.json();
-                
-                if (data.values) {
-                    // Filter: only In Transit shipments (Column K = row[10])
-                    const inTransit = data.values.filter(row => {
+async function loadWarehouseInbound() {
+    try {
+        const apiUrl = `https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_ID}/values/Inbound_Shipments!A2:AI100?key=${API_KEY}`;
+        const response = await fetch(apiUrl);
+        const data = await response.json();
+        
+        const container = document.getElementById('warehouseInboundTable');
+        
+        if (!data.values || data.values.length === 0) {
+            container.innerHTML = '<p>No shipments found</p>';
+            return;
+        }
+        
+        // Filter Inbound and Export that are In Transit
+        const inboundInTransit = data.values.filter(row => {
             const status = row[7];
             const notes = row[15] || '';
-            const shipmentType = notes.includes('Type:') ? notes.match(/Type:\s*(\w+)/)?.[1] : 'Inbound';
-            return status === 'In Transit' && (shipmentType === 'Inbound' || shipmentType === 'Export');
+            if (!notes.includes('Type:')) return status === 'In Transit'; // Default Inbound
+            return status === 'In Transit' && notes.includes('Type: Inbound');
         });
-                    console.log('📊 Total rows:', data.values.length);
-					console.log('📊 In Transit count:', inTransit.length);
-					if (inTransit.length > 0) console.log('📊 First shipment:', inTransit[0]);
-                    const container = document.getElementById('warehouseInboundTable');
-                    
-                    if (inTransit.length === 0) {
-                        container.innerHTML = '<p style="text-align: center; color: #6B7280; padding: 2rem;">No shipments in transit</p>';
-                        return;
-                    }
-                    
-                    let html = `
-                        <table class="orders-table">
-                            <thead>
-                                <tr>
-                                    <th>Shipment ID</th>
-                                    <th>Supplier</th>
-                                    <th>Product</th>
-                                    <th>Quantity</th>
-                                    <th>ETA</th>
-                                    <th>Status</th>
-                                    <th>Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                    `;
-                    
-                    inTransit.forEach(row => {
-                        const shipmentID = row[0];
-                        const supplier = row[4];
-                        const product = row[5];
-                        const quantity = parseFloat(row[7]) || 0;
-                        const unit = row[6] || 'L';
-                        const eta = row[8] || 'Not set';
-                        const status = row[10] || 'Created';
-                        const notes = row[15] || '';
-                        const truckLicence = row[18] || '';
-                        const trailerLicence = row[19] || '';
-                        
-                        // Extract driver and company from notes (format: "Driver: X, Company: Y")
-                        let driver = '';
-                        let company = '';
-                        if (notes.includes('Driver:')) {
-                            const driverMatch = notes.match(/Driver:\s*([^,]+)/);
-                            if (driverMatch) driver = driverMatch[1].trim();
-                        }
-                        if (notes.includes('Company:')) {
-                            const companyMatch = notes.match(/Company:\s*(.+)/);
-                            if (companyMatch) company = companyMatch[1].trim();
-                        }
-                        
-                        html += `
-                            <tr>
-                                <td><strong>${shipmentID}</strong></td>
-                                <td>${supplier}</td>
-                                <td>${product}</td>
-                                <td>${new Intl.NumberFormat().format(quantity)} ${unit}</td>
-                                <td>${eta}</td>
-                                <td><span class="status-badge" style="background: #DBEAFE; color: #3B82F6;">${status}</span></td>
-                                <td>
-                                    <button class="btn btn-success" onclick="showMarkArrivedModal('${shipmentID}', '${product}', ${quantity}, '${supplier}', '${driver}', '${company}', '${truckLicence}', '${trailerLicence}')" style="padding: 0.375rem 0.75rem; font-size: 0.85rem; margin-right: 0.5rem;">
-                                        📦 Mark Arrived
-                                    </button>
-                                    <button class="btn btn-secondary" onclick="updateWarehouseInboundStatus('${shipmentID}', 'Cancelled')" style="padding: 0.375rem 0.75rem; font-size: 0.85rem;">
-                                        ❌ Cancel
-                                    </button>
-                                </td>
-                            </tr>
-                        `;
-                    });
-                    
-                    html += '</tbody></table>';
-                    container.innerHTML = html;
-                    
-                    console.log('✅ Loaded', inTransit.length, 'in-transit shipments');
-                }
-            } catch (error) {
-                console.error('Error loading inbound:', error);
-            }
-        }
+        
+        const exportInTransit = data.values.filter(row => {
+            const status = row[7];
+            const notes = row[15] || '';
+            return status === 'In Transit' && notes.includes('Type: Export');
+        });
+        
+        let html = `
+            <h3 style="margin-bottom: 1rem; color: var(--secondary);">📦 Inbound Shipments (In Transit) - ${inboundInTransit.length}</h3>
+            ${generateWarehouseShipmentTable(inboundInTransit)}
+            
+            <h3 style="margin-top: 2rem; margin-bottom: 1rem; color: var(--secondary);">📤 Export Shipments (In Transit) - ${exportInTransit.length}</h3>
+            ${generateWarehouseShipmentTable(exportInTransit)}
+        `;
+        
+        container.innerHTML = html;
+        
+    } catch (error) {
+        console.error('Error loading warehouse shipments:', error);
+    }
+}
+
+function generateWarehouseShipmentTable(shipments) {
+    if (shipments.length === 0) {
+        return '<p style="text-align: center; color: #6B7280; padding: 1rem;">No shipments</p>';
+    }
+    
+    let html = '<table class="orders-table"><thead><tr>';
+    html += '<th>Shipment ID</th><th>Supplier</th><th>Product</th><th>Quantity</th><th>ETA</th><th>Actions</th>';
+    html += '</tr></thead><tbody>';
+    
+    shipments.forEach(row => {
+        const shipmentID = row[0];
+        const supplier = row[1];
+        const product = row[2];
+        const quantity = parseFloat(row[3]) || 0;
+        const unit = row[4] || 'L';
+        const eta = row[5] || 'Not set';
+        
+        html += `<tr>
+            <td><strong>${shipmentID}</strong></td>
+            <td>${supplier}</td>
+            <td>${product}</td>
+            <td>${new Intl.NumberFormat().format(quantity)} ${unit}</td>
+            <td>${eta}</td>
+            <td>
+                <button class="btn btn-success" onclick="markShipmentArrived('${shipmentID}')" style="padding: 0.375rem 0.75rem; font-size: 0.85rem;">
+                    ✅ Mark Arrived
+                </button>
+            </td>
+        </tr>`;
+    });
+    
+    html += '</tbody></table>';
+    return html;
+}
         
         async function updateWarehouseInboundStatus(shipmentID, newStatus) {
             if (!confirm(`Update shipment ${shipmentID} to "${newStatus}"?`)) {
@@ -7009,7 +6996,7 @@ async function submitTransportInbound() {
                 plannedArrival: eta || '',
                 plannedTime: '',
                 warehouse: '',
-                notes: `Driver: ${driver || 'TBD'}, Company: ${company || 'TBD'}, Client: ${clientName || 'N/A'}`,
+                notes: `Type: ${shipmentType}, Driver: ${driver || 'TBD'}, Company: ${company || 'TBD'}, Client: ${clientName || 'N/A'}`,
                 createdBy: currentUser.name,
                 truckLicence: truckLicence || '',
                 trailerLicence: trailerLicence || '',
@@ -7056,7 +7043,7 @@ async function submitTransportInbound() {
     }
 }
         
-        async function loadTransportInbound() {
+async function loadTransportInbound() {
     try {
         const apiUrl = `https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_ID}/values/Inbound_Shipments!A2:AI100?key=${API_KEY}`;
         const response = await fetch(apiUrl);
@@ -7069,26 +7056,32 @@ async function submitTransportInbound() {
             return;
         }
         
-        // Get shipment type from column (we need to add this column - for now check notes or default to Inbound)
+        // Separate by shipment type
         const inboundShipments = data.values.filter(row => {
             const notes = row[15] || '';
-            const shipmentType = notes.includes('Type:') ? notes.match(/Type:\s*(\w+)/)?.[1] : 'Inbound';
-            return shipmentType === 'Inbound';
+            if (!notes.includes('Type:')) return true; // Default to Inbound
+            return notes.includes('Type: Inbound');
         });
-        
+
         const reexportShipments = data.values.filter(row => {
             const notes = row[15] || '';
-            const shipmentType = notes.includes('Type:') ? notes.match(/Type:\s*(\w+)/)?.[1] : 'Inbound';
-            return shipmentType === 'Re-export';
+            return notes.includes('Type: Re-export');
+        });
+
+        const exportShipments = data.values.filter(row => {
+            const notes = row[15] || '';
+            return notes.includes('Type: Export');
         });
         
         // Apply status filter
         let filteredInbound = inboundShipments;
         let filteredReexport = reexportShipments;
+        let filteredExport = exportShipments;
         
         if (transportInboundFilter !== 'all') {
             filteredInbound = inboundShipments.filter(row => row[7] === transportInboundFilter);
             filteredReexport = reexportShipments.filter(row => row[7] === transportInboundFilter);
+            filteredExport = exportShipments.filter(row => row[7] === transportInboundFilter);
         }
         
         // Display with tabs
@@ -7110,6 +7103,12 @@ async function submitTransportInbound() {
         html += `
             <h3 style="margin-top: 2rem; margin-bottom: 1rem; color: var(--secondary);">🌍 Re-export Shipments (${filteredReexport.length})</h3>
             ${generateShipmentTable(filteredReexport, 'Re-export')}
+        `;
+        
+        // EXPORT SECTION
+        html += `
+            <h3 style="margin-top: 2rem; margin-bottom: 1rem; color: var(--secondary);">📤 Export Shipments (${filteredExport.length})</h3>
+            ${generateShipmentTable(filteredExport, 'Export')}
         `;
         
         container.innerHTML = html;
@@ -7347,6 +7346,7 @@ function showEditShipmentModal(shipmentData) {
     const shipmentType = shipmentData.shipmentType || 'Inbound';
     
     document.getElementById('editShipmentID').value = shipmentData.shipmentID;
+	document.getElementById('editShipmentModalTitle').textContent = `✏️ Edit ${shipmentType} Shipment`;
     document.getElementById('editSupplier').value = shipmentData.supplier || '';
     document.getElementById('editFuelType').value = shipmentData.productType;
     document.getElementById('editQuantity').value = shipmentData.quantity;
