@@ -7345,8 +7345,11 @@ function generateShipmentTable(shipments, shipmentType) {
 function showEditShipmentModal(shipmentData) {
     const shipmentType = shipmentData.shipmentType || 'Inbound';
     
+    // Update modal title
+    document.getElementById('editShipmentModalTitle').textContent = `✏️ Edit ${shipmentType} Shipment`;
+    
+    // Fill in all fields
     document.getElementById('editShipmentID').value = shipmentData.shipmentID;
-	document.getElementById('editShipmentModalTitle').textContent = `✏️ Edit ${shipmentType} Shipment`;
     document.getElementById('editSupplier').value = shipmentData.supplier || '';
     document.getElementById('editFuelType').value = shipmentData.productType;
     document.getElementById('editQuantity').value = shipmentData.quantity;
@@ -7356,43 +7359,41 @@ function showEditShipmentModal(shipmentData) {
     document.getElementById('editFreightForwarder').value = shipmentData.freightForwarder || 'Fershped';
     document.getElementById('editWarehouseLocation').value = shipmentData.warehouseLocation || 'Tetovo';
     
-    // Show/hide fields based on shipment type
-    const supplierRow = document.getElementById('editSupplier').closest('div').parentElement;
+    // Get field container rows
+    const supplierField = document.getElementById('editSupplier').closest('div');
     const warehouseRow = document.getElementById('editWarehouseLocation').closest('div').parentElement;
     
-    // Add client field if doesn't exist
+    // Add client field if it doesn't exist
     let clientField = document.getElementById('editClientName');
     if (!clientField) {
         const clientDiv = document.createElement('div');
         clientDiv.innerHTML = `
-            <div>
-                <label style="display: block; font-weight: 600; margin-bottom: 0.5rem;">Client Name: *</label>
-                <input type="text" id="editClientName" style="width: 100%; padding: 0.75rem; border: 1px solid #D1D5DB; border-radius: 4px;">
-            </div>
+            <label style="display: block; font-weight: 600; margin-bottom: 0.5rem;">Client Name: *</label>
+            <input type="text" id="editClientName" style="width: 100%; padding: 0.75rem; border: 1px solid #D1D5DB; border-radius: 4px;">
         `;
-        supplierRow.appendChild(clientDiv.firstElementChild);
+        supplierField.parentElement.appendChild(clientDiv);
         clientField = document.getElementById('editClientName');
     }
     
     // Set client value
     clientField.value = shipmentData.clientName || '';
     
-    // Configure visibility based on shipment type
+    // Show/hide fields based on shipment type
     if (shipmentType === 'Inbound') {
-        supplierRow.querySelector('div:first-child').style.display = 'block'; // Show supplier
-        clientField.parentElement.style.display = 'none'; // Hide client
-        warehouseRow.style.display = 'grid'; // Show warehouse
+        supplierField.style.display = 'block';        // Show supplier
+        clientField.parentElement.style.display = 'none';  // Hide client
+        warehouseRow.style.display = 'grid';          // Show warehouse
     } else if (shipmentType === 'Re-export') {
-        supplierRow.querySelector('div:first-child').style.display = 'block'; // Show supplier
+        supplierField.style.display = 'block';        // Show supplier
         clientField.parentElement.style.display = 'block'; // Show client
-        warehouseRow.style.display = 'none'; // Hide warehouse
+        warehouseRow.style.display = 'none';          // Hide warehouse
     } else if (shipmentType === 'Export') {
-        supplierRow.querySelector('div:first-child').style.display = 'none'; // Hide supplier (Gulf by default)
+        supplierField.style.display = 'none';         // Hide supplier (Gulf by default)
         clientField.parentElement.style.display = 'block'; // Show client
-        warehouseRow.style.display = 'none'; // Hide warehouse
+        warehouseRow.style.display = 'none';          // Hide warehouse
     }
     
-    // Store shipment type for submit
+    // Store shipment type for submit function
     document.getElementById('editShipmentModal').dataset.shipmentType = shipmentType;
     
     document.getElementById('editShipmentModal').style.display = 'block';
