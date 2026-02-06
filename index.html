@@ -1125,33 +1125,76 @@
                                     </button>
                                 </div>
                             </div>
-							<!-- Create Export Shipment Form (Warehouse) -->
-                            <div style="margin-top: 2rem;">
-                                <h3 style="margin-bottom: 1rem; color: var(--secondary);">📤 Create Export Shipment (Sales Order)</h3>
-                                <div style="background: #F9FAFB; padding: 1.5rem; border-radius: 8px; border: 1px solid #E5E7EB;">
-                                    <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1rem; margin-bottom: 1rem;">
-                                        <div>
-                                            <label style="display: block; font-weight: 600; margin-bottom: 0.5rem;">Client Name: *</label>
-                                            <input type="text" id="warehouseExportClient" placeholder="Enter client name" style="width: 100%; padding: 0.75rem; border: 1px solid #D1D5DB; border-radius: 4px;">
-                                        </div>
-                                        <div>
-                                            <label style="display: block; font-weight: 600; margin-bottom: 0.5rem;">Fuel Type: *</label>
-                                            <select id="warehouseExportFuel" style="width: 100%; padding: 0.75rem; border: 1px solid #D1D5DB; border-radius: 4px;">
-                                                <option value="">-- Select --</option>
-                                                <option value="Diesel">Diesel</option>
-                                                <option value="Gasoline">Gasoline</option>
-                                                <option value="Mazut">Mazut</option>
-                                                <option value="EL">EL (Extra Light)</option>
-                                            </select>
-                                        </div>
-                                        <div>
-                                            <label style="display: block; font-weight: 600; margin-bottom: 0.5rem;">Quantity (L): *</label>
-                                            <input type="number" id="warehouseExportQty" style="width: 100%; padding: 0.75rem; border: 1px solid #D1D5DB; border-radius: 4px;">
-                                        </div>
-                                    </div>
-                                    <button class="btn btn-primary" onclick="submitWarehouseExport()">📤 Create Export Shipment</button>
-                                </div>
-                            </div>
+							<!-- Create Export Shipment Form (Warehouse) - FULL FORM -->
+<div style="margin-top: 2rem;">
+    <h3 style="margin-bottom: 1rem; color: var(--secondary);">📤 Create Export Shipment (Sales Order)</h3>
+    <div style="background: #F9FAFB; padding: 1.5rem; border-radius: 8px; border: 1px solid #E5E7EB;">
+        <!-- Row 1 - Client, Fuel, Quantity -->
+        <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1rem; margin-bottom: 1rem;">
+            <div>
+                <label style="display: block; font-weight: 600; margin-bottom: 0.5rem;">Client Name: *</label>
+                <input type="text" id="warehouseExportClient" placeholder="Enter client name" style="width: 100%; padding: 0.75rem; border: 1px solid #D1D5DB; border-radius: 4px;">
+            </div>
+            <div>
+                <label style="display: block; font-weight: 600; margin-bottom: 0.5rem;">Fuel Type: *</label>
+                <select id="warehouseExportFuel" style="width: 100%; padding: 0.75rem; border: 1px solid #D1D5DB; border-radius: 4px;">
+                    <option value="">-- Select --</option>
+                    <option value="Diesel">Diesel</option>
+                    <option value="Gasoline">Gasoline</option>
+                    <option value="Mazut">Mazut</option>
+                    <option value="EL">EL (Extra Light)</option>
+                </select>
+            </div>
+            <div>
+                <label style="display: block; font-weight: 600; margin-bottom: 0.5rem;">Quantity (L): *</label>
+                <input type="number" id="warehouseExportQty" style="width: 100%; padding: 0.75rem; border: 1px solid #D1D5DB; border-radius: 4px;">
+            </div>
+        </div>
+        
+        <!-- Row 2 - Driver, Company, ETA -->
+        <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1rem; margin-bottom: 1rem;">
+            <div>
+                <label style="display: block; font-weight: 600; margin-bottom: 0.5rem;">Driver:</label>
+                <select id="warehouseExportDriver" onchange="toggleWarehouseCustomDriver()" style="width: 100%; padding: 0.75rem; border: 1px solid #D1D5DB; border-radius: 4px;">
+                    <option value="">-- Select Driver --</option>
+                </select>
+                <input type="text" id="warehouseExportDriverCustom" placeholder="Enter driver name" style="width: 100%; padding: 0.75rem; border: 1px solid #D1D5DB; border-radius: 4px; margin-top: 0.5rem; display: none;">
+            </div>
+            <div>
+                <label style="display: block; font-weight: 600; margin-bottom: 0.5rem;">Transport Company:</label>
+                <select id="warehouseExportCompany" onchange="toggleWarehouseCustomCompany()" style="width: 100%; padding: 0.75rem; border: 1px solid #D1D5DB; border-radius: 4px;">
+                    <option value="">-- Select Company --</option>
+                </select>
+                <input type="text" id="warehouseExportCompanyCustom" placeholder="Enter company name" style="width: 100%; padding: 0.75rem; border: 1px solid #D1D5DB; border-radius: 4px; margin-top: 0.5rem; display: none;">
+            </div>
+            <div>
+                <label style="display: block; font-weight: 600; margin-bottom: 0.5rem;">Expected Departure:</label>
+                <input type="date" id="warehouseExportETA" style="width: 100%; padding: 0.75rem; border: 1px solid #D1D5DB; border-radius: 4px;">
+            </div>
+        </div>
+        
+        <!-- Row 3 - Truck, Trailer, Freight Forwarder -->
+        <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1rem; margin-bottom: 1rem;">
+            <div>
+                <label style="display: block; font-weight: 600; margin-bottom: 0.5rem;">Truck License Plate:</label>
+                <input type="text" id="warehouseExportTruck" placeholder="e.g., SK-123-AB" style="width: 100%; padding: 0.75rem; border: 1px solid #D1D5DB; border-radius: 4px;">
+            </div>
+            <div>
+                <label style="display: block; font-weight: 600; margin-bottom: 0.5rem;">Trailer License Plate:</label>
+                <input type="text" id="warehouseExportTrailer" placeholder="e.g., SK-456-CD" style="width: 100%; padding: 0.75rem; border: 1px solid #D1D5DB; border-radius: 4px;">
+            </div>
+            <div>
+                <label style="display: block; font-weight: 600; margin-bottom: 0.5rem;">Freight Forwarder:</label>
+                <select id="warehouseExportForwarder" style="width: 100%; padding: 0.75rem; border: 1px solid #D1D5DB; border-radius: 4px;">
+                    <option value="Fershped">Fershped</option>
+                    <option value="Other">Other</option>
+                </select>
+            </div>
+        </div>
+        
+        <button class="btn btn-primary" onclick="submitWarehouseExport()">📤 Create Export Shipment</button>
+    </div>
+</div>
                             <!-- Inbound Shipments for Warehouse -->
                             <div style="margin-top: 2rem;">
                                 <h3 style="margin-bottom: 1rem; color: var(--secondary);">🚚 Inbound Shipments (In Transit)</h3>
@@ -1185,7 +1228,6 @@
             <select id="transportShipmentType" onchange="toggleShipmentFields()" style="width: 100%; padding: 0.75rem; border: 2px solid #3B82F6; border-radius: 4px; font-weight: bold; background: #EFF6FF;">
                 <option value="Inbound">📦 Inbound (Import)</option>
                 <option value="Re-export">🌍 Re-export</option>
-                <option value="Export">📤 Export (Sales Order)</option>
             </select>
         </div>
         <div></div>
@@ -6260,9 +6302,27 @@ if (supplier === 'Other') supplier = document.getElementById('addShipmentSupplie
     const clientName = document.getElementById('warehouseExportClient').value.trim();
     const fuelType = document.getElementById('warehouseExportFuel').value;
     const quantity = document.getElementById('warehouseExportQty').value;
+    let driver = document.getElementById('warehouseExportDriver').value;
+    let company = document.getElementById('warehouseExportCompany').value;
+    const eta = document.getElementById('warehouseExportETA').value;
+    const truckLicence = document.getElementById('warehouseExportTruck').value;
+    const trailerLicence = document.getElementById('warehouseExportTrailer').value;
+    const freightForwarder = document.getElementById('warehouseExportForwarder').value;
+    
+    // Handle custom driver
+    if (driver === 'CUSTOM') {
+        const customDriver = document.getElementById('warehouseExportDriverCustom').value.trim();
+        if (customDriver) driver = customDriver;
+    }
+    
+    // Handle custom company
+    if (company === 'CUSTOM') {
+        const customCompany = document.getElementById('warehouseExportCompanyCustom').value.trim();
+        if (customCompany) company = customCompany;
+    }
     
     if (!clientName || !fuelType || !quantity) {
-        alert('⚠️ Please fill in all required fields');
+        alert('⚠️ Please fill in required fields: Client Name, Fuel Type, and Quantity');
         return;
     }
     
@@ -6282,19 +6342,30 @@ if (supplier === 'Other') supplier = document.getElementById('addShipmentSupplie
                 productType: fuelType,
                 quantity: parseFloat(quantity),
                 unit: 'L',
-                plannedArrival: '',
-                notes: `Type: Export, Client: ${clientName}, Supplier: Gulf`,
+                plannedArrival: eta || '',
+                notes: `Type: Export, Driver: ${driver || 'TBD'}, Company: ${company || 'TBD'}, Client: ${clientName}`,
                 createdBy: currentUser.name,
-                clientName: clientName
+                clientName: clientName,
+                truckLicence: truckLicence || '',
+                trailerLicence: trailerLicence || '',
+                freightForwarder: freightForwarder || 'Fershped',
+                warehouseLocation: ''
             })
         });
         
         await new Promise(resolve => setTimeout(resolve, 2000));
         await loadWarehouseInventory();
         
+        // Clear form
         document.getElementById('warehouseExportClient').value = '';
         document.getElementById('warehouseExportFuel').value = '';
         document.getElementById('warehouseExportQty').value = '';
+        document.getElementById('warehouseExportDriver').value = '';
+        document.getElementById('warehouseExportCompany').value = '';
+        document.getElementById('warehouseExportETA').value = '';
+        document.getElementById('warehouseExportTruck').value = '';
+        document.getElementById('warehouseExportTrailer').value = '';
+        document.getElementById('warehouseExportForwarder').value = 'Fershped';
         
         hideLoading();
         alert('✅ Export shipment created!');
@@ -6304,6 +6375,19 @@ if (supplier === 'Other') supplier = document.getElementById('addShipmentSupplie
         console.error('Error:', error);
         alert('❌ Error creating shipment');
     }
+}
+
+// Helper functions for warehouse custom driver/company
+function toggleWarehouseCustomDriver() {
+    const select = document.getElementById('warehouseExportDriver');
+    const customInput = document.getElementById('warehouseExportDriverCustom');
+    customInput.style.display = (select.value === 'CUSTOM') ? 'block' : 'none';
+}
+
+function toggleWarehouseCustomCompany() {
+    const select = document.getElementById('warehouseExportCompany');
+    const customInput = document.getElementById('warehouseExportCompanyCustom');
+    customInput.style.display = (select.value === 'CUSTOM') ? 'block' : 'none';
 }
 		
         async function loadWarehouseReservoirs() {
@@ -7123,18 +7207,41 @@ function generateShipmentTable(shipments, shipmentType) {
         return '<p style="text-align: center; color: #6B7280; padding: 1rem;">No shipments</p>';
     }
     
-    let html = `
+    // Bulk actions only for Inbound and Re-export
+    const showBulkActions = (shipmentType === 'Inbound' || shipmentType === 'Re-export');
+    // Individual actions only for Inbound and Export (not Re-export)
+    const showIndividualActions = (shipmentType !== 'Re-export');
+    
+    let html = '';
+    
+    // Bulk action buttons (Inbound & Re-export only)
+    if (showBulkActions) {
+        html += `
+            <div style="margin-bottom: 1rem; padding: 1rem; background: #F3F4F6; border-radius: 8px; display: flex; gap: 1rem; align-items: center;">
+                <button class="btn btn-primary" onclick="bulkUpdateStatus('${shipmentType}', 'In Transit')" style="padding: 0.5rem 1rem;">
+                    🚚 Mark Selected as In Transit
+                </button>
+                <button class="btn btn-danger" onclick="bulkCancelShipments('${shipmentType}')" style="padding: 0.5rem 1rem;">
+                    ❌ Cancel Selected
+                </button>
+                <span id="${shipmentType}SelectedCount" style="color: #6B7280; margin-left: auto;">0 selected</span>
+            </div>
+        `;
+    }
+    
+    html += `
         <table class="orders-table">
             <thead>
                 <tr>
+                    ${showBulkActions ? '<th style="width: 40px;"><input type="checkbox" id="selectAll' + shipmentType + '" onchange="toggleSelectAll(\'' + shipmentType + '\')"></th>' : ''}
                     <th>Shipment ID</th>
-                    <th>${shipmentType === 'Inbound' ? 'Supplier' : 'Supplier'}</th>
+                    <th>Supplier</th>
                     ${shipmentType !== 'Inbound' ? '<th>Client</th>' : ''}
                     <th>Product</th>
                     <th>Quantity</th>
                     <th>ETA</th>
                     <th>Status</th>
-                    <th>Action</th>
+                    ${showIndividualActions ? '<th>Action</th>' : ''}
                 </tr>
             </thead>
             <tbody>
@@ -7183,6 +7290,7 @@ function generateShipmentTable(shipments, shipmentType) {
         
         html += `
             <tr>
+                ${showBulkActions ? `<td><input type="checkbox" class="shipment-checkbox-${shipmentType}" data-shipment-id="${shipmentID}" onchange="updateSelectedCount('${shipmentType}')"></td>` : ''}
                 <td><strong>${shipmentID}</strong></td>
                 <td>${supplier}</td>
                 ${shipmentType !== 'Inbound' ? `<td>${client || 'N/A'}</td>` : ''}
@@ -7190,6 +7298,7 @@ function generateShipmentTable(shipments, shipmentType) {
                 <td>${new Intl.NumberFormat().format(quantity)} ${unit}</td>
                 <td>${eta}</td>
                 <td><span style="background: ${colors.bg}; color: ${colors.text}; padding: 0.25rem 0.75rem; border-radius: 12px; font-size: 0.875rem; font-weight: 600;">${status}</span></td>
+                ${showIndividualActions ? `
                 <td style="white-space: nowrap;">
                     ${(status === 'Created' || status === 'In Transit') ? `
                         <button class="btn btn-secondary" onclick='showEditShipmentModal(${shipmentDataJson})' style="padding: 0.375rem 0.75rem; font-size: 0.85rem; margin-right: 0.5rem;">✏️ Edit</button>
@@ -7201,12 +7310,115 @@ function generateShipmentTable(shipments, shipmentType) {
                         <button class="btn btn-danger" onclick="cancelShipment('${shipmentID}')" style="padding: 0.375rem 0.75rem; font-size: 0.85rem;">❌ Cancel</button>
                     ` : ''}
                 </td>
+                ` : ''}
             </tr>
         `;
     });
     
     html += '</tbody></table>';
     return html;
+}
+
+// Bulk action helper functions
+function toggleSelectAll(shipmentType) {
+    const selectAllCheckbox = document.getElementById('selectAll' + shipmentType);
+    const checkboxes = document.querySelectorAll('.shipment-checkbox-' + shipmentType);
+    checkboxes.forEach(cb => {
+        cb.checked = selectAllCheckbox.checked;
+    });
+    updateSelectedCount(shipmentType);
+}
+
+function updateSelectedCount(shipmentType) {
+    const checkboxes = document.querySelectorAll('.shipment-checkbox-' + shipmentType + ':checked');
+    const countElement = document.getElementById(shipmentType + 'SelectedCount');
+    if (countElement) {
+        countElement.textContent = checkboxes.length + ' selected';
+    }
+}
+
+async function bulkUpdateStatus(shipmentType, newStatus) {
+    const checkboxes = document.querySelectorAll('.shipment-checkbox-' + shipmentType + ':checked');
+    const shipmentIDs = Array.from(checkboxes).map(cb => cb.dataset.shipmentId);
+    
+    if (shipmentIDs.length === 0) {
+        alert('⚠️ Please select at least one shipment');
+        return;
+    }
+    
+    if (!confirm(`Mark ${shipmentIDs.length} shipment(s) as ${newStatus}?`)) {
+        return;
+    }
+    
+    showLoading(`Updating ${shipmentIDs.length} shipments...`);
+    
+    try {
+        for (const shipmentID of shipmentIDs) {
+            await fetch(APPS_SCRIPT_URL, {
+                method: 'POST',
+                mode: 'no-cors',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    action: 'updateInboundStatus',
+                    shipmentID: shipmentID,
+                    status: newStatus
+                })
+            });
+            await new Promise(resolve => setTimeout(resolve, 500));
+        }
+        
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        await loadTransportInbound();
+        hideLoading();
+        alert(`✅ ${shipmentIDs.length} shipment(s) updated!`);
+        
+    } catch (error) {
+        hideLoading();
+        console.error('Error:', error);
+        alert('❌ Error updating shipments');
+    }
+}
+
+async function bulkCancelShipments(shipmentType) {
+    const checkboxes = document.querySelectorAll('.shipment-checkbox-' + shipmentType + ':checked');
+    const shipmentIDs = Array.from(checkboxes).map(cb => cb.dataset.shipmentId);
+    
+    if (shipmentIDs.length === 0) {
+        alert('⚠️ Please select at least one shipment');
+        return;
+    }
+    
+    if (!confirm(`⚠️ Cancel ${shipmentIDs.length} shipment(s)? This cannot be undone.`)) {
+        return;
+    }
+    
+    showLoading(`Cancelling ${shipmentIDs.length} shipments...`);
+    
+    try {
+        for (const shipmentID of shipmentIDs) {
+            await fetch(APPS_SCRIPT_URL, {
+                method: 'POST',
+                mode: 'no-cors',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    action: 'updateInboundStatus',
+                    shipmentID: shipmentID,
+                    status: 'Cancelled'
+                })
+            });
+            await new Promise(resolve => setTimeout(resolve, 500));
+        }
+        
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        await loadTransportInbound();
+        hideLoading();
+        alert(`✅ ${shipmentIDs.length} shipment(s) cancelled!`);
+        
+    } catch (error) {
+        hideLoading();
+        console.error('Error:', error);
+        alert('❌ Error cancelling shipments');
+    }
 }
 
 function generateShipmentTable(shipments, shipmentType) {
