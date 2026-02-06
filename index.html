@@ -5688,6 +5688,10 @@ window.onclick = function(event) {
         
 async function loadManagementAllShipments() {
     try {
+        // Remove any existing sections first
+        const existingSections = document.querySelectorAll('[data-management-section]');
+        existingSections.forEach(section => section.remove());
+        
         const apiUrl = `https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_ID}/values/Inbound_Shipments!A2:AI100?key=${API_KEY}`;
         const response = await fetch(apiUrl);
         const data = await response.json();
@@ -5705,12 +5709,12 @@ async function loadManagementAllShipments() {
         });
         
         let html = `
-            <div style="margin-top: 2rem;">
+            <div data-management-section style="margin-top: 2rem;">
                 <h3 style="margin-bottom: 1rem; color: var(--secondary);">🌍 Re-export Shipments (${reexport.length})</h3>
                 ${generateManagementShipmentTable(reexport)}
             </div>
             
-            <div style="margin-top: 2rem;">
+            <div data-management-section style="margin-top: 2rem;">
                 <h3 style="margin-bottom: 1rem; color: var(--secondary);">📤 Export Shipments (${exportShipments.length})</h3>
                 ${generateManagementShipmentTable(exportShipments)}
             </div>
@@ -6289,14 +6293,33 @@ if (supplier === 'Other') supplier = document.getElementById('addShipmentSupplie
 				await loadManagementAllShipments();
                 
                 hideLoading();
-                
+                // Populate Export form dropdowns
+        await populateWarehouseExportDropdowns();
             } catch (error) {
                 hideLoading();
                 console.error('Error loading warehouse inventory:', error);
                 alert('Error loading inventory data');
             }
         }
-        
+        async function populateWarehouseExportDropdowns() {
+    const driverSelect = document.getElementById('warehouseExportDriver');
+    if (driverSelect && driversData.length > 0) {
+        driverSelect.innerHTML = '<option value="">-- Select Driver --</option>';
+        driversData.forEach(driver => {
+            driverSelect.innerHTML += `<option value="${driver}">${driver}</option>`;
+        });
+        driverSelect.innerHTML += '<option value="CUSTOM">➕ Add Custom Driver</option>';
+    }
+    
+    const companySelect = document.getElementById('warehouseExportCompany');
+    if (companySelect && transportCompaniesData.length > 0) {
+        companySelect.innerHTML = '<option value="">-- Select Company --</option>';
+        transportCompaniesData.forEach(company => {
+            companySelect.innerHTML += `<option value="${company}">${company}</option>`;
+        });
+        companySelect.innerHTML += '<option value="CUSTOM">➕ Add Custom Company</option>';
+    }
+}
 		async function submitWarehouseExport() {
     const clientName = document.getElementById('warehouseExportClient').value.trim();
     const fuelType = document.getElementById('warehouseExportFuel').value;
@@ -6562,10 +6585,10 @@ async function loadWarehouseInbound() {
         
         let html = `
             <h3 style="margin-bottom: 1rem; color: var(--secondary);">📦 Inbound Shipments (In Transit) - ${inboundInTransit.length}</h3>
-            ${generateWarehouseShipmentTable(inboundInTransit)}
+            ${generateWarehouseShipmentTable(inboundInTransit, 'Inbound')}
             
             <h3 style="margin-top: 2rem; margin-bottom: 1rem; color: var(--secondary);">📤 Export Shipments (In Transit) - ${exportInTransit.length}</h3>
-            ${generateWarehouseShipmentTable(exportInTransit)}
+            ${generateWarehouseShipmentTable(exportInTransit, 'Export')}
         `;
         
         container.innerHTML = html;
@@ -6575,13 +6598,42 @@ async function loadWarehouseInbound() {
     }
 }
 
-function generateWarehouseShipmentTable(shipments) {
+function generateWarehouseShipmentTable(shipments, shipmentType) {
     if (shipments.length === 0) {
         return '<p style="text-align: center; color: #6B7280; padding: 1rem;">No shipments</p>';
     }
     
-    let html = '<table class="orders-table"><thead><tr>';
-    html += '<th>Shipment ID</th><th>Supplier</th><th>Product</th><th>Quantity</th><th>ETA</th><th>Actions</th>';
+    // WAREHOUSE rules:
+    // Inbound: just view (no checkbox, no actions)
+    // Export: checkbox + bulk + individual
+    const showBulkActions = (shipmentType === 'Export');
+    const showIndividualActions = (shipmentType === 'Export');
+    
+    let html = '';
+    
+    // Bulk action buttons for Export
+    if (showBulkActions) {
+        html += `
+            <div style="margin-bottom: 1rem; padding: 1rem; background: #F3F4F6; border-radius: 8px; display: flex; gap: 1rem; align-items: center;">
+                <button class="btn btn-primary" onclick="bulkUpdateStatus('${shipmentType}', 'In Transit')" style="padding: 0.5rem 1rem;">
+                    🚚 Mark Selected as In Transit
+                </button>
+                <button class="btn btn-danger" onclick="bulkCancelShipments('${shipmentType}')" style="padding: 0.5rem 1rem;">
+                    ❌ Cancel Selected
+                </button>
+                <span id="${shipmentType}SelectedCount" style="color: #6B7280; margin-left: auto;">0 selected</span>
+            </div>
+        `;
+    }
+    
+    html += '<table class="orders-table"><thead><tr>';
+    if (showBulkActions) {
+        html += `<th style="width: 40px;"><input type="checkbox" id="selectAll${shipmentType}" onchange="toggleSelectAll('${shipmentType}')"></th>`;
+    }
+    html += '<th>Shipment ID</th><th>Supplier</th>';
+    if (shipmentType === 'Export') html += '<th>Client</th>';
+    html += '<th>Product</th><th>Quantity</th><th>ETA</th><th>Status</th>';
+    if (showIndividualActions) html += '<th>Actions</th>';
     html += '</tr></thead><tbody>';
     
     shipments.forEach(row => {
@@ -6591,19 +6643,71 @@ function generateWarehouseShipmentTable(shipments) {
         const quantity = parseFloat(row[3]) || 0;
         const unit = row[4] || 'L';
         const eta = row[5] || 'Not set';
+        const status = row[7] || 'Created';
+        const notes = row[15] || '';
         
-        html += `<tr>
+        let client = '';
+        if (notes.includes('Client:')) {
+            const clientMatch = notes.match(/Client:\s*([^,]+)/);
+            if (clientMatch) client = clientMatch[1].trim();
+        }
+        
+        const statusColors = {
+            'Created': { bg: '#F3F4F6', text: '#6B7280' },
+            'In Transit': { bg: '#DBEAFE', text: '#3B82F6' },
+            'Arrived': { bg: '#D1FAE5', text: '#059669' }
+        };
+        const colors = statusColors[status] || { bg: '#F3F4F6', text: '#6B7280' };
+        
+        const shipmentData = {
+            shipmentID: shipmentID,
+            supplier: supplier,
+            productType: product,
+            quantity: quantity,
+            plannedArrival: eta,
+            truckLicence: row[18] || '',
+            trailerLicence: row[19] || '',
+            freightForwarder: row[20] || '',
+            warehouseLocation: row[21] || '',
+            clientName: client,
+            shipmentType: shipmentType
+        };
+        const shipmentDataJson = JSON.stringify(shipmentData).replace(/"/g, '&quot;');
+        
+        html += '<tr>';
+        if (showBulkActions) {
+            html += `<td><input type="checkbox" class="shipment-checkbox-${shipmentType}" data-shipment-id="${shipmentID}" onchange="updateSelectedCount('${shipmentType}')"></td>`;
+        }
+        html += `
             <td><strong>${shipmentID}</strong></td>
             <td>${supplier}</td>
+        `;
+        if (shipmentType === 'Export') {
+            html += `<td>${client || 'N/A'}</td>`;
+        }
+        html += `
             <td>${product}</td>
             <td>${new Intl.NumberFormat().format(quantity)} ${unit}</td>
             <td>${eta}</td>
-            <td>
-                <button class="btn btn-success" onclick="markShipmentArrived('${shipmentID}')" style="padding: 0.375rem 0.75rem; font-size: 0.85rem;">
-                    ✅ Mark Arrived
-                </button>
-            </td>
-        </tr>`;
+            <td><span style="background: ${colors.bg}; color: ${colors.text}; padding: 0.25rem 0.75rem; border-radius: 12px; font-size: 0.875rem; font-weight: 600;">${status}</span></td>
+        `;
+        
+        if (showIndividualActions) {
+            html += `
+                <td style="white-space: nowrap;">
+                    ${(status === 'Created' || status === 'In Transit') ? `
+                        <button class="btn btn-secondary" onclick='showEditShipmentModal(${shipmentDataJson})' style="padding: 0.375rem 0.75rem; font-size: 0.85rem; margin-right: 0.5rem;">✏️ Edit</button>
+                    ` : ''}
+                    ${status === 'Created' ? `
+                        <button class="btn btn-primary" onclick="updateTransportStatus('${shipmentID}', 'In Transit')" style="padding: 0.375rem 0.75rem; font-size: 0.85rem; margin-right: 0.5rem;">🚚 In Transit</button>
+                    ` : ''}
+                    ${(status === 'Created' || status === 'In Transit') ? `
+                        <button class="btn btn-danger" onclick="cancelShipment('${shipmentID}')" style="padding: 0.375rem 0.75rem; font-size: 0.85rem;">❌ Cancel</button>
+                    ` : ''}
+                </td>
+            `;
+        }
+        html += '</tr>';
     });
     
     html += '</tbody></table>';
@@ -7206,14 +7310,16 @@ function generateShipmentTable(shipments, shipmentType) {
         return '<p style="text-align: center; color: #6B7280; padding: 1rem;">No shipments</p>';
     }
     
-    // Bulk actions only for Inbound and Re-export
+    // TRANSPORT rules:
+    // Inbound: checkbox + bulk + individual
+    // Re-export: checkbox + bulk + individual
+    // Export: NO checkbox, just view (no actions)
     const showBulkActions = (shipmentType === 'Inbound' || shipmentType === 'Re-export');
-    // Individual actions only for Inbound and Export (not Re-export)
-    const showIndividualActions = (shipmentType !== 'Re-export');
+    const showIndividualActions = (shipmentType === 'Inbound' || shipmentType === 'Re-export');
     
     let html = '';
     
-    // Bulk action buttons (Inbound & Re-export only)
+    // Bulk action buttons
     if (showBulkActions) {
         html += `
             <div style="margin-bottom: 1rem; padding: 1rem; background: #F3F4F6; border-radius: 8px; display: flex; gap: 1rem; align-items: center;">
@@ -7256,7 +7362,6 @@ function generateShipmentTable(shipments, shipmentType) {
         const status = row[7] || 'Created';
         const notes = row[15] || '';
         
-        // Extract client from notes
         let client = '';
         if (notes.includes('Client:')) {
             const clientMatch = notes.match(/Client:\s*([^,]+)/);
