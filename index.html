@@ -8006,7 +8006,7 @@ async function cancelShipment(shipmentID) {
                         <td>${truckLicence}</td>
                         <td>${warehouseLocation}</td>
                     </tr>
-                `;
+                `;Orders!A2:P1000
             });
             
             html += '</tbody></table>';
@@ -8017,7 +8017,7 @@ async function cancelShipment(shipmentID) {
             showLoading('Loading sales orders...');
             
             // Load sales orders from Google Sheets
-            const apiUrl = `https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_ID}/values/Sales_Orders!A2:P1000?key=${API_KEY}`;
+            const apiUrl = `https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_ID}/values/Orders!A2:P1000?key=${API_KEY}`;
             
             try {
                 const response = await fetch(apiUrl);
@@ -8060,7 +8060,7 @@ async function cancelShipment(shipmentID) {
                 console.error('Error loading sales orders:', error);
                 document.getElementById('reportResults').style.display = 'block';
                 document.getElementById('reportSummary').innerHTML = 'Error loading sales orders - Sheet may not exist';
-                document.getElementById('reportTable').innerHTML = '<p>Please ensure Sales_Orders sheet exists in your spreadsheet</p>';
+                document.getElementById('reportTable').innerHTML = '<p>Please ensure Orders sheet exists in your spreadsheet</p>';
                 reportData = [];
                 hideLoading();
             }
@@ -8910,7 +8910,7 @@ async function cancelShipment(shipmentID) {
             const url = URL.createObjectURL(blob);
             const dateFrom = document.getElementById('reportDateFrom').value;
             const dateTo = document.getElementById('reportDateTo').value;
-            const fileName = `Sales_Orders_${dateFrom}_to_${dateTo}.xls`;
+            const fileName = `Orders_${dateFrom}_to_${dateTo}.xls`;
             
             link.setAttribute('href', url);
             link.setAttribute('download', fileName);
