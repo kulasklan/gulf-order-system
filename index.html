@@ -8016,7 +8016,7 @@ async function cancelShipment(shipmentID) {
             showLoading('Loading sales orders...');
             
             // Load sales orders from Google Sheets
-            const apiUrl = `https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_ID}/values/Orders!A2:P1000?key=${API_KEY}`;
+            const ordersapiUrl = `https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_ID}/values/Orders!A2:P1000?key=${API_KEY}`;
             
             try {
                 const response = await fetch(apiUrl);
