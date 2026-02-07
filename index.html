@@ -8007,7 +8007,7 @@ async function cancelShipment(shipmentID) {
                         <td>${warehouseLocation}</td>
                     </tr>
             `;
-            
+        });   // ✅ THIS LINE IS MISSING
             html += '</tbody></table>';
             document.getElementById('reportTable').innerHTML = html;
         }
