@@ -5098,15 +5098,14 @@ async function getAvailabilityData(productType, deliveryDate) {
                     mode: 'no-cors',
                     headers: {
                         'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({
-                        action: 'updateWarehouseStatus',
-                        orderID: orderID,
-                        warehouseUserID: currentUser.id,
-                        status: newStatus,
-                        note: note
-                    })
-                });
+		// CHANGE TO:
+			body: JSON.stringify({
+ 		   action: 'updateWarehouseStatus',
+  		  orderID: orderID,
+ 		   newStatus: newStatus,           // ← Changed from 'status'
+   		 updatedBy: currentUser.id,      // ← Changed from 'warehouseUserID'
+		    note: note
+		})
                 
                 console.log('Status update sent, reloading data...');
                 
