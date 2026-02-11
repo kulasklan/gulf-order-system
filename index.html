@@ -5076,57 +5076,58 @@ async function getAvailabilityData(productType, deliveryDate) {
             }
         }
         
-        // ===== WAREHOUSE STATUS UPDATE =====
+ // ===== WAREHOUSE STATUS UPDATE =====
+
+async function updateWarehouseStage(orderID, newStatus, checkbox) {
+    const confirmMsg = `Mark "${newStatus}" as complete?\n\nThis will update the order status.`;
+    
+    if (!confirm(confirmMsg)) {
+        checkbox.checked = false;
+        return;
+    }
+    
+    const note = prompt('Add note (optional - e.g., time, observations):') || '';
+    
+    console.log('Updating warehouse status:', {orderID, newStatus, note});
+    
+    showLoading(`Updating to "${newStatus}"...`);
+    
+    try {
+        await fetch(APPS_SCRIPT_URL, {
+            method: 'POST',
+            mode: 'no-cors',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                action: 'updateWarehouseStatus',
+                orderID: orderID,
+                newStatus: newStatus,
+                updatedBy: currentUser.id,
+                note: note
+            })
+        });
         
-        async function updateWarehouseStage(orderID, newStatus, checkbox) {
-            const confirmMsg = `Mark "${newStatus}" as complete?\n\nThis will update the order status.`;
-            
-            if (!confirm(confirmMsg)) {
-                checkbox.checked = false;
-                return;
-            }
-            
-            const note = prompt('Add note (optional - e.g., time, observations):') || '';
-            
-  console.log('Updating warehouse status:', {orderID, newStatus, note});
-
-showLoading(`Updating to "${newStatus}"...`);
-
-try {
-    await fetch(APPS_SCRIPT_URL, {
-        method: 'POST',
-        mode: 'no-cors',
-        headers: {
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-            action: 'updateWarehouseStatus',
-            orderID: orderID,
-            newStatus: newStatus,
-            updatedBy: currentUser.id,
-            note: note
-        })
-    });
-    
-    console.log('Status update sent, reloading data...');
-    
-    // Wait a moment for Apps Script to process
-    await new Promise(resolve => setTimeout(resolve, 1500));
-    
-    // Force reload all data from scratch
-    await loadData();
-    
-    hideLoading();
-    alert(`✅ Status updated to "${newStatus}"!`);
-    
-    // Refresh warehouse view
-    loadWarehouseDashboard();
-    
-} catch (error) {
-    hideLoading();
-    console.error('Error updating status:', error);
-    alert('❌ Error updating status: ' + error.message);
-    checkbox.checked = false;
+        console.log('Status update sent, reloading data...');
+        
+        // Wait a moment for Apps Script to process
+        await new Promise(resolve => setTimeout(resolve, 1500));
+        
+        // Force reload all data from scratch
+        await loadData();
+        
+        hideLoading();
+        alert(`✅ Status updated to "${newStatus}"!`);
+        
+        // Refresh warehouse view
+        loadWarehouseDashboard();
+        
+    } catch (error) {
+        hideLoading();
+        console.error('Error updating status:', error);
+        alert('❌ Error updating status: ' + error.message);
+        checkbox.checked = false;
+    }
 }
 
         // ===== TRANSPORT ASSIGNMENT =====
