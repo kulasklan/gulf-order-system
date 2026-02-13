@@ -489,10 +489,6 @@
                 padding: 0.5rem;
             }
         }
-		th, td {
-                padding: 0.5rem;
-            }
-        }
         
         /* ========================================
            NEW: TAB NAVIGATION - ADD THIS
@@ -609,8 +605,6 @@
             font-size: 1.1rem;
             font-weight: 600;
         }
-    </style>
-</head>
     </style>
 </head>
 <body>
@@ -1970,10 +1964,10 @@
         
         // Helper function to check if user can see financial information
         function canSeeFinancialInfo() {
-            return currentUser.department === 'Sales' || 
+            return currentUser && (currentUser.department === 'Sales' || 
                    currentUser.department === 'Management' || 
-                   currentUser.department === 'Finance';
-			}  // ← ADD THIS CLOSING BRACE!
+                   currentUser.department === 'Finance');
+        }
                 
         // Loading overlay helpers
         function showLoading(message = 'Saving changes...') {
@@ -1987,6 +1981,25 @@
             const overlay = document.getElementById('loadingOverlay');
             overlay.classList.remove('active');
         }
+        
+        /** POST to Apps Script API - returns parsed JSON, throws on network/server error */
+        async function apiPost(payload) {
+            const res = await fetch(APPS_SCRIPT_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+            let data;
+            try {
+                data = await res.json();
+            } catch (e) {
+                throw new Error('Invalid response from server. Check if Apps Script Web App is deployed and CORS is allowed.');
+            }
+            if (!res.ok) throw new Error(data.error || data.message || 'Request failed');
+            if (data.success === false && data.error) throw new Error(data.error);
+            return data;
+        }
+        
         let ordersData = [];
         let clientsData = [];
         let logsData = [];
@@ -2807,7 +2820,6 @@ function loadApprovals() {
         try {
             await fetch(APPS_SCRIPT_URL, {
                     method: 'POST',
-                    mode: 'no-cors',
                     headers: {
                     'Content-Type': 'application/json',
                 },
@@ -2884,7 +2896,6 @@ function loadApprovals() {
         try {
             await fetch(APPS_SCRIPT_URL, {
                     method: 'POST',
-                    mode: 'no-cors',
                     headers: {
                     'Content-Type': 'application/json',
                 },
@@ -3207,35 +3218,22 @@ function loadApprovals() {
         showLoading('Marking as delivered...');
 
         try {
-            await fetch(APPS_SCRIPT_URL, {
-                    method: 'POST',
-                    mode: 'no-cors',
-                    headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    action: 'markAsDelivered',
-                    orderID: orderID,
-                    transportUserID: currentUser.id,
-                    note: deliveryNote
-                })
+            const result = await apiPost({
+                action: 'markAsDelivered',
+                orderID: orderID,
+                transportUserID: currentUser.id,
+                note: deliveryNote
             });
-
-            // Wait for backend processing
-            await new Promise(resolve => setTimeout(resolve, 1500));
-
-            // Reload data and refresh view
+            if (!result.success) throw new Error(result.message || result.error);
+            await new Promise(resolve => setTimeout(resolve, 1000));
             await loadData();
-            
             hideLoading();
             alert(`✅ Order ${orderID} marked as DELIVERED!`);
-            
             loadDeliveryView();
-
         } catch (error) {
             hideLoading();
             console.error('Error:', error);
-            alert('❌ Error marking order as delivered');
+            alert('❌ Error marking order as delivered: ' + error.message);
         }
     }
 
@@ -3246,35 +3244,22 @@ function loadApprovals() {
         showLoading('Marking as disputed...');
 
         try {
-            await fetch(APPS_SCRIPT_URL, {
-                    method: 'POST',
-                    mode: 'no-cors',
-                    headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    action: 'markAsDisputed',
-                    orderID: orderID,
-                    transportUserID: currentUser.id,
-                    reason: reason
-                })
+            const result = await apiPost({
+                action: 'markAsDisputed',
+                orderID: orderID,
+                transportUserID: currentUser.id,
+                reason: reason
             });
-
-            // Wait for backend processing
-            await new Promise(resolve => setTimeout(resolve, 1500));
-
-            // Reload data and refresh view
+            if (!result.success) throw new Error(result.message || result.error);
+            await new Promise(resolve => setTimeout(resolve, 1000));
             await loadData();
-            
             hideLoading();
             alert(`⚠️ Order ${orderID} marked as DISPUTED!`);
-            
             loadDeliveryView();
-
         } catch (error) {
             hideLoading();
             console.error('Error:', error);
-            alert('❌ Error marking order as disputed');
+            alert('❌ Error marking order as disputed: ' + error.message);
         }
     }
         
@@ -3629,46 +3614,24 @@ Do you want to proceed anyway?
     showLoading('Creating order...');
     
     try {
-        console.log('🔄 Sending to:', APPS_SCRIPT_URL);
+        const result = await apiPost(orderData);
+        if (!result.success) throw new Error(result.message || result.error || 'Order creation failed');
         
-        await fetch(APPS_SCRIPT_URL, {
-            method: 'POST',
-            mode: 'no-cors',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(orderData)
-        });
-        
-        console.log('✅ Request sent to backend');
-        console.log('⏳ Waiting 3 seconds for Google Sheets to update...');
-        
-        // Wait for backend to process
-        await new Promise(resolve => setTimeout(resolve, 3000));
-        
-        // Reload data
+        console.log('✅ Order created:', result.orderID);
+        await new Promise(resolve => setTimeout(resolve, 1500));
         await loadData();
         
-        // Find the newest order created by this user
         const myOrders = ordersData
             .filter(o => o.createdBy === currentUser.id)
             .sort((a, b) => new Date(b.orderDate) - new Date(a.orderDate));
-        
         const newestOrder = myOrders[0];
         
         hideLoading();
-        
-        if (newestOrder) {
-            let successMsg = `✅ Order created successfully!\n\nOrder ID: ${newestOrder.orderID}`;
-            if (stockRisk) {
-                successMsg += '\n\n⚠️ STOCK RISK FLAGGED\nManagement will be notified during approval.';
-            }
-            alert(successMsg);
-            document.getElementById('createOrderForm').reset();
-            showView('dashboard');
-        } else {
-            alert('⚠️ Request sent but order not found yet.\n\nCheck Apps Script → Executions for logs.\n\nIf you see an execution, the order was created!');
-        }
+        let successMsg = `✅ Order created successfully!\n\nOrder ID: ${result.orderID || (newestOrder && newestOrder.orderID) || '—'}`;
+        if (stockRisk) successMsg += '\n\n⚠️ STOCK RISK FLAGGED\nManagement will be notified during approval.';
+        alert(successMsg);
+        document.getElementById('createOrderForm').reset();
+        showView('dashboard');
         
     } catch (error) {
         hideLoading();
@@ -3748,29 +3711,18 @@ async function getAvailabilityData(productType, deliveryDate) {
             showLoading('Approving order...');
             
             try {
-                await fetch(APPS_SCRIPT_URL, {
-                    method: 'POST',
-                    mode: 'no-cors',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({
-                        action: 'approveOrder',
-                        orderID: orderID,
-                        approverID: currentUser.id,
-                        note: note
-                    })
+                const result = await apiPost({
+                    action: 'approveOrder',
+                    orderID: orderID,
+                    approverID: currentUser.id,
+                    note: note
                 });
-                
-                // Wait for backend processing and reload
-                await new Promise(resolve => setTimeout(resolve, 1500));
+                if (!result.success) throw new Error(result.message || result.error);
+                await new Promise(resolve => setTimeout(resolve, 1000));
                 await loadData();
-                
                 hideLoading();
                 alert(`✅ Order ${orderID} approved!`);
-                
                 loadApprovals();
-                
             } catch (error) {
                 hideLoading();
                 console.error('Error:', error);
@@ -3785,31 +3737,18 @@ async function getAvailabilityData(productType, deliveryDate) {
             showLoading('Rejecting order...');
             
             try {
-                await fetch(APPS_SCRIPT_URL, {
-                    method: 'POST',
-                    mode: 'no-cors',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({
-                        action: 'rejectOrder',
-                        orderID: orderID,
-                        rejecterID: currentUser.id,
-                        reason: reason
-                    })
+                const result = await apiPost({
+                    action: 'rejectOrder',
+                    orderID: orderID,
+                    rejecterID: currentUser.id,
+                    reason: reason
                 });
-                
-                // Wait for backend processing
-                await new Promise(resolve => setTimeout(resolve, 1500));
-                
-                // Reload data and refresh view
+                if (!result.success) throw new Error(result.message || result.error);
+                await new Promise(resolve => setTimeout(resolve, 1000));
                 await loadData();
-                
                 hideLoading();
                 alert(`❌ Order ${orderID} rejected.`);
-                
                 loadApprovals();
-                
             } catch (error) {
                 hideLoading();
                 console.error('Error:', error);
@@ -3828,21 +3767,15 @@ async function getAvailabilityData(productType, deliveryDate) {
             showLoading('Saving proforma...');
             
             try {
-                await fetch(APPS_SCRIPT_URL, {
-                    method: 'POST',
-                    mode: 'no-cors',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({
-                        action: 'enterProforma',
-                        orderID: orderID,
-                        proformaNumber: proformaNumber,
-                        proformaTotalAmount: proformaTotalAmount,
-                        financeUserID: currentUser.id,
-                        note: note
-                    })
+                const result = await apiPost({
+                    action: 'enterProforma',
+                    orderID: orderID,
+                    proformaNumber: proformaNumber,
+                    proformaTotalAmount: proformaTotalAmount || null,
+                    enteredBy: currentUser.id,
+                    note: note
                 });
+                if (!result.success) throw new Error(result.message || result.error);
                 
                 console.log('✅ Proforma entered:', proformaNumber);
                 
@@ -3878,26 +3811,16 @@ async function getAvailabilityData(productType, deliveryDate) {
             showLoading('Saving invoice...');
             
             try {
-                await fetch(APPS_SCRIPT_URL, {
-                    method: 'POST',
-                    mode: 'no-cors',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({
-                        action: 'enterInvoice',
-                        orderID: orderID,
-                        invoiceNumber: invoiceNumber,
-                        invoiceTotalAmount: invoiceTotalAmount,
-                        financeUserID: currentUser.id,
-                        note: note
-                    })
+                const result = await apiPost({
+                    action: 'enterInvoice',
+                    orderID: orderID,
+                    invoiceNumber: invoiceNumber,
+                    invoiceTotalAmount: invoiceTotalAmount || null,
+                    enteredBy: currentUser.id,
+                    note: note
                 });
-                
-                console.log('✅ Invoice entered:', invoiceNumber);
-                
-                // Wait and reload data
-                await new Promise(resolve => setTimeout(resolve, 1500));
+                if (!result.success) throw new Error(result.message || result.error);
+                await new Promise(resolve => setTimeout(resolve, 1000));
                 await loadData();
                 
                 hideLoading();
@@ -4218,7 +4141,6 @@ async function getAvailabilityData(productType, deliveryDate) {
             try {
                 await fetch(APPS_SCRIPT_URL, {
                     method: 'POST',
-                    mode: 'no-cors',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
                         action: 'addOrderNote',
@@ -4371,7 +4293,6 @@ async function getAvailabilityData(productType, deliveryDate) {
             try {
                 await fetch(APPS_SCRIPT_URL, {
                     method: 'POST',
-                    mode: 'no-cors',
                     headers: {
                         'Content-Type': 'application/json',
                     },
@@ -4431,7 +4352,6 @@ async function getAvailabilityData(productType, deliveryDate) {
                     
                     await fetch(APPS_SCRIPT_URL, {
                     method: 'POST',
-                    mode: 'no-cors',
                     headers: {
                             'Content-Type': 'application/json',
                         },
@@ -5095,7 +5015,6 @@ async function updateWarehouseStage(orderID, newStatus, checkbox) {
     try {
         await fetch(APPS_SCRIPT_URL, {
             method: 'POST',
-            mode: 'no-cors',
             headers: {
                 'Content-Type': 'application/json',
             },
@@ -5288,7 +5207,6 @@ async function updateWarehouseStage(orderID, newStatus, checkbox) {
             try {
                 await fetch(APPS_SCRIPT_URL, {
                     method: 'POST',
-                    mode: 'no-cors',
                     headers: {
                         'Content-Type': 'application/json',
                     },
@@ -6132,7 +6050,6 @@ function generateManagementShipmentTable(shipments) {
             try {
                 await fetch(APPS_SCRIPT_URL, {
                     method: 'POST',
-                    mode: 'no-cors',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
                         action: 'updateInventoryQuantity',
@@ -6195,7 +6112,6 @@ if (supplier === 'Other') supplier = document.getElementById('addShipmentSupplie
             try {
                 await fetch(APPS_SCRIPT_URL, {
                     method: 'POST',
-                    mode: 'no-cors',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
                         action: 'addInboundShipment',
@@ -6241,7 +6157,6 @@ if (supplier === 'Other') supplier = document.getElementById('addShipmentSupplie
             try {
                 await fetch(APPS_SCRIPT_URL, {
                     method: 'POST',
-                    mode: 'no-cors',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
                         action: 'updateInboundStatus',
@@ -6355,7 +6270,6 @@ if (supplier === 'Other') supplier = document.getElementById('addShipmentSupplie
     try {
         await fetch(APPS_SCRIPT_URL, {
             method: 'POST',
-            mode: 'no-cors',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
                 action: 'createShipment',
@@ -6416,7 +6330,6 @@ function toggleWarehouseCustomCompany() {
             try {
                 const response = await fetch(APPS_SCRIPT_URL, {
                     method: 'POST',
-                    mode: 'no-cors',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ action: 'getReservoirs' })
                 });
@@ -6523,7 +6436,6 @@ function toggleWarehouseCustomCompany() {
                     
 await fetch(APPS_SCRIPT_URL, {
                         method: 'POST',
-                        mode: 'no-cors',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({
                             action: 'updateReservoirStock',
@@ -6733,7 +6645,6 @@ function generateWarehouseShipmentTable(shipments, shipmentType) {
             try {
                 await fetch(APPS_SCRIPT_URL, {
                     method: 'POST',
-                    mode: 'no-cors',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
                         action: newStatus === 'Cancelled' ? '	' : 'updateInboundStatus',
@@ -6894,7 +6805,6 @@ function generateWarehouseShipmentTable(shipments, shipmentType) {
             try {
                 await fetch(APPS_SCRIPT_URL, {
                     method: 'POST',
-                    mode: 'no-cors',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
                         action: 'markInboundArrived',
@@ -7171,7 +7081,6 @@ async function submitTransportInbound() {
     try {
         await fetch(APPS_SCRIPT_URL, {
             method: 'POST',
-            mode: 'no-cors',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
                 action: 'createShipment',
@@ -7460,7 +7369,6 @@ async function bulkUpdateStatus(shipmentType, newStatus) {
         for (const shipmentID of shipmentIDs) {
             await fetch(APPS_SCRIPT_URL, {
                 method: 'POST',
-                mode: 'no-cors',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     action: 'updateInboundStatus',
@@ -7502,7 +7410,6 @@ async function bulkCancelShipments(shipmentType) {
         for (const shipmentID of shipmentIDs) {
             await fetch(APPS_SCRIPT_URL, {
                 method: 'POST',
-                mode: 'no-cors',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     action: 'updateInboundStatus',
@@ -7631,7 +7538,6 @@ function generateShipmentTable(shipments, shipmentType) {
             try {
                 await fetch(APPS_SCRIPT_URL, {
                     method: 'POST',
-                    mode: 'no-cors',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
                         action: 'updateInboundStatus',
@@ -7745,7 +7651,6 @@ function showEditShipmentModal(shipmentData) {
             try {
                 await fetch(APPS_SCRIPT_URL, {
                     method: 'POST',
-                    mode: 'no-cors',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
                         action: 'editInboundShipment',
@@ -7795,7 +7700,6 @@ async function cancelShipment(shipmentID) {
     try {
         await fetch(APPS_SCRIPT_URL, {
             method: 'POST',
-            mode: 'no-cors',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
                 action: 'cancelShipment',
@@ -9012,7 +8916,6 @@ async function cancelShipment(shipmentID) {
                 // Append row to Google Sheets
                 await fetch(APPS_SCRIPT_URL, {
                     method: 'POST',
-                    mode: 'no-cors',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
                         action: 'appendRow',
