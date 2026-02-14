@@ -52,16 +52,21 @@
             return data;
         }
         
-        /** Use same-origin when hosted from Apps Script (avoids CORS). Otherwise use deployed URL. */
+        /** Use same-origin when hosted from Apps Script (avoids CORS). Apps Script can serve from script.google.com or script.googleusercontent.com */
         function getApiUrl() {
-            if (typeof window !== 'undefined' && window.location && window.location.hostname === 'script.google.com') {
-                return window.location.origin + window.location.pathname;
+            if (typeof window !== 'undefined' && window.location) {
+                var h = window.location.hostname;
+                if (h === 'script.google.com' || h.indexOf('script.googleusercontent.com') !== -1) {
+                    return window.location.origin + window.location.pathname.replace(/\?.*$/, '');
+                }
             }
             return APPS_SCRIPT_URL;
         }
         
         function isSameOrigin() {
-            return typeof window !== 'undefined' && window.location && window.location.hostname === 'script.google.com';
+            if (typeof window === 'undefined' || !window.location) return false;
+            var h = window.location.hostname;
+            return h === 'script.google.com' || h.indexOf('script.googleusercontent.com') !== -1;
         }
         
         let ordersData = [];
@@ -88,42 +93,50 @@
         };
 
         // ===== LOGIN FUNCTIONS =====
-        document.getElementById('loginBtn').addEventListener('click', () => {
-            try {
-                const userSelect = document.getElementById('userSelect');
-                const userId = userSelect.value;
-                
-                if (!userId) {
-                    alert('Please select a user');
-                    return;
-                }
-
-                currentUser = {
-                    id: userId,
-                    ...SAMPLE_USERS[userId]
-                };
-
-                // Hide login, show app
-                document.getElementById('loginScreen').classList.add('hidden');
-                document.getElementById('mainApp').classList.remove('hidden');
-                document.getElementById('logoutBtn').style.display = 'block';
-                document.getElementById('userBadge').textContent = currentUser.name + ' (' + currentUser.department + ')';
-
-                // Initialize app
-                initializeApp();
-            } catch (err) {
-                console.error('Login error:', err);
-                alert('Login failed: ' + (err.message || err));
+        function attachLoginHandlers() {
+            var loginBtn = document.getElementById('loginBtn');
+            var logoutBtn = document.getElementById('logoutBtn');
+            if (!loginBtn) {
+                console.error('loginBtn not found - check Index.html');
+                return;
             }
-        });
+            loginBtn.addEventListener('click', function() {
+                try {
+                    var userSelect = document.getElementById('userSelect');
+                    var userId = userSelect ? userSelect.value : '';
+                    
+                    if (!userId) {
+                        alert('Please select a user');
+                        return;
+                    }
 
-        document.getElementById('logoutBtn').addEventListener('click', () => {
-            currentUser = null;
-            document.getElementById('loginScreen').classList.remove('hidden');
-            document.getElementById('mainApp').classList.add('hidden');
-            document.getElementById('logoutBtn').style.display = 'none';
-            document.getElementById('userBadge').textContent = 'Not Logged In';
-        });
+                    var u = SAMPLE_USERS[userId] || { name: 'User', department: 'User', role: 'User' };
+                    currentUser = { id: userId, name: u.name, department: u.department, role: u.role };
+
+                    document.getElementById('loginScreen').classList.add('hidden');
+                    document.getElementById('mainApp').classList.remove('hidden');
+                    document.getElementById('logoutBtn').style.display = 'block';
+                    document.getElementById('userBadge').textContent = currentUser.name + ' (' + currentUser.department + ')';
+
+                    initializeApp();
+                } catch (err) {
+                    console.error('Login error:', err);
+                    alert('Login failed: ' + (err.message || err));
+                }
+            });
+            if (logoutBtn) logoutBtn.addEventListener('click', function() {
+                currentUser = null;
+                document.getElementById('loginScreen').classList.remove('hidden');
+                document.getElementById('mainApp').classList.add('hidden');
+                document.getElementById('logoutBtn').style.display = 'none';
+                document.getElementById('userBadge').textContent = 'Not Logged In';
+            });
+        }
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', attachLoginHandlers);
+        } else {
+            attachLoginHandlers();
+        }
 
         // ===== APP INITIALIZATION =====
         function initializeApp() {
@@ -7145,4 +7158,3 @@ async function cancelShipment(shipmentID) {
                 // Show error or keep showing --
             }
     }
- 
