@@ -549,9 +549,21 @@
         .badge-warning { background: var(--warning); color: white; }
         .badge-success { background: var(--success); color: white; }
         .badge-danger { background: var(--danger); color: white; }
-        .badge:empty { display: none; }
-        
-        .dispute-card {
+ .badge:empty { display: none; }
+ 
+ .cors-banner {
+     display: none;
+     background: linear-gradient(90deg, #F77F00 0%, #D62828 100%);
+     color: white;
+     padding: 0.75rem 1.5rem;
+     text-align: center;
+     font-weight: 500;
+     box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+ }
+ .cors-banner a { color: #fff; text-decoration: underline; font-weight: 600; }
+ .cors-banner a:hover { text-decoration: none; }
+ 
+ .dispute-card {
             background: #FEF3C7;
             border-left: 4px solid var(--warning);
             padding: 1rem;
@@ -625,6 +637,12 @@
                 <button class="btn btn-danger" id="logoutBtn" style="display:none;">Logout</button>
             </div>
         </div>
+    </div>
+
+    <!-- CORS warning: shown when opened from GitHub Pages (order creation will fail). Use Apps Script URL instead. -->
+    <div id="corsBanner" class="cors-banner">
+        ⚠️ Order creation will fail here due to CORS. Use the app from: 
+        <a href="https://script.google.com/macros/s/AKfycbzLh-Z6trPUdNIqkE-gYqhb74voXIuQkHbv9hhWV0fTUYLUkeFWrQdWHZfTckpv4L-k/exec" target="_blank" rel="noopener">Apps Script URL</a>
     </div>
 
     <!-- Login Screen -->
@@ -1958,6 +1976,12 @@
         const API_KEY = 'AIzaSyBNuosQWLH2aOxGIuXtZd-jl-Pu5ReVgFw';
         const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzLh-Z6trPUdNIqkE-gYqhb74voXIuQkHbv9hhWV0fTUYLUkeFWrQdWHZfTckpv4L-k/exec';
 
+        // Show CORS banner when not on Apps Script (GitHub Pages will fail on order creation)
+        (function() {
+            var el = document.getElementById('corsBanner');
+            if (el && window.location.hostname !== 'script.google.com') el.style.display = 'block';
+        })();
+
         // ===== STATE =====
         let currentUser = null;
         let currentView = 'dashboard';
@@ -1982,9 +2006,10 @@
             overlay.classList.remove('active');
         }
         
-        /** POST to Apps Script API - returns parsed JSON, throws on network/server error */
+        /** POST to Apps Script API. Use same-origin URL when hosted from Apps Script to avoid CORS. */
         async function apiPost(payload) {
-            const res = await fetch(APPS_SCRIPT_URL, {
+            const url = getApiUrl();
+            const res = await fetch(url, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(payload)
@@ -1993,11 +2018,23 @@
             try {
                 data = await res.json();
             } catch (e) {
-                throw new Error('Invalid response from server. Check if Apps Script Web App is deployed and CORS is allowed.');
+                throw new Error('Invalid response from server. ' + (isSameOrigin() ? 'Check Apps Script execution logs.' : 'Use the app from the Apps Script URL to avoid CORS.'));
             }
             if (!res.ok) throw new Error(data.error || data.message || 'Request failed');
             if (data.success === false && data.error) throw new Error(data.error);
             return data;
+        }
+        
+        /** Use same-origin when hosted from Apps Script (avoids CORS). Otherwise use deployed URL. */
+        function getApiUrl() {
+            if (typeof window !== 'undefined' && window.location && window.location.hostname === 'script.google.com') {
+                return window.location.origin + window.location.pathname;
+            }
+            return APPS_SCRIPT_URL;
+        }
+        
+        function isSameOrigin() {
+            return typeof window !== 'undefined' && window.location && window.location.hostname === 'script.google.com';
         }
         
         let ordersData = [];
