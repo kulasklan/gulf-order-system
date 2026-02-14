@@ -1,4 +1,4 @@
-// ===== CONFIGURATION =====
+// ===== CONFIGURATION === ==
         const SPREADSHEET_ID = '1z_SLqYvVJ2f0k6i3dK8DMC-CkI5jFOXH2Rfnx2jkNEk';
         const API_KEY = 'AIzaSyBNuosQWLH2aOxGIuXtZd-jl-Pu5ReVgFw';
         const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzLh-Z6trPUdNIqkE-gYqhb74voXIuQkHbv9hhWV0fTUYLUkeFWrQdWHZfTckpv4L-k/exec';
