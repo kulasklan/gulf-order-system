@@ -3354,7 +3354,7 @@ function loadApprovals() {
                                     <div style="display: flex; align-items: center; gap: 1rem; padding: 0.5rem; background: white; border-radius: 4px;">
                                         <input type="checkbox" 
                                                id="stage2_${order.orderID}" 
-                                               ${currentStage >= 2 ? 'checked disabled' : currentStage < 1 ? 'disabled' : ''} 
+                                               ${currentStage >= 2 ? 'checked disabled' : ''} 
                                                onchange="updateWarehouseStage('${order.orderID}', 'Loading', this)"
                                                style="width: 20px; height: 20px;">
                                         <label for="stage2_${order.orderID}" style="flex: 1; margin: 0;">
@@ -3365,7 +3365,6 @@ function loadApprovals() {
                                     <div style="display: flex; align-items: center; gap: 1rem; padding: 0.5rem; background: white; border-radius: 4px;">
                                         <input type="checkbox" 
                                                id="stage3_${order.orderID}" 
-                                               ${currentStage < 2 ? 'disabled' : ''} 
                                                onchange="updateWarehouseStage('${order.orderID}', 'Left Warehouse', this)"
                                                style="width: 20px; height: 20px;">
                                         <label for="stage3_${order.orderID}" style="flex: 1; margin: 0;">
