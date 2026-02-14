@@ -4273,6 +4273,10 @@ async function getAvailabilityData(productType, deliveryDate) {
             const debugOrder = document.getElementById('debugOrderDocs');
             if (debugTotal) debugTotal.textContent = documentsData.length;
             
+            // Find the order to check its status
+            const order = ordersData.find(o => o.orderID === orderID);
+            const orderStatus = order ? order.status : '';
+            
             // Filter documents for this order
             const orderDocuments = documentsData.filter(doc => doc.orderID === orderID);
             
@@ -4309,7 +4313,9 @@ async function getAvailabilityData(productType, deliveryDate) {
             
             orderDocuments.forEach((doc, index) => {
                 const uploadDate = doc.uploadedDate ? new Date(doc.uploadedDate).toLocaleString() : '';
-                const canDelete = (currentUser.department === 'Warehouse' || currentUser.department === 'Transport');
+                // Match upload button restrictions: Warehouse/Transport only, and not for Pending Approval or Rejected orders
+                const canDelete = (currentUser.department === 'Warehouse' || currentUser.department === 'Transport') && 
+                                  (orderStatus !== 'Pending Approval' && orderStatus !== 'Rejected');
                 
                 // Create display name
                 let displayName = doc.fileName;
