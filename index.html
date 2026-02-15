@@ -2752,84 +2752,7 @@ function loadApprovals() {
         container.innerHTML = html;
     }
 
-    // NEW FUNCTION STARTS HERE ⬇️
-    function loadDisputesView() {
-        let disputedOrders = ordersData.filter(o => o.status === 'Disputed');
-        disputedOrders = filterOrdersByDate(disputedOrders);
-
-        const container = document.getElementById('disputesList');
-
-        if (disputedOrders.length === 0) {
-            container.innerHTML = '<p style="text-align:center; padding: 2rem; color: #6B7280;">No disputed orders</p>';
-            return;
-        }
-
-        let html = '';
-        disputedOrders.forEach(order => {
-            html += `
-                <div class="card" style="border-left: 4px solid var(--warning);">
-                    <div style="display: grid; gap: 1rem;">
-                        <div style="display: flex; justify-content: space-between; align-items: start;">
-                            <div style="flex: 1;">
-                                <h3 style="margin-bottom: 0.5rem;">${order.orderID} - ${order.clientName}</h3>
-                                <p style="color: #6B7280; margin-bottom: 0.5rem;">
-                                    ${order.quantity} ${order.unit} of ${order.productType}
-                                </p>
-                                ${order.driverName ? `
-                                <p style="color: #065F46; margin-bottom: 0.5rem;">
-                                    🚛 Driver: <strong>${order.driverName}</strong> | Truck: <strong>${order.truckPlate}</strong>
-                                </p>
-                                ` : ''}
-                                <p style="color: #D97706; font-weight: 500;">
-                                    ⚠️ Dispute Reason: ${order.rejectionReason || 'Not specified'}
-                                </p>
-                            </div>
-                            <span class="status-badge status-disputed">${order.status}</span>
-                        </div>
-                        <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
-                            <button class="btn btn-success" onclick="resolveDispute('${order.orderID}')">✅ Mark as Resolved</button>
-                            <button class="btn btn-secondary" onclick="viewOrderDetails('${order.orderID}')">View Details</button>
-                        </div>
-                    </div>
-                </div>
-            `;
-        });
-
-        container.innerHTML = html;
-    }
-
-    async function resolveDispute(orderID) {
-        const resolution = prompt('Enter resolution details:');
-        if (!resolution) return;
-
-        try {
-            await fetch(APPS_SCRIPT_URL, {
-                    method: 'POST',
-                    mode: 'no-cors',
-                    headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    action: 'resolveDispute',
-                    orderID: orderID,
-                    resolverID: currentUser.id,
-                    resolution: resolution
-                })
-            });
-
-            alert(`✅ Dispute for order ${orderID} marked as RESOLVED!`);
-
-            await loadData();
-            loadDisputesView();
-
-        } catch (error) {
-            console.error('Error:', error);
-            alert('❌ Error resolving dispute');
-        }
-    }
-    // NEW FUNCTION ENDS HERE ⬆️
-
-    // Next function will be here (like loadFinanceDashboard or whatever comes next)
+    // DISPUTE MANAGEMENT FUNCTIONS
 		function loadDisputesView() {
         let disputedOrders = ordersData.filter(o => o.status === 'Disputed');
         disputedOrders = filterOrdersByDate(disputedOrders);
@@ -2864,7 +2787,8 @@ function loadApprovals() {
                             <span class="status-badge status-disputed">${order.status}</span>
                         </div>
                         <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
-                            <button class="btn btn-success" onclick="resolveDispute('${order.orderID}')">✅ Mark as Resolved</button>
+                            <button class="btn btn-success" onclick="approveDispute('${order.orderID}')">✅ Approve Dispute (Driver Correct)</button>
+                            <button class="btn btn-danger" onclick="rejectDispute('${order.orderID}')">❌ Reject Dispute (Driver Wrong)</button>
                             <button class="btn btn-secondary" onclick="viewOrderDetails('${order.orderID}')">View Details</button>
                         </div>
                     </div>
@@ -2875,9 +2799,16 @@ function loadApprovals() {
         container.innerHTML = html;
     }
 
-    async function resolveDispute(orderID) {
-        const resolution = prompt('Enter resolution details:');
-        if (!resolution) return;
+    async function approveDispute(orderID) {
+        const reason = prompt('Enter reason for APPROVING this dispute (why the driver was correct):');
+        
+        // Validate reason is not empty
+        if (!reason || reason.trim() === '') {
+            alert('❌ Reason is REQUIRED!\n\nYou must provide a reason to approve this dispute.');
+            return;
+        }
+
+        showLoading('Approving dispute...');
 
         try {
             await fetch(APPS_SCRIPT_URL, {
@@ -2887,21 +2818,66 @@ function loadApprovals() {
                     'Content-Type': 'application/json',
                 },
                 body: JSON.stringify({
-                    action: 'resolveDispute',
+                    action: 'approveDispute',
                     orderID: orderID,
                     resolverID: currentUser.id,
-                    resolution: resolution
+                    reason: reason
                 })
             });
 
-            alert(`✅ Dispute for order ${orderID} marked as RESOLVED!`);
+            // Wait for backend processing
+            await new Promise(resolve => setTimeout(resolve, 1500));
 
             await loadData();
+            hideLoading();
+            alert(`✅ Dispute APPROVED for order ${orderID}!\n\nDriver was correct. Dispute is valid.`);
             loadDisputesView();
 
         } catch (error) {
+            hideLoading();
             console.error('Error:', error);
-            alert('❌ Error resolving dispute');
+            alert('❌ Error approving dispute');
+        }
+    }
+
+    async function rejectDispute(orderID) {
+        const reason = prompt('Enter reason for REJECTING this dispute (why the driver was wrong):');
+        
+        // Validate reason is not empty
+        if (!reason || reason.trim() === '') {
+            alert('❌ Reason is REQUIRED!\n\nYou must provide a reason to reject this dispute.');
+            return;
+        }
+
+        showLoading('Rejecting dispute...');
+
+        try {
+            await fetch(APPS_SCRIPT_URL, {
+                    method: 'POST',
+                    mode: 'no-cors',
+                    headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    action: 'rejectDispute',
+                    orderID: orderID,
+                    resolverID: currentUser.id,
+                    reason: reason
+                })
+            });
+
+            // Wait for backend processing
+            await new Promise(resolve => setTimeout(resolve, 1500));
+
+            await loadData();
+            hideLoading();
+            alert(`❌ Dispute REJECTED for order ${orderID}!\n\nDriver was wrong. Dispute is invalid.`);
+            loadDisputesView();
+
+        } catch (error) {
+            hideLoading();
+            console.error('Error:', error);
+            alert('❌ Error rejecting dispute');
         }
     }
 
