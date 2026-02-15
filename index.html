@@ -7340,13 +7340,18 @@ function generateShipmentTable(shipments, shipmentType) {
         const eta = row[5] || 'Not set';
         const status = row[7] || 'Created';
         const notes = row[15] || '';
+        const rowShipmentType = row[36] || ''; // Read shipmentType from row data
+        
+        // Debug log to see raw data from Google Sheets
+        console.log('Shipment row data - ID: ' + row[0] + ' | status: "' + status + '" | notes: "' + notes + '" | shipmentType col36: "' + rowShipmentType + '" | param: "' + shipmentType + '"');
         
         // Debug log for Re-export Delivered button visibility
         if (shipmentType === 'Re-export') {
-            console.log('Re-export row: ' + shipmentID + ' | status raw: "' + row[7] + '" | status var: "' + status + '" | length: ' + status.length);
-            console.log('Condition check: status === "In Transit" ? ' + (status === 'In Transit'));
-            console.log('Condition check: shipmentType === "Re-export" ? ' + (shipmentType === 'Re-export'));
-            console.log('Both conditions: ' + (status === 'In Transit' && shipmentType === 'Re-export'));
+            console.log('>>> Using PARAMETER shipmentType - button check for: ' + shipmentID);
+        }
+        if (rowShipmentType === 'Re-export' || notes.includes('Type: Re-export')) {
+            console.log('>>> ROW DATA shows Re-export - ID: ' + shipmentID + ' status: "' + status + '"');
+            console.log('>>> Button condition: (status === "In Transit" && shipmentType === "Re-export") = ' + (status === 'In Transit' && shipmentType === 'Re-export'));
         }
         
         let client = '';
