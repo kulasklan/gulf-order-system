@@ -2787,8 +2787,9 @@ function loadApprovals() {
                             <span class="status-badge status-disputed">${order.status}</span>
                         </div>
                         <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
-                            <button class="btn btn-success" onclick="approveDispute('${order.orderID}')">✅ Approve Dispute (Driver Correct)</button>
-                            <button class="btn btn-danger" onclick="rejectDispute('${order.orderID}')">❌ Reject Dispute (Driver Wrong)</button>
+                            <button class="btn btn-danger" onclick="closeDisputeWithStatus('${order.orderID}', 'Closed - Driver Fault')">🚛 Closed - Driver Fault</button>
+                            <button class="btn btn-warning" onclick="closeDisputeWithStatus('${order.orderID}', 'Closed - Client Fault')" style="background: var(--warning); color: white;">👤 Closed - Client Fault</button>
+                            <button class="btn btn-secondary" onclick="closeDisputeWithStatus('${order.orderID}', 'Closed - ST Fault')">🏢 Closed - ST Fault</button>
                             <button class="btn btn-secondary" onclick="viewOrderDetails('${order.orderID}')">View Details</button>
                         </div>
                     </div>
@@ -2799,85 +2800,62 @@ function loadApprovals() {
         container.innerHTML = html;
     }
 
-    async function approveDispute(orderID) {
-        const reason = prompt('Enter reason for APPROVING this dispute (why the driver was correct):');
+    async function closeDisputeWithStatus(orderID, newStatus) {
+        const reason = prompt(`Enter reason/comment for closing dispute as "${newStatus}":`);
         
         // Validate reason is not empty
         if (!reason || reason.trim() === '') {
-            alert('❌ Reason is REQUIRED!\n\nYou must provide a reason to approve this dispute.');
+            alert('❌ Reason is REQUIRED!\n\nYou must provide a reason to close this dispute.');
             return;
         }
 
-        showLoading('Approving dispute...');
+        showLoading(`Closing dispute as ${newStatus}...`);
 
         try {
+            // Update order status
             await fetch(APPS_SCRIPT_URL, {
-                    method: 'POST',
-                    mode: 'no-cors',
-                    headers: {
+                method: 'POST',
+                mode: 'no-cors',
+                headers: {
                     'Content-Type': 'application/json',
                 },
                 body: JSON.stringify({
-                    action: 'approveDispute',
+                    action: 'closeDispute',
                     orderID: orderID,
-                    resolverID: currentUser.id,
-                    reason: reason
+                    newStatus: newStatus,
+                    resolverID: currentUser.id
+                })
+            });
+
+            // Add comment using the same mechanism as other departments
+            await fetch(APPS_SCRIPT_URL, {
+                method: 'POST',
+                mode: 'no-cors',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    action: 'addOrderNote',
+                    orderID: orderID,
+                    note: `DISPUTE CLOSED (${newStatus}): ${reason}`,
+                    userID: currentUser.id,
+                    userName: currentUser.name,
+                    userDepartment: currentUser.department
                 })
             });
 
             // Wait for backend processing
-            await new Promise(resolve => setTimeout(resolve, 1500));
+            await new Promise(resolve => setTimeout(resolve, 2000));
 
             await loadData();
             hideLoading();
-            alert(`✅ Dispute APPROVED for order ${orderID}!\n\nDriver was correct. Dispute is valid.`);
+            alert(`✅ Dispute closed for order ${orderID}!\n\nStatus: ${newStatus}`);
             loadDisputesView();
 
         } catch (error) {
             hideLoading();
             console.error('Error:', error);
-            alert('❌ Error approving dispute');
-        }
-    }
-
-    async function rejectDispute(orderID) {
-        const reason = prompt('Enter reason for REJECTING this dispute (why the driver was wrong):');
-        
-        // Validate reason is not empty
-        if (!reason || reason.trim() === '') {
-            alert('❌ Reason is REQUIRED!\n\nYou must provide a reason to reject this dispute.');
-            return;
-        }
-
-        showLoading('Rejecting dispute...');
-
-        try {
-            await fetch(APPS_SCRIPT_URL, {
-                    method: 'POST',
-                    mode: 'no-cors',
-                    headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    action: 'rejectDispute',
-                    orderID: orderID,
-                    resolverID: currentUser.id,
-                    reason: reason
-                })
-            });
-
-            // Wait for backend processing
-            await new Promise(resolve => setTimeout(resolve, 1500));
-
-            await loadData();
-            hideLoading();
-            alert(`❌ Dispute REJECTED for order ${orderID}!\n\nDriver was wrong. Dispute is invalid.`);
-            loadDisputesView();
-
-        } catch (error) {
-            hideLoading();
-            console.error('Error:', error);
-            alert('❌ Error rejecting dispute');
+            alert('❌ Error closing dispute');
         }
     }
 
