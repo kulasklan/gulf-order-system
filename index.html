@@ -7337,6 +7337,14 @@ function generateShipmentTable(shipments, shipmentType) {
         const status = row[7] || 'Created';
         const notes = row[15] || '';
         
+        // Debug log for Re-export Delivered button visibility
+        if (shipmentType === 'Re-export') {
+            console.log('Re-export shipment - ID: ' + shipmentID + ' status: "' + status + '" type: "' + shipmentType + '" showActions: ' + showIndividualActions);
+            if (status === 'In Transit') {
+                console.log('>>> Delivered button SHOULD render for ' + shipmentID);
+            }
+        }
+        
         let client = '';
         if (notes.includes('Client:')) {
             const clientMatch = notes.match(/Client:\s*([^,]+)/);
