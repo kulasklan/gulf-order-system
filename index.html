@@ -5662,12 +5662,14 @@ async function loadManagementAllShipments() {
         
         const reexport = data.values.filter(row => {
             const notes = row[15] || '';
-            return notes.includes('Type: Re-export');
+            const shipmentType = row[36] || '';
+            return notes.includes('Type: Re-export') || shipmentType === 'Re-export';
         });
         
         const exportShipments = data.values.filter(row => {
             const notes = row[15] || '';
-            return notes.includes('Type: Export');
+            const shipmentType = row[36] || '';
+            return notes.includes('Type: Export') || shipmentType === 'Export';
         });
         
         let html = `
@@ -6535,14 +6537,16 @@ async function loadWarehouseInbound() {
         const inboundInTransit = data.values.filter(row => {
             const status = row[7];
             const notes = row[15] || '';
-            if (!notes.includes('Type:')) return status === 'In Transit'; // Default Inbound
-            return status === 'In Transit' && notes.includes('Type: Inbound');
+            const shipmentType = row[36] || '';
+            if (!notes.includes('Type:') && !shipmentType) return status === 'In Transit'; // Default Inbound
+            return status === 'In Transit' && (notes.includes('Type: Inbound') || shipmentType === 'Inbound');
         });
         
         const exportInTransit = data.values.filter(row => {
             const status = row[7];
             const notes = row[15] || '';
-            return status === 'In Transit' && notes.includes('Type: Export');
+            const shipmentType = row[36] || '';
+            return status === 'In Transit' && (notes.includes('Type: Export') || shipmentType === 'Export');
         });
         
         let html = `
@@ -7208,18 +7212,21 @@ async function loadTransportInbound() {
         // Separate by shipment type
         const inboundShipments = data.values.filter(row => {
             const notes = row[15] || '';
-            if (!notes.includes('Type:')) return true; // Default to Inbound
-            return notes.includes('Type: Inbound');
+            const shipmentType = row[36] || '';
+            if (!notes.includes('Type:') && !shipmentType) return true; // Default to Inbound
+            return notes.includes('Type: Inbound') || shipmentType === 'Inbound';
         });
 
         const reexportShipments = data.values.filter(row => {
             const notes = row[15] || '';
-            return notes.includes('Type: Re-export');
+            const shipmentType = row[36] || '';
+            return notes.includes('Type: Re-export') || shipmentType === 'Re-export';
         });
 
         const exportShipments = data.values.filter(row => {
             const notes = row[15] || '';
-            return notes.includes('Type: Export');
+            const shipmentType = row[36] || '';
+            return notes.includes('Type: Export') || shipmentType === 'Export';
         });
         
         // Apply status filter
