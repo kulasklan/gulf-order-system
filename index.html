@@ -6564,32 +6564,22 @@ function generateWarehouseShipmentTable(shipments, shipmentType) {
         return '<p style="text-align: center; color: #6B7280; padding: 1rem;">No shipments</p>';
     }
     
-    // WAREHOUSE rules - both types now have checkboxes and bulk actions
     const showBulkActions = true;
     const showIndividualActions = true;
     
     let html = '';
     
-    // Bulk action toolbar (hidden by default, shown when checkboxes selected)
+    // Bulk actions dropdown
     html += `
-        <div id="bulkToolbar-Warehouse${shipmentType}" style="display: none; margin-bottom: 1rem; padding: 0.75rem 1rem; background: #3B82F6; color: white; border-radius: 8px; display: flex; gap: 0.75rem; align-items: center; flex-wrap: wrap;">
-            <span id="Warehouse${shipmentType}SelectedCount" style="font-weight: 600; margin-right: 0.5rem;">0 selected</span>
-            ${shipmentType === 'Export' ? `
-            <button class="btn" onclick="bulkUpdateWarehouseStatus('${shipmentType}', 'In Transit')" style="padding: 0.375rem 0.75rem; background: white; color: #3B82F6; border: none; font-size: 0.875rem;">
-                🚚 In Transit
-            </button>
-            ` : ''}
-            <button class="btn" onclick="bulkUpdateWarehouseStatus('${shipmentType}', 'Delivered')" style="padding: 0.375rem 0.75rem; background: white; color: #059669; border: none; font-size: 0.875rem;">
-                ✅ Delivered
-            </button>
-            ${shipmentType === 'Export' ? `
-            <button class="btn" onclick="bulkCancelWarehouseShipments('${shipmentType}')" style="padding: 0.375rem 0.75rem; background: white; color: #DC2626; border: none; font-size: 0.875rem;">
-                ❌ Cancel
-            </button>
-            ` : ''}
-            <button class="btn" onclick="clearWarehouseSelection('${shipmentType}')" style="padding: 0.375rem 0.75rem; background: transparent; color: white; border: 1px solid white; font-size: 0.875rem; margin-left: auto;">
-                Clear
-            </button>
+        <div style="margin-bottom: 1rem; display: flex; gap: 0.5rem; align-items: center;">
+            <select id="bulkActionWarehouse${shipmentType}" class="form-control" style="width: auto; padding: 0.5rem;">
+                <option value="">Bulk Actions</option>
+                ${shipmentType === 'Export' ? `<option value="In Transit">Mark as In Transit</option>` : ''}
+                <option value="Delivered">Mark as Delivered</option>
+                ${shipmentType === 'Export' ? `<option value="Cancel">Cancel</option>` : ''}
+            </select>
+            <button class="btn btn-primary" onclick="applyWarehouseBulkAction('${shipmentType}')" style="padding: 0.5rem 1rem;">Apply</button>
+            <span id="Warehouse${shipmentType}SelectedCount" style="color: #6B7280; margin-left: 0.5rem;">0 selected</span>
         </div>
     `;
     
@@ -6658,13 +6648,16 @@ function generateWarehouseShipmentTable(shipments, shipmentType) {
         if (showIndividualActions) {
             html += `
                 <td style="white-space: nowrap;">
-                    ${(status === 'Created' || status === 'In Transit') ? `
+                    ${shipmentType === 'Export' && (status === 'Created' || status === 'In Transit') ? `
                         <button class="btn btn-secondary" onclick='showEditShipmentModal(${shipmentDataJson})' style="padding: 0.375rem 0.75rem; font-size: 0.85rem; margin-right: 0.5rem;">✏️ Edit</button>
                     ` : ''}
-                    ${status === 'Created' ? `
-                        <button class="btn btn-primary" onclick="updateTransportStatus('${shipmentID}', 'In Transit')" style="padding: 0.375rem 0.75rem; font-size: 0.85rem; margin-right: 0.5rem;">🚚 In Transit</button>
+                    ${shipmentType === 'Export' && status === 'Created' ? `
+                        <button class="btn btn-primary" onclick="updateWarehouseInboundStatus('${shipmentID}', 'In Transit')" style="padding: 0.375rem 0.75rem; font-size: 0.85rem; margin-right: 0.5rem;">🚚 In Transit</button>
                     ` : ''}
-                    ${(status === 'Created' || status === 'In Transit') ? `
+                    ${status === 'In Transit' ? `
+                        <button class="btn btn-success" onclick="updateWarehouseInboundStatus('${shipmentID}', 'Delivered')" style="padding: 0.375rem 0.75rem; font-size: 0.85rem; margin-right: 0.5rem;">✅ Delivered</button>
+                    ` : ''}
+                    ${shipmentType === 'Export' && (status === 'Created' || status === 'In Transit') ? `
                         <button class="btn btn-danger" onclick="cancelShipment('${shipmentID}')" style="padding: 0.375rem 0.75rem; font-size: 0.85rem;">❌ Cancel</button>
                     ` : ''}
                 </td>
@@ -7294,30 +7287,24 @@ function generateShipmentTable(shipments, shipmentType) {
         return '<p style="text-align: center; color: #6B7280; padding: 1rem;">No shipments</p>';
     }
     
-    // TRANSPORT rules - all types now have checkboxes and bulk actions
     const showBulkActions = true;
-    const showIndividualActions = (shipmentType === 'Inbound' || shipmentType === 'Re-export' || shipmentType === 'Export');
+    const showIndividualActions = true;
     
     let html = '';
     
-    // Bulk action toolbar (hidden by default, shown when checkboxes selected)
+    // Bulk actions dropdown
     html += `
-        <div id="bulkToolbar-${shipmentType}" style="display: none; margin-bottom: 1rem; padding: 0.75rem 1rem; background: #3B82F6; color: white; border-radius: 8px; display: flex; gap: 0.75rem; align-items: center; flex-wrap: wrap;">
-            <span id="${shipmentType}SelectedCount" style="font-weight: 600; margin-right: 0.5rem;">0 selected</span>
-            <button class="btn" onclick="bulkUpdateStatus('${shipmentType}', 'In Transit')" style="padding: 0.375rem 0.75rem; background: white; color: #3B82F6; border: none; font-size: 0.875rem;">
-                🚚 In Transit
-            </button>
-            ${shipmentType === 'Re-export' || shipmentType === 'Export' ? `
-            <button class="btn" onclick="bulkUpdateStatus('${shipmentType}', 'Delivered')" style="padding: 0.375rem 0.75rem; background: white; color: #059669; border: none; font-size: 0.875rem;">
-                ✅ Delivered
-            </button>
-            ` : ''}
-            <button class="btn" onclick="bulkCancelShipments('${shipmentType}')" style="padding: 0.375rem 0.75rem; background: white; color: #DC2626; border: none; font-size: 0.875rem;">
-                ❌ Cancel
-            </button>
-            <button class="btn" onclick="clearSelection('${shipmentType}')" style="padding: 0.375rem 0.75rem; background: transparent; color: white; border: 1px solid white; font-size: 0.875rem; margin-left: auto;">
-                Clear
-            </button>
+        <div style="margin-bottom: 1rem; display: flex; gap: 0.5rem; align-items: center;">
+            <select id="bulkAction${shipmentType}" class="form-control" style="width: auto; padding: 0.5rem;">
+                <option value="">Bulk Actions</option>
+                <option value="In Transit">Mark as In Transit</option>
+                ${shipmentType === 'Re-export' || shipmentType === 'Export' ? `
+                <option value="Delivered">Mark as Delivered</option>
+                ` : ''}
+                <option value="Cancel">Cancel</option>
+            </select>
+            <button class="btn btn-primary" onclick="applyBulkAction('${shipmentType}')" style="padding: 0.5rem 1rem;">Apply</button>
+            <span id="${shipmentType}SelectedCount" style="color: #6B7280; margin-left: 0.5rem;">0 selected</span>
         </div>
     `;
     
@@ -7411,7 +7398,7 @@ function generateShipmentTable(shipments, shipmentType) {
                     ${status === 'Created' ? `
                         <button class="btn btn-primary" onclick="updateTransportStatus('${shipmentID}', 'In Transit')" style="padding: 0.375rem 0.75rem; font-size: 0.85rem; margin-right: 0.5rem;">🚚 In Transit</button>
                     ` : ''}
-                    ${status === 'In Transit' && shipmentType === 'Re-export' ? `
+                    ${status === 'In Transit' && (shipmentType === 'Re-export' || shipmentType === 'Export') ? `
                         <button class="btn btn-success" onclick="updateTransportStatus('${shipmentID}', 'Delivered')" style="padding: 0.375rem 0.75rem; font-size: 0.85rem; margin-right: 0.5rem;">✅ Delivered</button>
                     ` : ''}
                     ${(status === 'Created' || status === 'In Transit') ? `
@@ -7445,24 +7432,32 @@ function updateSelectedCount(shipmentType) {
     if (countElement) {
         countElement.textContent = count + ' selected';
     }
-    
-    // Show/hide bulk toolbar based on selection
-    const toolbar = document.getElementById('bulkToolbar-' + shipmentType);
-    if (toolbar) {
-        toolbar.style.display = count > 0 ? 'flex' : 'none';
-    }
 }
 
-function clearSelection(shipmentType) {
-    const selectAllCheckbox = document.getElementById('selectAll' + shipmentType);
-    const checkboxes = document.querySelectorAll('.shipment-checkbox-' + shipmentType);
-    checkboxes.forEach(cb => {
-        cb.checked = false;
-    });
-    if (selectAllCheckbox) {
-        selectAllCheckbox.checked = false;
+function applyBulkAction(shipmentType) {
+    const select = document.getElementById('bulkAction' + shipmentType);
+    const action = select.value;
+    
+    if (!action) {
+        alert('⚠️ Please select a bulk action');
+        return;
     }
-    updateSelectedCount(shipmentType);
+    
+    const checkboxes = document.querySelectorAll('.shipment-checkbox-' + shipmentType + ':checked');
+    if (checkboxes.length === 0) {
+        alert('⚠️ Please select at least one shipment');
+        return;
+    }
+    
+    // Execute the selected action
+    if (action === 'In Transit' || action === 'Delivered') {
+        bulkUpdateStatus(shipmentType, action);
+    } else if (action === 'Cancel') {
+        bulkCancelShipments(shipmentType);
+    }
+    
+    // Reset dropdown
+    select.value = '';
 }
 
 // Warehouse-specific bulk action functions
@@ -7483,24 +7478,32 @@ function updateWarehouseSelectedCount(shipmentType) {
     if (countElement) {
         countElement.textContent = count + ' selected';
     }
-    
-    // Show/hide bulk toolbar based on selection
-    const toolbar = document.getElementById('bulkToolbar-Warehouse' + shipmentType);
-    if (toolbar) {
-        toolbar.style.display = count > 0 ? 'flex' : 'none';
-    }
 }
 
-function clearWarehouseSelection(shipmentType) {
-    const selectAllCheckbox = document.getElementById('selectAllWarehouse' + shipmentType);
-    const checkboxes = document.querySelectorAll('.warehouse-checkbox-' + shipmentType);
-    checkboxes.forEach(cb => {
-        cb.checked = false;
-    });
-    if (selectAllCheckbox) {
-        selectAllCheckbox.checked = false;
+function applyWarehouseBulkAction(shipmentType) {
+    const select = document.getElementById('bulkActionWarehouse' + shipmentType);
+    const action = select.value;
+    
+    if (!action) {
+        alert('⚠️ Please select a bulk action');
+        return;
     }
-    updateWarehouseSelectedCount(shipmentType);
+    
+    const checkboxes = document.querySelectorAll('.warehouse-checkbox-' + shipmentType + ':checked');
+    if (checkboxes.length === 0) {
+        alert('⚠️ Please select at least one shipment');
+        return;
+    }
+    
+    // Execute the selected action
+    if (action === 'In Transit' || action === 'Delivered') {
+        bulkUpdateWarehouseStatus(shipmentType, action);
+    } else if (action === 'Cancel') {
+        bulkCancelWarehouseShipments(shipmentType);
+    }
+    
+    // Reset dropdown
+    select.value = '';
 }
 
 async function bulkUpdateWarehouseStatus(shipmentType, newStatus) {
