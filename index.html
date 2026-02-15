@@ -7728,6 +7728,9 @@ function showEditShipmentModal(shipmentData) {
                 return;
             }
             
+            console.log('Validation passed, sending request');
+            console.log('Submitting edit - shipmentType: ' + shipmentType + ' shipmentID: ' + shipmentID + ' supplier: ' + supplier);
+            
             if (!confirm('Save changes to this shipment?')) {
                 return;
             }
