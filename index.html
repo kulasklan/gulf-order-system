@@ -3239,7 +3239,12 @@ function loadApprovals() {
 
     async function markAsDisputed(orderID) {
         const reason = prompt('Enter dispute reason:');
-        if (!reason) return;
+        
+        // Validate reason is not empty
+        if (!reason || reason.trim() === '') {
+            alert('❌ Dispute reason is REQUIRED!\n\nYou must provide a reason to mark this order as disputed.');
+            return;
+        }
 
         showLoading('Marking as disputed...');
 
