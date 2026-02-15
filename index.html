@@ -7743,14 +7743,15 @@ function showEditShipmentModal(shipmentData) {
                     body: JSON.stringify({
                         action: 'editInboundShipment',
                         shipmentID: shipmentID,
-                        supplier: supplier || 'Gulf',  // Default to Gulf for Export
+                        shipmentType: shipmentType,
+                        supplier: supplier || '',
                         productType: fuelType,
                         quantity: parseFloat(quantity),
                         plannedArrival: eta,
                         truckLicence: truckLicence,
                         trailerLicence: trailerLicence,
                         freightForwarder: freightForwarder,
-                        warehouseLocation: warehouseLocation || '',  // Empty if not needed
+                        warehouseLocation: warehouseLocation || '',
                         updatedBy: currentUser.name
                     })
                 });
