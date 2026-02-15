@@ -7197,10 +7197,13 @@ async function submitTransportInbound() {
 }
         
 async function loadTransportInbound() {
+    console.log('>>> loadTransportInbound START');
     try {
         const apiUrl = `https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_ID}/values/Inbound_Shipments!A2:AI100?key=${API_KEY}`;
         const response = await fetch(apiUrl);
         const data = await response.json();
+        
+        console.log('>>> Data fetched, rows: ' + (data.values ? data.values.length : 0));
         
         const container = document.getElementById('transportInboundTable');
         
@@ -7229,6 +7232,8 @@ async function loadTransportInbound() {
             return notes.includes('Type: Export') || shipmentType === 'Export';
         });
         
+        console.log('>>> Filtered counts - Inbound: ' + inboundShipments.length + ' Re-export: ' + reexportShipments.length + ' Export: ' + exportShipments.length);
+        
         // Apply status filter
         let filteredInbound = inboundShipments;
         let filteredReexport = reexportShipments;
@@ -7240,6 +7245,9 @@ async function loadTransportInbound() {
             filteredExport = exportShipments.filter(row => row[7] === transportInboundFilter);
         }
         
+        console.log('>>> After status filter - Inbound: ' + filteredInbound.length + ' Re-export: ' + filteredReexport.length + ' Export: ' + filteredExport.length);
+        console.log('>>> About to call generateShipmentTable 3 times');
+        
         // Display with tabs
         let html = `
             <div style="margin-bottom: 1rem;">
@@ -7250,25 +7258,30 @@ async function loadTransportInbound() {
             </div>
         `;
         
+        console.log('>>> Calling generateShipmentTable for Inbound');
         // INBOUND SECTION
         html += `
             <h3 style="margin-top: 2rem; margin-bottom: 1rem; color: var(--secondary);">📦 Inbound Shipments (${filteredInbound.length})</h3>
             ${generateShipmentTable(filteredInbound, 'Inbound')}
         `;
         
+        console.log('>>> Calling generateShipmentTable for Re-export');
         // RE-EXPORT SECTION
         html += `
             <h3 style="margin-top: 2rem; margin-bottom: 1rem; color: var(--secondary);">🌍 Re-export Shipments (${filteredReexport.length})</h3>
             ${generateShipmentTable(filteredReexport, 'Re-export')}
         `;
         
+        console.log('>>> Calling generateShipmentTable for Export');
         // EXPORT SECTION
         html += `
             <h3 style="margin-top: 2rem; margin-bottom: 1rem; color: var(--secondary);">📤 Export Shipments (${filteredExport.length})</h3>
             ${generateShipmentTable(filteredExport, 'Export')}
         `;
         
+        console.log('>>> Setting container.innerHTML');
         container.innerHTML = html;
+        console.log('>>> loadTransportInbound COMPLETE');
         
     } catch (error) {
         console.error('Error loading inbound:', error);
@@ -7521,97 +7534,6 @@ async function bulkCancelShipments(shipmentType) {
     }
 }
 
-function generateShipmentTable(shipments, shipmentType) {
-    if (shipments.length === 0) {
-        return '<p style="text-align: center; color: #6B7280; padding: 1rem;">No shipments</p>';
-    }
-    
-    let html = `
-        <table class="orders-table">
-            <thead>
-                <tr>
-                    <th>Shipment ID</th>
-                    <th>${shipmentType === 'Inbound' ? 'Supplier' : 'Supplier'}</th>
-                    ${shipmentType !== 'Inbound' ? '<th>Client</th>' : ''}
-                    <th>Product</th>
-                    <th>Quantity</th>
-                    <th>ETA</th>
-                    <th>Status</th>
-                    <th>Action</th>
-                </tr>
-            </thead>
-            <tbody>
-    `;
-    
-    shipments.forEach(row => {
-        const shipmentID = row[0];
-        const supplier = row[1];
-        const product = row[2];
-        const quantity = parseFloat(row[3]) || 0;
-        const unit = row[4] || 'L';
-        const eta = row[5] || 'Not set';
-        const status = row[7] || 'Created';
-        const notes = row[15] || '';
-        
-        // Extract client from notes
-        let client = '';
-        if (notes.includes('Client:')) {
-            const clientMatch = notes.match(/Client:\s*([^,]+)/);
-            if (clientMatch) client = clientMatch[1].trim();
-        }
-        
-        const statusColors = {
-            'Created': { bg: '#F3F4F6', text: '#6B7280' },
-            'In Transit': { bg: '#DBEAFE', text: '#3B82F6' },
-            'Arrived': { bg: '#D1FAE5', text: '#059669' },
-            'Cancelled': { bg: '#FEE2E2', text: '#DC2626' }
-        };
-        
-        const colors = statusColors[status] || { bg: '#F3F4F6', text: '#6B7280' };
-        
-        const shipmentData = {
-            shipmentID: shipmentID,
-            supplier: supplier,
-            productType: product,
-            quantity: quantity,
-            plannedArrival: eta,
-            truckLicence: row[18] || '',
-            trailerLicence: row[19] || '',
-            freightForwarder: row[20] || '',
-            warehouseLocation: row[21] || '',
-            clientName: client,
-            shipmentType: shipmentType
-        };
-        const shipmentDataJson = JSON.stringify(shipmentData).replace(/"/g, '&quot;');
-        
-        html += `
-            <tr>
-                <td><strong>${shipmentID}</strong></td>
-                <td>${supplier}</td>
-                ${shipmentType !== 'Inbound' ? `<td>${client || 'N/A'}</td>` : ''}
-                <td>${product}</td>
-                <td>${new Intl.NumberFormat().format(quantity)} ${unit}</td>
-                <td>${eta}</td>
-                <td><span style="background: ${colors.bg}; color: ${colors.text}; padding: 0.25rem 0.75rem; border-radius: 12px; font-size: 0.875rem; font-weight: 600;">${status}</span></td>
-                <td style="white-space: nowrap;">
-                    ${(status === 'Created' || status === 'In Transit') ? `
-                        <button class="btn btn-secondary" onclick='showEditShipmentModal(${shipmentDataJson})' style="padding: 0.375rem 0.75rem; font-size: 0.85rem; margin-right: 0.5rem;">✏️ Edit</button>
-                    ` : ''}
-                    ${status === 'Created' ? `
-                        <button class="btn btn-primary" onclick="updateTransportStatus('${shipmentID}', 'In Transit')" style="padding: 0.375rem 0.75rem; font-size: 0.85rem; margin-right: 0.5rem;">🚚 In Transit</button>
-                    ` : ''}
-                    ${(status === 'Created' || status === 'In Transit') ? `
-                        <button class="btn btn-danger" onclick="cancelShipment('${shipmentID}')" style="padding: 0.375rem 0.75rem; font-size: 0.85rem;">❌ Cancel</button>
-                    ` : ''}
-                </td>
-            </tr>
-        `;
-    });
-    
-    html += '</tbody></table>';
-    return html;
-}
-			
         function filterTransportInbound(filter) {
             transportInboundFilter = filter;
             loadTransportInbound();
