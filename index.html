@@ -6564,33 +6564,37 @@ function generateWarehouseShipmentTable(shipments, shipmentType) {
         return '<p style="text-align: center; color: #6B7280; padding: 1rem;">No shipments</p>';
     }
     
-    // WAREHOUSE rules:
-    // Inbound: just view (no checkbox, no actions)
-    // Export: checkbox + bulk + individual
-    const showBulkActions = (shipmentType === 'Export');
-    const showIndividualActions = (shipmentType === 'Export');
+    // WAREHOUSE rules - both types now have checkboxes and bulk actions
+    const showBulkActions = true;
+    const showIndividualActions = true;
     
     let html = '';
     
-    // Bulk action buttons for Export
-    if (showBulkActions) {
-        html += `
-            <div style="margin-bottom: 1rem; padding: 1rem; background: #F3F4F6; border-radius: 8px; display: flex; gap: 1rem; align-items: center;">
-                <button class="btn btn-primary" onclick="bulkUpdateStatus('${shipmentType}', 'In Transit')" style="padding: 0.5rem 1rem;">
-                    🚚 Mark Selected as In Transit
-                </button>
-                <button class="btn btn-danger" onclick="bulkCancelShipments('${shipmentType}')" style="padding: 0.5rem 1rem;">
-                    ❌ Cancel Selected
-                </button>
-                <span id="${shipmentType}SelectedCount" style="color: #6B7280; margin-left: auto;">0 selected</span>
-            </div>
-        `;
-    }
+    // Bulk action toolbar (hidden by default, shown when checkboxes selected)
+    html += `
+        <div id="bulkToolbar-Warehouse${shipmentType}" style="display: none; margin-bottom: 1rem; padding: 0.75rem 1rem; background: #3B82F6; color: white; border-radius: 8px; display: flex; gap: 0.75rem; align-items: center; flex-wrap: wrap;">
+            <span id="Warehouse${shipmentType}SelectedCount" style="font-weight: 600; margin-right: 0.5rem;">0 selected</span>
+            ${shipmentType === 'Export' ? `
+            <button class="btn" onclick="bulkUpdateWarehouseStatus('${shipmentType}', 'In Transit')" style="padding: 0.375rem 0.75rem; background: white; color: #3B82F6; border: none; font-size: 0.875rem;">
+                🚚 In Transit
+            </button>
+            ` : ''}
+            <button class="btn" onclick="bulkUpdateWarehouseStatus('${shipmentType}', 'Delivered')" style="padding: 0.375rem 0.75rem; background: white; color: #059669; border: none; font-size: 0.875rem;">
+                ✅ Delivered
+            </button>
+            ${shipmentType === 'Export' ? `
+            <button class="btn" onclick="bulkCancelWarehouseShipments('${shipmentType}')" style="padding: 0.375rem 0.75rem; background: white; color: #DC2626; border: none; font-size: 0.875rem;">
+                ❌ Cancel
+            </button>
+            ` : ''}
+            <button class="btn" onclick="clearWarehouseSelection('${shipmentType}')" style="padding: 0.375rem 0.75rem; background: transparent; color: white; border: 1px solid white; font-size: 0.875rem; margin-left: auto;">
+                Clear
+            </button>
+        </div>
+    `;
     
     html += '<table class="orders-table"><thead><tr>';
-    if (showBulkActions) {
-        html += `<th style="width: 40px;"><input type="checkbox" id="selectAll${shipmentType}" onchange="toggleSelectAll('${shipmentType}')"></th>`;
-    }
+    html += `<th style="width: 40px;"><input type="checkbox" id="selectAllWarehouse${shipmentType}" onchange="toggleWarehouseSelectAll('${shipmentType}')"></th>`;
     html += '<th>Shipment ID</th><th>Supplier</th>';
     if (shipmentType === 'Export') html += '<th>Client</th>';
     html += '<th>Product</th><th>Quantity</th><th>ETA</th><th>Status</th>';
@@ -6636,9 +6640,7 @@ function generateWarehouseShipmentTable(shipments, shipmentType) {
         const shipmentDataJson = JSON.stringify(shipmentData).replace(/"/g, '&quot;');
         
         html += '<tr>';
-        if (showBulkActions) {
-            html += `<td><input type="checkbox" class="shipment-checkbox-${shipmentType}" data-shipment-id="${shipmentID}" onchange="updateSelectedCount('${shipmentType}')"></td>`;
-        }
+        html += `<td><input type="checkbox" class="warehouse-checkbox-${shipmentType}" data-shipment-id="${shipmentID}" onchange="updateWarehouseSelectedCount('${shipmentType}')"></td>`;
         html += `
             <td><strong>${shipmentID}</strong></td>
             <td>${supplier}</td>
@@ -7292,40 +7294,38 @@ function generateShipmentTable(shipments, shipmentType) {
         return '<p style="text-align: center; color: #6B7280; padding: 1rem;">No shipments</p>';
     }
     
-    // TRANSPORT rules:
-    // Inbound: checkbox + bulk + individual
-    // Re-export: checkbox + bulk + individual
-    // Export: NO checkbox, just view (no actions)
-    const showBulkActions = (shipmentType === 'Inbound' || shipmentType === 'Re-export');
-    const showIndividualActions = (shipmentType === 'Inbound' || shipmentType === 'Re-export');
+    // TRANSPORT rules - all types now have checkboxes and bulk actions
+    const showBulkActions = true;
+    const showIndividualActions = (shipmentType === 'Inbound' || shipmentType === 'Re-export' || shipmentType === 'Export');
     
     let html = '';
     
-    // Bulk action buttons
-    if (showBulkActions) {
-        html += `
-            <div style="margin-bottom: 1rem; padding: 1rem; background: #F3F4F6; border-radius: 8px; display: flex; gap: 1rem; align-items: center; flex-wrap: wrap;">
-                <button class="btn btn-primary" onclick="bulkUpdateStatus('${shipmentType}', 'In Transit')" style="padding: 0.5rem 1rem;">
-                    🚚 Mark Selected as In Transit
-                </button>
-                ${shipmentType === 'Re-export' ? `
-                <button class="btn btn-success" onclick="bulkUpdateStatus('${shipmentType}', 'Delivered')" style="padding: 0.5rem 1rem;">
-                    ✅ Mark Selected as Delivered
-                </button>
-                ` : ''}
-                <button class="btn btn-danger" onclick="bulkCancelShipments('${shipmentType}')" style="padding: 0.5rem 1rem;">
-                    ❌ Cancel Selected
-                </button>
-                <span id="${shipmentType}SelectedCount" style="color: #6B7280; margin-left: auto;">0 selected</span>
-            </div>
-        `;
-    }
+    // Bulk action toolbar (hidden by default, shown when checkboxes selected)
+    html += `
+        <div id="bulkToolbar-${shipmentType}" style="display: none; margin-bottom: 1rem; padding: 0.75rem 1rem; background: #3B82F6; color: white; border-radius: 8px; display: flex; gap: 0.75rem; align-items: center; flex-wrap: wrap;">
+            <span id="${shipmentType}SelectedCount" style="font-weight: 600; margin-right: 0.5rem;">0 selected</span>
+            <button class="btn" onclick="bulkUpdateStatus('${shipmentType}', 'In Transit')" style="padding: 0.375rem 0.75rem; background: white; color: #3B82F6; border: none; font-size: 0.875rem;">
+                🚚 In Transit
+            </button>
+            ${shipmentType === 'Re-export' || shipmentType === 'Export' ? `
+            <button class="btn" onclick="bulkUpdateStatus('${shipmentType}', 'Delivered')" style="padding: 0.375rem 0.75rem; background: white; color: #059669; border: none; font-size: 0.875rem;">
+                ✅ Delivered
+            </button>
+            ` : ''}
+            <button class="btn" onclick="bulkCancelShipments('${shipmentType}')" style="padding: 0.375rem 0.75rem; background: white; color: #DC2626; border: none; font-size: 0.875rem;">
+                ❌ Cancel
+            </button>
+            <button class="btn" onclick="clearSelection('${shipmentType}')" style="padding: 0.375rem 0.75rem; background: transparent; color: white; border: 1px solid white; font-size: 0.875rem; margin-left: auto;">
+                Clear
+            </button>
+        </div>
+    `;
     
     html += `
         <table class="orders-table">
             <thead>
                 <tr>
-                    ${showBulkActions ? '<th style="width: 40px;"><input type="checkbox" id="selectAll' + shipmentType + '" onchange="toggleSelectAll(\'' + shipmentType + '\')"></th>' : ''}
+                    <th style="width: 40px;"><input type="checkbox" id="selectAll${shipmentType}" onchange="toggleSelectAll('${shipmentType}')"></th>
                     <th>Shipment ID</th>
                     <th>Supplier</th>
                     ${shipmentType !== 'Inbound' ? '<th>Client</th>' : ''}
@@ -7439,9 +7439,150 @@ function toggleSelectAll(shipmentType) {
 
 function updateSelectedCount(shipmentType) {
     const checkboxes = document.querySelectorAll('.shipment-checkbox-' + shipmentType + ':checked');
+    const count = checkboxes.length;
+    
     const countElement = document.getElementById(shipmentType + 'SelectedCount');
     if (countElement) {
-        countElement.textContent = checkboxes.length + ' selected';
+        countElement.textContent = count + ' selected';
+    }
+    
+    // Show/hide bulk toolbar based on selection
+    const toolbar = document.getElementById('bulkToolbar-' + shipmentType);
+    if (toolbar) {
+        toolbar.style.display = count > 0 ? 'flex' : 'none';
+    }
+}
+
+function clearSelection(shipmentType) {
+    const selectAllCheckbox = document.getElementById('selectAll' + shipmentType);
+    const checkboxes = document.querySelectorAll('.shipment-checkbox-' + shipmentType);
+    checkboxes.forEach(cb => {
+        cb.checked = false;
+    });
+    if (selectAllCheckbox) {
+        selectAllCheckbox.checked = false;
+    }
+    updateSelectedCount(shipmentType);
+}
+
+// Warehouse-specific bulk action functions
+function toggleWarehouseSelectAll(shipmentType) {
+    const selectAllCheckbox = document.getElementById('selectAllWarehouse' + shipmentType);
+    const checkboxes = document.querySelectorAll('.warehouse-checkbox-' + shipmentType);
+    checkboxes.forEach(cb => {
+        cb.checked = selectAllCheckbox.checked;
+    });
+    updateWarehouseSelectedCount(shipmentType);
+}
+
+function updateWarehouseSelectedCount(shipmentType) {
+    const checkboxes = document.querySelectorAll('.warehouse-checkbox-' + shipmentType + ':checked');
+    const count = checkboxes.length;
+    
+    const countElement = document.getElementById('Warehouse' + shipmentType + 'SelectedCount');
+    if (countElement) {
+        countElement.textContent = count + ' selected';
+    }
+    
+    // Show/hide bulk toolbar based on selection
+    const toolbar = document.getElementById('bulkToolbar-Warehouse' + shipmentType);
+    if (toolbar) {
+        toolbar.style.display = count > 0 ? 'flex' : 'none';
+    }
+}
+
+function clearWarehouseSelection(shipmentType) {
+    const selectAllCheckbox = document.getElementById('selectAllWarehouse' + shipmentType);
+    const checkboxes = document.querySelectorAll('.warehouse-checkbox-' + shipmentType);
+    checkboxes.forEach(cb => {
+        cb.checked = false;
+    });
+    if (selectAllCheckbox) {
+        selectAllCheckbox.checked = false;
+    }
+    updateWarehouseSelectedCount(shipmentType);
+}
+
+async function bulkUpdateWarehouseStatus(shipmentType, newStatus) {
+    const checkboxes = document.querySelectorAll('.warehouse-checkbox-' + shipmentType + ':checked');
+    const shipmentIDs = Array.from(checkboxes).map(cb => cb.dataset.shipmentId);
+    
+    if (shipmentIDs.length === 0) {
+        alert('⚠️ Please select at least one shipment');
+        return;
+    }
+    
+    if (!confirm(`Mark ${shipmentIDs.length} shipment(s) as ${newStatus}?`)) {
+        return;
+    }
+    
+    showLoading(`Updating ${shipmentIDs.length} shipments...`);
+    
+    try {
+        for (const shipmentID of shipmentIDs) {
+            await fetch(APPS_SCRIPT_URL, {
+                method: 'POST',
+                mode: 'no-cors',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    action: 'updateInboundStatus',
+                    shipmentID: shipmentID,
+                    status: newStatus
+                })
+            });
+            await new Promise(resolve => setTimeout(resolve, 500));
+        }
+        
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        await loadWarehouseInbound();
+        hideLoading();
+        alert(`✅ ${shipmentIDs.length} shipment(s) marked as ${newStatus}`);
+        
+    } catch (error) {
+        hideLoading();
+        console.error('Error:', error);
+        alert('❌ Error updating shipments');
+    }
+}
+
+async function bulkCancelWarehouseShipments(shipmentType) {
+    const checkboxes = document.querySelectorAll('.warehouse-checkbox-' + shipmentType + ':checked');
+    const shipmentIDs = Array.from(checkboxes).map(cb => cb.dataset.shipmentId);
+    
+    if (shipmentIDs.length === 0) {
+        alert('⚠️ Please select at least one shipment');
+        return;
+    }
+    
+    if (!confirm(`Cancel ${shipmentIDs.length} shipment(s)? This action cannot be undone.`)) {
+        return;
+    }
+    
+    showLoading(`Cancelling ${shipmentIDs.length} shipments...`);
+    
+    try {
+        for (const shipmentID of shipmentIDs) {
+            await fetch(APPS_SCRIPT_URL, {
+                method: 'POST',
+                mode: 'no-cors',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    action: 'cancelShipment',
+                    shipmentID: shipmentID
+                })
+            });
+            await new Promise(resolve => setTimeout(resolve, 500));
+        }
+        
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        await loadWarehouseInbound();
+        hideLoading();
+        alert(`✅ ${shipmentIDs.length} shipment(s) cancelled`);
+        
+    } catch (error) {
+        hideLoading();
+        console.error('Error:', error);
+        alert('❌ Error cancelling shipments');
     }
 }
 
