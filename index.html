@@ -7700,6 +7700,7 @@ function showEditShipmentModal(shipmentData) {
         
         async function submitEditShipment() {
             const shipmentID = document.getElementById('editShipmentID').value;
+            const shipmentType = document.getElementById('editShipmentModal').dataset.shipmentType || 'Inbound';
             const supplier = document.getElementById('editSupplier').value;
             const fuelType = document.getElementById('editFuelType').value;
             const quantity = document.getElementById('editQuantity').value;
@@ -7709,8 +7710,21 @@ function showEditShipmentModal(shipmentData) {
             const freightForwarder = document.getElementById('editFreightForwarder').value;
             const warehouseLocation = document.getElementById('editWarehouseLocation').value;
             
-            if (!supplier || !fuelType || !quantity || !eta || !truckLicence || !freightForwarder || !warehouseLocation) {
+            // Conditional validation based on shipment type
+            if (!fuelType || !quantity || !eta || !truckLicence || !freightForwarder) {
                 alert('Please fill in all required fields');
+                return;
+            }
+            
+            // Inbound and Re-export need supplier
+            if ((shipmentType === 'Inbound' || shipmentType === 'Re-export') && !supplier) {
+                alert('Please enter supplier for ' + shipmentType + ' shipment');
+                return;
+            }
+            
+            // Only Inbound needs warehouse location
+            if (shipmentType === 'Inbound' && !warehouseLocation) {
+                alert('Please select warehouse location for Inbound shipment');
                 return;
             }
             
@@ -7729,14 +7743,14 @@ function showEditShipmentModal(shipmentData) {
                     body: JSON.stringify({
                         action: 'editInboundShipment',
                         shipmentID: shipmentID,
-                        supplier: supplier,
+                        supplier: supplier || 'Gulf',  // Default to Gulf for Export
                         productType: fuelType,
                         quantity: parseFloat(quantity),
                         plannedArrival: eta,
                         truckLicence: truckLicence,
                         trailerLicence: trailerLicence,
                         freightForwarder: freightForwarder,
-                        warehouseLocation: warehouseLocation,
+                        warehouseLocation: warehouseLocation || '',  // Empty if not needed
                         updatedBy: currentUser.name
                     })
                 });
