@@ -7276,6 +7276,10 @@ async function loadTransportInbound() {
 }
 
 function generateShipmentTable(shipments, shipmentType) {
+    console.log('=== generateShipmentTable called ===');
+    console.log('shipmentType parameter: "' + shipmentType + '"');
+    console.log('Number of shipments: ' + shipments.length);
+    
     if (shipments.length === 0) {
         return '<p style="text-align: center; color: #6B7280; padding: 1rem;">No shipments</p>';
     }
@@ -7339,10 +7343,10 @@ function generateShipmentTable(shipments, shipmentType) {
         
         // Debug log for Re-export Delivered button visibility
         if (shipmentType === 'Re-export') {
-            console.log('Re-export shipment - ID: ' + shipmentID + ' status: "' + status + '" type: "' + shipmentType + '" showActions: ' + showIndividualActions);
-            if (status === 'In Transit') {
-                console.log('>>> Delivered button SHOULD render for ' + shipmentID);
-            }
+            console.log('Re-export row: ' + shipmentID + ' | status raw: "' + row[7] + '" | status var: "' + status + '" | length: ' + status.length);
+            console.log('Condition check: status === "In Transit" ? ' + (status === 'In Transit'));
+            console.log('Condition check: shipmentType === "Re-export" ? ' + (shipmentType === 'Re-export'));
+            console.log('Both conditions: ' + (status === 'In Transit' && shipmentType === 'Re-export'));
         }
         
         let client = '';
