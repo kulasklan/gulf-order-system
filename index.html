@@ -6528,7 +6528,7 @@ async function loadWarehouseInbound() {
             return;
         }
         
-        // Filter Inbound and Export that are In Transit
+        // Filter Inbound (In Transit only) and Export (all statuses)
         const inboundInTransit = data.values.filter(row => {
             const status = row[7];
             const notes = row[15] || '';
@@ -6537,19 +6537,18 @@ async function loadWarehouseInbound() {
             return status === 'In Transit' && (notes.includes('Type: Inbound') || shipmentType === 'Inbound');
         });
         
-        const exportInTransit = data.values.filter(row => {
-            const status = row[7];
+        const exportShipments = data.values.filter(row => {
             const notes = row[15] || '';
             const shipmentType = row[36] || '';
-            return status === 'In Transit' && (notes.includes('Type: Export') || shipmentType === 'Export');
+            return notes.includes('Type: Export') || shipmentType === 'Export';
         });
         
         let html = `
             <h3 style="margin-bottom: 1rem; color: var(--secondary);">📦 Inbound Shipments (In Transit) - ${inboundInTransit.length}</h3>
             ${generateWarehouseShipmentTable(inboundInTransit, 'Inbound')}
             
-            <h3 style="margin-top: 2rem; margin-bottom: 1rem; color: var(--secondary);">📤 Export Shipments (In Transit) - ${exportInTransit.length}</h3>
-            ${generateWarehouseShipmentTable(exportInTransit, 'Export')}
+            <h3 style="margin-top: 2rem; margin-bottom: 1rem; color: var(--secondary);">📤 Export Shipments - ${exportShipments.length}</h3>
+            ${generateWarehouseShipmentTable(exportShipments, 'Export')}
         `;
         
         container.innerHTML = html;
