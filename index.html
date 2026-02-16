@@ -1184,6 +1184,7 @@
             <div>
                 <label style="display: block; font-weight: 600; margin-bottom: 0.5rem;">Freight Forwarder:</label>
                 <select id="warehouseExportForwarder" style="width: 100%; padding: 0.75rem; border: 1px solid #D1D5DB; border-radius: 4px;">
+                    <option value="">-- Select --</option>
                     <option value="Fershped">Fershped</option>
                     <option value="Other">Other</option>
                 </select>
@@ -6265,7 +6266,7 @@ if (supplier === 'Other') supplier = document.getElementById('addShipmentSupplie
     if (driverSelect && driversData.length > 0) {
         driverSelect.innerHTML = '<option value="">-- Select Driver --</option>';
         driversData.forEach(driver => {
-            driverSelect.innerHTML += `<option value="${driver}">${driver}</option>`;
+            driverSelect.innerHTML += `<option value="${driver.driverName}">${driver.driverName}</option>`;
         });
         driverSelect.innerHTML += '<option value="CUSTOM">➕ Add Custom Driver</option>';
     }
@@ -6274,7 +6275,7 @@ if (supplier === 'Other') supplier = document.getElementById('addShipmentSupplie
     if (companySelect && transportCompaniesData.length > 0) {
         companySelect.innerHTML = '<option value="">-- Select Company --</option>';
         transportCompaniesData.forEach(company => {
-            companySelect.innerHTML += `<option value="${company}">${company}</option>`;
+            companySelect.innerHTML += `<option value="${company.companyName}">${company.companyName}</option>`;
         });
         companySelect.innerHTML += '<option value="CUSTOM">➕ Add Custom Company</option>';
     }
