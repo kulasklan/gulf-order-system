@@ -7530,7 +7530,8 @@ async function bulkUpdateWarehouseStatus(shipmentType, newStatus) {
                 body: JSON.stringify({
                     action: 'updateInboundStatus',
                     shipmentID: shipmentID,
-                    status: newStatus
+                    newStatus: newStatus,
+                    updatedBy: currentUser.name
                 })
             });
             await new Promise(resolve => setTimeout(resolve, 500));
@@ -7557,6 +7558,12 @@ async function bulkCancelWarehouseShipments(shipmentType) {
         return;
     }
     
+    const reason = prompt('Please enter cancellation reason:');
+    if (!reason || reason.trim() === '') {
+        alert('⚠️ Cancellation reason is required');
+        return;
+    }
+    
     if (!confirm(`Cancel ${shipmentIDs.length} shipment(s)? This action cannot be undone.`)) {
         return;
     }
@@ -7571,7 +7578,9 @@ async function bulkCancelWarehouseShipments(shipmentType) {
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     action: 'cancelShipment',
-                    shipmentID: shipmentID
+                    shipmentID: shipmentID,
+                    reason: reason,
+                    cancelledBy: currentUser.name
                 })
             });
             await new Promise(resolve => setTimeout(resolve, 500));
@@ -7613,7 +7622,8 @@ async function bulkUpdateStatus(shipmentType, newStatus) {
                 body: JSON.stringify({
                     action: 'updateInboundStatus',
                     shipmentID: shipmentID,
-                    status: newStatus
+                    newStatus: newStatus,
+                    updatedBy: currentUser.name
                 })
             });
             await new Promise(resolve => setTimeout(resolve, 500));
@@ -7640,6 +7650,12 @@ async function bulkCancelShipments(shipmentType) {
         return;
     }
     
+    const reason = prompt('Please enter cancellation reason:');
+    if (!reason || reason.trim() === '') {
+        alert('⚠️ Cancellation reason is required');
+        return;
+    }
+    
     if (!confirm(`⚠️ Cancel ${shipmentIDs.length} shipment(s)? This cannot be undone.`)) {
         return;
     }
@@ -7653,9 +7669,10 @@ async function bulkCancelShipments(shipmentType) {
                 mode: 'no-cors',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
-                    action: 'updateInboundStatus',
+                    action: 'cancelShipment',
                     shipmentID: shipmentID,
-                    status: 'Cancelled'
+                    reason: reason,
+                    cancelledBy: currentUser.name
                 })
             });
             await new Promise(resolve => setTimeout(resolve, 500));
