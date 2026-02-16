@@ -1088,6 +1088,14 @@
                             <!-- Reservoir Stock Comparison -->
                             <div style="margin-top: 3rem;">
                                 <h3 style="margin-bottom: 1rem; color: var(--secondary);">📊 Reservoir Stock Comparison</h3>
+                                <div style="margin-bottom: 1rem; padding: 1rem; background: #F0F9FF; border-radius: 8px; border: 1px solid #BAE6FD;">
+                                    <label style="display: block; font-weight: 600; margin-bottom: 0.5rem; font-size: 0.9rem;">📅 View reservoir values as of date:</label>
+                                    <div style="display: flex; gap: 0.75rem; align-items: center; flex-wrap: wrap;">
+                                        <input type="date" id="managementReservoirDateFilter" onchange="applyManagementReservoirDateFilter()" style="padding: 0.5rem 0.75rem; border: 1px solid #D1D5DB; border-radius: 4px;">
+                                        <button type="button" class="btn btn-secondary" onclick="resetManagementReservoirDateFilter()" style="padding: 0.5rem 1rem;">Reset</button>
+                                        <span id="managementReservoirDateFilterHint" style="font-size: 0.85rem; color: #6B7280;">Showing latest values</span>
+                                    </div>
+                                </div>
                                 <div id="reservoirComparisonTable" style="overflow-x: auto;">
                                     <p style="text-align: center; color: #6B7280; padding: 2rem;">Loading reservoir data...</p>
                                 </div>
@@ -1107,6 +1115,15 @@
                         </div>
                         
                         <div style="padding: 1.5rem;">
+                            <!-- Reservoir Date Filter (Warehouse) -->
+                            <div style="margin-bottom: 1rem; padding: 1rem; background: #F0F9FF; border-radius: 8px; border: 1px solid #BAE6FD;">
+                                <label style="display: block; font-weight: 600; margin-bottom: 0.5rem; font-size: 0.9rem;">📅 View reservoir values as of date:</label>
+                                <div style="display: flex; gap: 0.75rem; align-items: center; flex-wrap: wrap;">
+                                    <input type="date" id="warehouseReservoirDateFilter" onchange="applyWarehouseReservoirDateFilter()" style="padding: 0.5rem 0.75rem; border: 1px solid #D1D5DB; border-radius: 4px;">
+                                    <button type="button" class="btn btn-secondary" onclick="resetWarehouseReservoirDateFilter()" style="padding: 0.5rem 1rem;">Reset</button>
+                                    <span id="warehouseReservoirDateFilterHint" style="font-size: 0.85rem; color: #6B7280;">Showing latest values</span>
+                                </div>
+                            </div>
                             <!-- Bulk Update Form - All Reservoirs at Once -->
                             <div style="margin-bottom: 2rem;">
                                 <h3 style="margin-bottom: 1rem; color: var(--secondary);">📦 Daily Stock Report - Update All Reservoirs</h3>
@@ -6216,32 +6233,49 @@ function generateManagementShipmentTable(shipments, shipmentType, currentPage) {
             
             try {
                 const reservoirApiUrl = `https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_ID}/values/Reservoirs!A2:E100?key=${API_KEY}`;
-                const stockApiUrl = `https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_ID}/values/Reservoir_Stock!A2:F100?key=${API_KEY}`;
-                
-                const [reservoirResponse, stockResponse] = await Promise.all([
-                    fetch(reservoirApiUrl),
-                    fetch(stockApiUrl)
-                ]);
-                
+                const reservoirResponse = await fetch(reservoirApiUrl);
                 const reservoirData = await reservoirResponse.json();
-                const stockData = await stockResponse.json();
                 
-                if (!reservoirData.values || !stockData.values) {
+                if (!reservoirData.values) {
                     container.innerHTML = '<p style="text-align: center; color: #6B7280; padding: 2rem;">No reservoir data available</p>';
                     return;
                 }
                 
-                // Create stock map
-                const stockMap = {};
-                stockData.values.forEach(row => {
-                    stockMap[row[0]] = {
-                        physicalQty: parseFloat(row[1]) || 0,
-                        documentQty: parseFloat(row[2]) || 0,
-                        difference: parseFloat(row[3]) || 0,
-                        updatedAt: row[4] || '',
-                        updatedBy: row[5] || ''
-                    };
-                });
+                let stockMap = {};
+                if (managementReservoirDateFilter) {
+                    const historical = await getReservoirStockAsOfDate(managementReservoirDateFilter);
+                    if (historical) {
+                        reservoirData.values.forEach(row => {
+                            const rid = row[0];
+                            const h = historical[rid];
+                            stockMap[rid] = {
+                                physicalQty: h ? h.physicalQty : 0,
+                                documentQty: 0,
+                                difference: 0,
+                                updatedAt: h ? (h.updatedAt || '') : '',
+                                updatedBy: h ? (h.updatedBy || '') : ''
+                            };
+                        });
+                    }
+                }
+                if (Object.keys(stockMap).length === 0) {
+                    const stockApiUrl = `https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_ID}/values/Reservoir_Stock!A2:F100?key=${API_KEY}`;
+                    const stockResponse = await fetch(stockApiUrl);
+                    const stockData = await stockResponse.json();
+                    if (!stockData.values) {
+                        container.innerHTML = '<p style="text-align: center; color: #6B7280; padding: 2rem;">No reservoir stock data available</p>';
+                        return;
+                    }
+                    stockData.values.forEach(row => {
+                        stockMap[row[0]] = {
+                            physicalQty: parseFloat(row[1]) || 0,
+                            documentQty: parseFloat(row[2]) || 0,
+                            difference: parseFloat(row[3]) || 0,
+                            updatedAt: row[4] || '',
+                            updatedBy: row[5] || ''
+                        };
+                    });
+                }
                 
                 let html = `
                     <table class="orders-table">
@@ -6501,12 +6535,84 @@ if (supplier === 'Other') supplier = document.getElementById('addShipmentSupplie
         }
         
         // =============================================
+        // RESERVOIR DATE FILTER - shared logic
+        // Fetches Reservoir_Stock_Log and returns stock as of given date.
+        // If no entry for exact date, uses most recent entry BEFORE that date.
+        // =============================================
+        async function getReservoirStockAsOfDate(asOfDate) {
+            try {
+                const logApiUrl = `https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_ID}/values/Reservoir_Stock_Log!A2:H2000?key=${API_KEY}`;
+                const response = await fetch(logApiUrl);
+                const data = await response.json();
+                if (!data.values || data.values.length === 0) return null;
+                const cutoff = new Date(asOfDate);
+                cutoff.setHours(23, 59, 59, 999);
+                const byReservoir = {};
+                data.values.forEach(row => {
+                    const reservoirID = row[1];
+                    const newQty = parseFloat(row[3]) || 0;
+                    let ts = row[5];
+                    if (ts == null || ts === '') return;
+                    if (typeof ts === 'number') {
+                        ts = new Date((ts - 25569) * 86400000);
+                    } else {
+                        ts = new Date(ts);
+                    }
+                    if (isNaN(ts.getTime()) || ts > cutoff) return;
+                    if (!byReservoir[reservoirID] || byReservoir[reservoirID].ts < ts) {
+                        byReservoir[reservoirID] = { physicalQty: newQty, ts, updatedAt: row[5], updatedBy: row[6] || '' };
+                    }
+                });
+                return byReservoir;
+            } catch (e) {
+                console.error('Error loading Reservoir_Stock_Log:', e);
+                return null;
+            }
+        }
+        
+        async function applyWarehouseReservoirDateFilter() {
+            const inp = document.getElementById('warehouseReservoirDateFilter');
+            const hint = document.getElementById('warehouseReservoirDateFilterHint');
+            warehouseReservoirDateFilter = inp ? inp.value : '';
+            if (hint) hint.textContent = warehouseReservoirDateFilter ? `Showing values as of ${warehouseReservoirDateFilter}` : 'Showing latest values';
+            await loadWarehouseReservoirs();
+        }
+        
+        function resetWarehouseReservoirDateFilter() {
+            warehouseReservoirDateFilter = '';
+            const inp = document.getElementById('warehouseReservoirDateFilter');
+            const hint = document.getElementById('warehouseReservoirDateFilterHint');
+            if (inp) inp.value = '';
+            if (hint) hint.textContent = 'Showing latest values';
+            loadWarehouseReservoirs();
+        }
+        
+        async function applyManagementReservoirDateFilter() {
+            const inp = document.getElementById('managementReservoirDateFilter');
+            const hint = document.getElementById('managementReservoirDateFilterHint');
+            managementReservoirDateFilter = inp ? inp.value : '';
+            if (hint) hint.textContent = managementReservoirDateFilter ? `Showing values as of ${managementReservoirDateFilter}` : 'Showing latest values';
+            await loadReservoirComparisonTable();
+        }
+        
+        function resetManagementReservoirDateFilter() {
+            managementReservoirDateFilter = '';
+            const inp = document.getElementById('managementReservoirDateFilter');
+            const hint = document.getElementById('managementReservoirDateFilterHint');
+            if (inp) inp.value = '';
+            if (hint) hint.textContent = 'Showing latest values';
+            loadReservoirComparisonTable();
+        }
+        
+        // =============================================
         // WAREHOUSE INVENTORY FUNCTIONS
         // =============================================
         
         let warehouseReservoirs = [];
         let warehouseReservoirStock = [];
         let warehouseInboundShipments = [];
+        let warehouseReservoirDateFilter = '';
+        let managementReservoirDateFilter = '';
         
         async function loadWarehouseInventory() {
             console.log('Loading warehouse inventory...');
@@ -6679,21 +6785,51 @@ function toggleWarehouseCustomCompany() {
         
         async function loadWarehouseStock() {
             try {
-                const apiUrl = `https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_ID}/values/Reservoir_Stock!A2:F100?key=${API_KEY}`;
-                const response = await fetch(apiUrl);
-                const data = await response.json();
-                
-                if (data.values) {
-                    warehouseReservoirStock = data.values.map(row => ({
-                        reservoirID: row[0],
-                        physicalQty: parseFloat(row[1]) || 0,
-                        documentQty: parseFloat(row[2]) || 0,
-                        difference: parseFloat(row[3]) || 0,
-                        updatedAt: row[4] || '',
-                        updatedBy: row[5] || ''
-                    }));
-                    
-                    console.log('✅ Loaded reservoir stock');
+                if (warehouseReservoirDateFilter) {
+                    const historical = await getReservoirStockAsOfDate(warehouseReservoirDateFilter);
+                    if (historical) {
+                        warehouseReservoirStock = warehouseReservoirs.map(res => {
+                            const h = historical[res.reservoirID];
+                            return {
+                                reservoirID: res.reservoirID,
+                                physicalQty: h ? h.physicalQty : 0,
+                                documentQty: 0,
+                                difference: 0,
+                                updatedAt: h ? (h.updatedAt || '') : '',
+                                updatedBy: h ? (h.updatedBy || '') : ''
+                            };
+                        });
+                        console.log('✅ Loaded reservoir stock as of', warehouseReservoirDateFilter);
+                    } else {
+                        const apiUrl = `https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_ID}/values/Reservoir_Stock!A2:F100?key=${API_KEY}`;
+                        const response = await fetch(apiUrl);
+                        const data = await response.json();
+                        if (data.values) {
+                            warehouseReservoirStock = data.values.map(row => ({
+                                reservoirID: row[0],
+                                physicalQty: parseFloat(row[1]) || 0,
+                                documentQty: parseFloat(row[2]) || 0,
+                                difference: parseFloat(row[3]) || 0,
+                                updatedAt: row[4] || '',
+                                updatedBy: row[5] || ''
+                            }));
+                        }
+                    }
+                } else {
+                    const apiUrl = `https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_ID}/values/Reservoir_Stock!A2:F100?key=${API_KEY}`;
+                    const response = await fetch(apiUrl);
+                    const data = await response.json();
+                    if (data.values) {
+                        warehouseReservoirStock = data.values.map(row => ({
+                            reservoirID: row[0],
+                            physicalQty: parseFloat(row[1]) || 0,
+                            documentQty: parseFloat(row[2]) || 0,
+                            difference: parseFloat(row[3]) || 0,
+                            updatedAt: row[4] || '',
+                            updatedBy: row[5] || ''
+                        }));
+                        console.log('✅ Loaded reservoir stock');
+                    }
                 }
             } catch (error) {
                 console.error('Error loading stock:', error);
