@@ -5659,26 +5659,96 @@ async function loadManagementAllShipments() {
         
         if (!data.values) return;
         
-        const reexport = data.values.filter(row => {
+        let reexport = data.values.filter(row => {
             const notes = row[15] || '';
             const shipmentType = row[36] || '';
             return notes.includes('Type: Re-export') || shipmentType === 'Re-export';
         });
         
-        const exportShipments = data.values.filter(row => {
+        let exportShipments = data.values.filter(row => {
             const notes = row[15] || '';
             const shipmentType = row[36] || '';
             return notes.includes('Type: Export') || shipmentType === 'Export';
         });
         
+        // Apply Re-export filters
+        if (managementReexportFilter !== 'all') {
+            reexport = reexport.filter(row => row[7] === managementReexportFilter);
+        }
+        if (managementReexportDateFrom) {
+            reexport = reexport.filter(row => {
+                const shipmentDate = new Date(row[5]);
+                const fromDate = new Date(managementReexportDateFrom);
+                return shipmentDate >= fromDate;
+            });
+        }
+        if (managementReexportDateTo) {
+            reexport = reexport.filter(row => {
+                const shipmentDate = new Date(row[5]);
+                const toDate = new Date(managementReexportDateTo);
+                return shipmentDate <= toDate;
+            });
+        }
+        
+        // Apply Export filters
+        if (managementExportFilter !== 'all') {
+            exportShipments = exportShipments.filter(row => row[7] === managementExportFilter);
+        }
+        if (managementExportDateFrom) {
+            exportShipments = exportShipments.filter(row => {
+                const shipmentDate = new Date(row[5]);
+                const fromDate = new Date(managementExportDateFrom);
+                return shipmentDate >= fromDate;
+            });
+        }
+        if (managementExportDateTo) {
+            exportShipments = exportShipments.filter(row => {
+                const shipmentDate = new Date(row[5]);
+                const toDate = new Date(managementExportDateTo);
+                return shipmentDate <= toDate;
+            });
+        }
+        
         let html = `
             <div data-management-section style="margin-top: 2rem;">
-                <h3 style="margin-bottom: 1rem; color: var(--secondary);">🌍 Re-export Shipments (${reexport.length})</h3>
+                <h3 style="margin-bottom: 1rem; color: var(--secondary);">🌍 Re-export Shipments</h3>
+                <div style="margin-bottom: 1rem; display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap;">
+                    <button class="btn ${managementReexportFilter === 'all' ? 'btn-primary' : 'btn-secondary'}" onclick="filterManagementReexport('all')" style="padding: 0.5rem 1rem;">All</button>
+                    <button class="btn ${managementReexportFilter === 'Created' ? 'btn-primary' : 'btn-secondary'}" onclick="filterManagementReexport('Created')" style="padding: 0.5rem 1rem;">Created</button>
+                    <button class="btn ${managementReexportFilter === 'In Transit' ? 'btn-primary' : 'btn-secondary'}" onclick="filterManagementReexport('In Transit')" style="padding: 0.5rem 1rem;">In Transit</button>
+                    <button class="btn ${managementReexportFilter === 'Delivered' ? 'btn-primary' : 'btn-secondary'}" onclick="filterManagementReexport('Delivered')" style="padding: 0.5rem 1rem;">Delivered</button>
+                    <button class="btn ${managementReexportFilter === 'Cancelled' ? 'btn-primary' : 'btn-secondary'}" onclick="filterManagementReexport('Cancelled')" style="padding: 0.5rem 1rem;">Cancelled</button>
+                    <span style="margin-left: 1rem; color: #6B7280;">|</span>
+                    <label style="display: flex; align-items: center; gap: 0.5rem;">
+                        <span>Date From:</span>
+                        <input type="date" id="managementReexportDateFrom" value="${managementReexportDateFrom}" onchange="updateManagementReexportDateFilter()" style="padding: 0.5rem; border: 1px solid #D1D5DB; border-radius: 4px;">
+                    </label>
+                    <label style="display: flex; align-items: center; gap: 0.5rem;">
+                        <span>Date To:</span>
+                        <input type="date" id="managementReexportDateTo" value="${managementReexportDateTo}" onchange="updateManagementReexportDateFilter()" style="padding: 0.5rem; border: 1px solid #D1D5DB; border-radius: 4px;">
+                    </label>
+                </div>
                 ${generateManagementShipmentTable(reexport, 'Re-export', currentPageManagementReexport)}
             </div>
             
             <div data-management-section style="margin-top: 2rem;">
-                <h3 style="margin-bottom: 1rem; color: var(--secondary);">📤 Export Shipments (${exportShipments.length})</h3>
+                <h3 style="margin-bottom: 1rem; color: var(--secondary);">📤 Export Shipments</h3>
+                <div style="margin-bottom: 1rem; display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap;">
+                    <button class="btn ${managementExportFilter === 'all' ? 'btn-primary' : 'btn-secondary'}" onclick="filterManagementExport('all')" style="padding: 0.5rem 1rem;">All</button>
+                    <button class="btn ${managementExportFilter === 'Created' ? 'btn-primary' : 'btn-secondary'}" onclick="filterManagementExport('Created')" style="padding: 0.5rem 1rem;">Created</button>
+                    <button class="btn ${managementExportFilter === 'In Transit' ? 'btn-primary' : 'btn-secondary'}" onclick="filterManagementExport('In Transit')" style="padding: 0.5rem 1rem;">In Transit</button>
+                    <button class="btn ${managementExportFilter === 'Delivered' ? 'btn-primary' : 'btn-secondary'}" onclick="filterManagementExport('Delivered')" style="padding: 0.5rem 1rem;">Delivered</button>
+                    <button class="btn ${managementExportFilter === 'Cancelled' ? 'btn-primary' : 'btn-secondary'}" onclick="filterManagementExport('Cancelled')" style="padding: 0.5rem 1rem;">Cancelled</button>
+                    <span style="margin-left: 1rem; color: #6B7280;">|</span>
+                    <label style="display: flex; align-items: center; gap: 0.5rem;">
+                        <span>Date From:</span>
+                        <input type="date" id="managementExportDateFrom" value="${managementExportDateFrom}" onchange="updateManagementExportDateFilter()" style="padding: 0.5rem; border: 1px solid #D1D5DB; border-radius: 4px;">
+                    </label>
+                    <label style="display: flex; align-items: center; gap: 0.5rem;">
+                        <span>Date To:</span>
+                        <input type="date" id="managementExportDateTo" value="${managementExportDateTo}" onchange="updateManagementExportDateFilter()" style="padding: 0.5rem; border: 1px solid #D1D5DB; border-radius: 4px;">
+                    </label>
+                </div>
                 ${generateManagementShipmentTable(exportShipments, 'Export', currentPageManagementExport)}
             </div>
         `;
@@ -5768,6 +5838,32 @@ function generateManagementShipmentTable(shipments, shipmentType, currentPage) {
             } else if (shipmentType === 'Export') {
                 currentPageManagementExport = newPage;
             }
+            loadManagementAllShipments();
+        }
+        
+        function filterManagementReexport(status) {
+            managementReexportFilter = status;
+            currentPageManagementReexport = 1; // Reset pagination
+            loadManagementAllShipments();
+        }
+        
+        function updateManagementReexportDateFilter() {
+            managementReexportDateFrom = document.getElementById('managementReexportDateFrom').value;
+            managementReexportDateTo = document.getElementById('managementReexportDateTo').value;
+            currentPageManagementReexport = 1; // Reset pagination
+            loadManagementAllShipments();
+        }
+        
+        function filterManagementExport(status) {
+            managementExportFilter = status;
+            currentPageManagementExport = 1; // Reset pagination
+            loadManagementAllShipments();
+        }
+        
+        function updateManagementExportDateFilter() {
+            managementExportDateFrom = document.getElementById('managementExportDateFrom').value;
+            managementExportDateTo = document.getElementById('managementExportDateTo').value;
+            currentPageManagementExport = 1; // Reset pagination
             loadManagementAllShipments();
         }
 		
@@ -5926,10 +6022,52 @@ function generateManagementShipmentTable(shipments, shipmentType, currentPage) {
             const container = document.getElementById('inboundShipmentsTable');
             
             // Filter: exclude "Arrived" shipments
-            const activeShipments = inboundShipmentsData.filter(s => s.status !== 'Arrived');
+            let activeShipments = inboundShipmentsData.filter(s => s.status !== 'Arrived');
+            
+            // Apply status filter
+            if (managementInboundFilter !== 'all') {
+                activeShipments = activeShipments.filter(s => s.status === managementInboundFilter);
+            }
+            
+            // Apply date range filter
+            if (managementInboundDateFrom) {
+                activeShipments = activeShipments.filter(s => {
+                    const shipmentDate = new Date(s.plannedArrival);
+                    const fromDate = new Date(managementInboundDateFrom);
+                    return shipmentDate >= fromDate;
+                });
+            }
+            if (managementInboundDateTo) {
+                activeShipments = activeShipments.filter(s => {
+                    const shipmentDate = new Date(s.plannedArrival);
+                    const toDate = new Date(managementInboundDateTo);
+                    return shipmentDate <= toDate;
+                });
+            }
+            
+            // Filters UI
+            let html = `
+                <div style="margin-bottom: 1rem; display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap;">
+                    <button class="btn ${managementInboundFilter === 'all' ? 'btn-primary' : 'btn-secondary'}" onclick="filterManagementInbound('all')" style="padding: 0.5rem 1rem;">All</button>
+                    <button class="btn ${managementInboundFilter === 'Created' ? 'btn-primary' : 'btn-secondary'}" onclick="filterManagementInbound('Created')" style="padding: 0.5rem 1rem;">Created</button>
+                    <button class="btn ${managementInboundFilter === 'In Transit' ? 'btn-primary' : 'btn-secondary'}" onclick="filterManagementInbound('In Transit')" style="padding: 0.5rem 1rem;">In Transit</button>
+                    <button class="btn ${managementInboundFilter === 'Delivered' ? 'btn-primary' : 'btn-secondary'}" onclick="filterManagementInbound('Delivered')" style="padding: 0.5rem 1rem;">Delivered</button>
+                    <button class="btn ${managementInboundFilter === 'Cancelled' ? 'btn-primary' : 'btn-secondary'}" onclick="filterManagementInbound('Cancelled')" style="padding: 0.5rem 1rem;">Cancelled</button>
+                    <span style="margin-left: 1rem; color: #6B7280;">|</span>
+                    <label style="display: flex; align-items: center; gap: 0.5rem;">
+                        <span>Date From:</span>
+                        <input type="date" id="managementInboundDateFrom" value="${managementInboundDateFrom}" onchange="updateManagementInboundDateFilter()" style="padding: 0.5rem; border: 1px solid #D1D5DB; border-radius: 4px;">
+                    </label>
+                    <label style="display: flex; align-items: center; gap: 0.5rem;">
+                        <span>Date To:</span>
+                        <input type="date" id="managementInboundDateTo" value="${managementInboundDateTo}" onchange="updateManagementInboundDateFilter()" style="padding: 0.5rem; border: 1px solid #D1D5DB; border-radius: 4px;">
+                    </label>
+                </div>
+            `;
             
             if (activeShipments.length === 0) {
-                container.innerHTML = '<p style="text-align: center; color: #6B7280; padding: 2rem;">No active inbound shipments</p>';
+                html += '<p style="text-align: center; color: #6B7280; padding: 2rem;">No shipments match the current filters</p>';
+                container.innerHTML = html;
                 return;
             }
             
@@ -5939,7 +6077,7 @@ function generateManagementShipmentTable(shipments, shipmentType, currentPage) {
             const endIndex = startIndex + itemsPerPage;
             const paginatedShipments = activeShipments.slice(startIndex, endIndex);
             
-            let html = `
+            html += `
                 <table class="orders-table">
                     <thead>
                         <tr>
@@ -6015,6 +6153,19 @@ function generateManagementShipmentTable(shipments, shipmentType, currentPage) {
         
         function changeManagementInboundPage(newPage) {
             currentPageManagementInbound = newPage;
+            loadInboundShipmentsTable();
+        }
+        
+        function filterManagementInbound(status) {
+            managementInboundFilter = status;
+            currentPageManagementInbound = 1; // Reset pagination
+            loadInboundShipmentsTable();
+        }
+        
+        function updateManagementInboundDateFilter() {
+            managementInboundDateFrom = document.getElementById('managementInboundDateFrom').value;
+            managementInboundDateTo = document.getElementById('managementInboundDateTo').value;
+            currentPageManagementInbound = 1; // Reset pagination
             loadInboundShipmentsTable();
         }
         
@@ -7014,6 +7165,17 @@ function generateWarehouseShipmentTable(shipments, shipmentType, currentPage) {
         // =============================================
         
         let transportInboundFilter = 'all';
+        
+        // Management filter state
+        let managementInboundFilter = 'all';
+        let managementReexportFilter = 'all';
+        let managementExportFilter = 'all';
+        let managementInboundDateFrom = '';
+        let managementInboundDateTo = '';
+        let managementReexportDateFrom = '';
+        let managementReexportDateTo = '';
+        let managementExportDateFrom = '';
+        let managementExportDateTo = '';
         
         // Pagination state
         let currentPageInbound = 1;
