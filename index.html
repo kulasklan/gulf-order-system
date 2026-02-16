@@ -6812,53 +6812,76 @@ async function loadWarehouseInbound() {
             return notes.includes('Type: Export') || shipmentType === 'Export';
         });
         
-        // Apply date range filter
-        if (warehouseDateFrom) {
+        // Apply date range filters (independent for each section)
+        if (warehouseInboundDateFrom) {
             inboundInTransit = inboundInTransit.filter(row => {
                 const shipmentDate = new Date(row[5]);
-                const fromDate = new Date(warehouseDateFrom);
-                return shipmentDate >= fromDate;
-            });
-            exportShipments = exportShipments.filter(row => {
-                const shipmentDate = new Date(row[5]);
-                const fromDate = new Date(warehouseDateFrom);
+                const fromDate = new Date(warehouseInboundDateFrom);
                 return shipmentDate >= fromDate;
             });
         }
-        if (warehouseDateTo) {
+        if (warehouseInboundDateTo) {
             inboundInTransit = inboundInTransit.filter(row => {
                 const shipmentDate = new Date(row[5]);
-                const toDate = new Date(warehouseDateTo);
-                return shipmentDate <= toDate;
-            });
-            exportShipments = exportShipments.filter(row => {
-                const shipmentDate = new Date(row[5]);
-                const toDate = new Date(warehouseDateTo);
+                const toDate = new Date(warehouseInboundDateTo);
                 return shipmentDate <= toDate;
             });
         }
         
-        const hasWarehouseDateFilter = warehouseDateFrom || warehouseDateTo;
+        if (warehouseExportDateFrom) {
+            exportShipments = exportShipments.filter(row => {
+                const shipmentDate = new Date(row[5]);
+                const fromDate = new Date(warehouseExportDateFrom);
+                return shipmentDate >= fromDate;
+            });
+        }
+        if (warehouseExportDateTo) {
+            exportShipments = exportShipments.filter(row => {
+                const shipmentDate = new Date(row[5]);
+                const toDate = new Date(warehouseExportDateTo);
+                return shipmentDate <= toDate;
+            });
+        }
+        
+        const hasInboundDateFilter = warehouseInboundDateFrom || warehouseInboundDateTo;
+        const hasExportDateFilter = warehouseExportDateFrom || warehouseExportDateTo;
         
         let html = `
-            <div style="margin-bottom: 1rem; display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap;">
-                <label style="display: flex; align-items: center; gap: 0.5rem;">
-                    <span>Date From:</span>
-                    <input type="date" id="warehouseDateFrom" value="${warehouseDateFrom}" onchange="updateWarehouseDateFilter()" style="padding: 0.5rem; border: 1px solid #D1D5DB; border-radius: 4px;">
-                </label>
-                <label style="display: flex; align-items: center; gap: 0.5rem;">
-                    <span>Date To:</span>
-                    <input type="date" id="warehouseDateTo" value="${warehouseDateTo}" onchange="updateWarehouseDateFilter()" style="padding: 0.5rem; border: 1px solid #D1D5DB; border-radius: 4px;">
-                </label>
-                ${hasWarehouseDateFilter ? `
-                    <button class="btn btn-secondary" onclick="resetWarehouseDateFilter()" style="padding: 0.5rem 1rem;">🔄 Reset Filters</button>
-                ` : ''}
+            <div style="margin-top: 2rem;">
+                <h3 style="margin-bottom: 1rem; color: var(--secondary);">📦 Inbound Shipments (In Transit) - ${inboundInTransit.length}</h3>
+                <div style="margin-bottom: 1rem; display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap;">
+                    <label style="display: flex; align-items: center; gap: 0.5rem;">
+                        <span>Date From:</span>
+                        <input type="date" id="warehouseInboundDateFrom" value="${warehouseInboundDateFrom}" onchange="updateWarehouseInboundDateFilter()" style="padding: 0.5rem; border: 1px solid #D1D5DB; border-radius: 4px;">
+                    </label>
+                    <label style="display: flex; align-items: center; gap: 0.5rem;">
+                        <span>Date To:</span>
+                        <input type="date" id="warehouseInboundDateTo" value="${warehouseInboundDateTo}" onchange="updateWarehouseInboundDateFilter()" style="padding: 0.5rem; border: 1px solid #D1D5DB; border-radius: 4px;">
+                    </label>
+                    ${hasInboundDateFilter ? `
+                        <button class="btn btn-secondary" onclick="resetWarehouseInboundDateFilter()" style="padding: 0.5rem 1rem;">🔄 Reset Filters</button>
+                    ` : ''}
+                </div>
+                ${generateWarehouseShipmentTable(inboundInTransit, 'Inbound', currentPageWarehouseInbound)}
             </div>
-            <h3 style="margin-bottom: 1rem; color: var(--secondary);">📦 Inbound Shipments (In Transit) - ${inboundInTransit.length}</h3>
-            ${generateWarehouseShipmentTable(inboundInTransit, 'Inbound', currentPageWarehouseInbound)}
             
-            <h3 style="margin-top: 2rem; margin-bottom: 1rem; color: var(--secondary);">📤 Export Shipments - ${exportShipments.length}</h3>
-            ${generateWarehouseShipmentTable(exportShipments, 'Export', currentPageWarehouseExport)}
+            <div style="margin-top: 2rem;">
+                <h3 style="margin-bottom: 1rem; color: var(--secondary);">📤 Export Shipments - ${exportShipments.length}</h3>
+                <div style="margin-bottom: 1rem; display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap;">
+                    <label style="display: flex; align-items: center; gap: 0.5rem;">
+                        <span>Date From:</span>
+                        <input type="date" id="warehouseExportDateFrom" value="${warehouseExportDateFrom}" onchange="updateWarehouseExportDateFilter()" style="padding: 0.5rem; border: 1px solid #D1D5DB; border-radius: 4px;">
+                    </label>
+                    <label style="display: flex; align-items: center; gap: 0.5rem;">
+                        <span>Date To:</span>
+                        <input type="date" id="warehouseExportDateTo" value="${warehouseExportDateTo}" onchange="updateWarehouseExportDateFilter()" style="padding: 0.5rem; border: 1px solid #D1D5DB; border-radius: 4px;">
+                    </label>
+                    ${hasExportDateFilter ? `
+                        <button class="btn btn-secondary" onclick="resetWarehouseExportDateFilter()" style="padding: 0.5rem 1rem;">🔄 Reset Filters</button>
+                    ` : ''}
+                </div>
+                ${generateWarehouseShipmentTable(exportShipments, 'Export', currentPageWarehouseExport)}
+            </div>
         `;
         
         container.innerHTML = html;
@@ -7018,22 +7041,34 @@ function generateWarehouseShipmentTable(shipments, shipmentType, currentPage) {
             loadWarehouseInbound();
         }
         
-        function updateWarehouseDateFilter() {
-            warehouseDateFrom = document.getElementById('warehouseDateFrom').value;
-            warehouseDateTo = document.getElementById('warehouseDateTo').value;
-            // Reset pagination
+        function updateWarehouseInboundDateFilter() {
+            warehouseInboundDateFrom = document.getElementById('warehouseInboundDateFrom').value;
+            warehouseInboundDateTo = document.getElementById('warehouseInboundDateTo').value;
             currentPageWarehouseInbound = 1;
+            loadWarehouseInbound();
+        }
+        
+        function resetWarehouseInboundDateFilter() {
+            warehouseInboundDateFrom = '';
+            warehouseInboundDateTo = '';
+            document.getElementById('warehouseInboundDateFrom').value = '';
+            document.getElementById('warehouseInboundDateTo').value = '';
+            currentPageWarehouseInbound = 1;
+            loadWarehouseInbound();
+        }
+        
+        function updateWarehouseExportDateFilter() {
+            warehouseExportDateFrom = document.getElementById('warehouseExportDateFrom').value;
+            warehouseExportDateTo = document.getElementById('warehouseExportDateTo').value;
             currentPageWarehouseExport = 1;
             loadWarehouseInbound();
         }
         
-        function resetWarehouseDateFilter() {
-            warehouseDateFrom = '';
-            warehouseDateTo = '';
-            document.getElementById('warehouseDateFrom').value = '';
-            document.getElementById('warehouseDateTo').value = '';
-            // Reset pagination
-            currentPageWarehouseInbound = 1;
+        function resetWarehouseExportDateFilter() {
+            warehouseExportDateFrom = '';
+            warehouseExportDateTo = '';
+            document.getElementById('warehouseExportDateFrom').value = '';
+            document.getElementById('warehouseExportDateTo').value = '';
             currentPageWarehouseExport = 1;
             loadWarehouseInbound();
         }
@@ -7267,10 +7302,16 @@ function generateWarehouseShipmentTable(shipments, shipmentType, currentPage) {
         // =============================================
         
         let transportInboundFilter = 'all';
-        let transportDateFrom = '';
-        let transportDateTo = '';
-        let warehouseDateFrom = '';
-        let warehouseDateTo = '';
+        let transportInboundDateFrom = '';
+        let transportInboundDateTo = '';
+        let transportReexportDateFrom = '';
+        let transportReexportDateTo = '';
+        let transportExportDateFrom = '';
+        let transportExportDateTo = '';
+        let warehouseInboundDateFrom = '';
+        let warehouseInboundDateTo = '';
+        let warehouseExportDateFrom = '';
+        let warehouseExportDateTo = '';
         
         // Management filter state
         let managementInboundFilter = 'all';
@@ -7632,85 +7673,129 @@ async function loadTransportInbound() {
         console.log('>>> After status filter - Inbound: ' + filteredInbound.length + ' Re-export: ' + filteredReexport.length + ' Export: ' + filteredExport.length);
         console.log('>>> About to call generateShipmentTable 3 times');
         
-        // Apply date range filter to all shipment types
-        if (transportDateFrom) {
+        // Apply date range filters (independent for each section)
+        if (transportInboundDateFrom) {
             filteredInbound = filteredInbound.filter(row => {
                 const shipmentDate = new Date(row[5]);
-                const fromDate = new Date(transportDateFrom);
-                return shipmentDate >= fromDate;
-            });
-            filteredReexport = filteredReexport.filter(row => {
-                const shipmentDate = new Date(row[5]);
-                const fromDate = new Date(transportDateFrom);
-                return shipmentDate >= fromDate;
-            });
-            filteredExport = filteredExport.filter(row => {
-                const shipmentDate = new Date(row[5]);
-                const fromDate = new Date(transportDateFrom);
+                const fromDate = new Date(transportInboundDateFrom);
                 return shipmentDate >= fromDate;
             });
         }
-        if (transportDateTo) {
+        if (transportInboundDateTo) {
             filteredInbound = filteredInbound.filter(row => {
                 const shipmentDate = new Date(row[5]);
-                const toDate = new Date(transportDateTo);
-                return shipmentDate <= toDate;
-            });
-            filteredReexport = filteredReexport.filter(row => {
-                const shipmentDate = new Date(row[5]);
-                const toDate = new Date(transportDateTo);
-                return shipmentDate <= toDate;
-            });
-            filteredExport = filteredExport.filter(row => {
-                const shipmentDate = new Date(row[5]);
-                const toDate = new Date(transportDateTo);
+                const toDate = new Date(transportInboundDateTo);
                 return shipmentDate <= toDate;
             });
         }
         
-        const hasTransportDateFilter = transportDateFrom || transportDateTo;
+        if (transportReexportDateFrom) {
+            filteredReexport = filteredReexport.filter(row => {
+                const shipmentDate = new Date(row[5]);
+                const fromDate = new Date(transportReexportDateFrom);
+                return shipmentDate >= fromDate;
+            });
+        }
+        if (transportReexportDateTo) {
+            filteredReexport = filteredReexport.filter(row => {
+                const shipmentDate = new Date(row[5]);
+                const toDate = new Date(transportReexportDateTo);
+                return shipmentDate <= toDate;
+            });
+        }
         
-        // Display with tabs
+        if (transportExportDateFrom) {
+            filteredExport = filteredExport.filter(row => {
+                const shipmentDate = new Date(row[5]);
+                const fromDate = new Date(transportExportDateFrom);
+                return shipmentDate >= fromDate;
+            });
+        }
+        if (transportExportDateTo) {
+            filteredExport = filteredExport.filter(row => {
+                const shipmentDate = new Date(row[5]);
+                const toDate = new Date(transportExportDateTo);
+                return shipmentDate <= toDate;
+            });
+        }
+        
+        // Status filter (applies to all sections)
         let html = `
             <div style="margin-bottom: 1rem; display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap;">
                 <button class="btn ${transportInboundFilter === 'all' ? 'btn-primary' : 'btn-secondary'}" onclick="filterTransportInbound('all')" style="padding: 0.5rem 1rem;">All</button>
                 <button class="btn ${transportInboundFilter === 'Created' ? 'btn-primary' : 'btn-secondary'}" onclick="filterTransportInbound('Created')" style="padding: 0.5rem 1rem;">Created</button>
                 <button class="btn ${transportInboundFilter === 'In Transit' ? 'btn-primary' : 'btn-secondary'}" onclick="filterTransportInbound('In Transit')" style="padding: 0.5rem 1rem;">In Transit</button>
                 <button class="btn ${transportInboundFilter === 'Delivered' ? 'btn-primary' : 'btn-secondary'}" onclick="filterTransportInbound('Delivered')" style="padding: 0.5rem 1rem;">Delivered</button>
-                <span style="margin-left: 1rem; color: #6B7280;">|</span>
-                <label style="display: flex; align-items: center; gap: 0.5rem;">
-                    <span>Date From:</span>
-                    <input type="date" id="transportDateFrom" value="${transportDateFrom}" onchange="updateTransportDateFilter()" style="padding: 0.5rem; border: 1px solid #D1D5DB; border-radius: 4px;">
-                </label>
-                <label style="display: flex; align-items: center; gap: 0.5rem;">
-                    <span>Date To:</span>
-                    <input type="date" id="transportDateTo" value="${transportDateTo}" onchange="updateTransportDateFilter()" style="padding: 0.5rem; border: 1px solid #D1D5DB; border-radius: 4px;">
-                </label>
-                ${hasTransportDateFilter ? `
-                    <button class="btn btn-secondary" onclick="resetTransportDateFilter()" style="padding: 0.5rem 1rem;">🔄 Reset Filters</button>
-                ` : ''}
             </div>
         `;
         
         console.log('>>> Calling generateShipmentTable for Inbound');
+        const hasInboundDateFilter = transportInboundDateFrom || transportInboundDateTo;
         // INBOUND SECTION
         html += `
-            <h3 style="margin-top: 2rem; margin-bottom: 1rem; color: var(--secondary);">📦 Inbound Shipments (${filteredInbound.length})</h3>
-            ${generateShipmentTable(filteredInbound, 'Inbound', currentPageInbound)}
+            <div style="margin-top: 2rem;">
+                <h3 style="margin-bottom: 1rem; color: var(--secondary);">📦 Inbound Shipments (${filteredInbound.length})</h3>
+                <div style="margin-bottom: 1rem; display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap;">
+                    <label style="display: flex; align-items: center; gap: 0.5rem;">
+                        <span>Date From:</span>
+                        <input type="date" id="transportInboundDateFrom" value="${transportInboundDateFrom}" onchange="updateTransportInboundDateFilter()" style="padding: 0.5rem; border: 1px solid #D1D5DB; border-radius: 4px;">
+                    </label>
+                    <label style="display: flex; align-items: center; gap: 0.5rem;">
+                        <span>Date To:</span>
+                        <input type="date" id="transportInboundDateTo" value="${transportInboundDateTo}" onchange="updateTransportInboundDateFilter()" style="padding: 0.5rem; border: 1px solid #D1D5DB; border-radius: 4px;">
+                    </label>
+                    ${hasInboundDateFilter ? `
+                        <button class="btn btn-secondary" onclick="resetTransportInboundDateFilter()" style="padding: 0.5rem 1rem;">🔄 Reset Filters</button>
+                    ` : ''}
+                </div>
+                ${generateShipmentTable(filteredInbound, 'Inbound', currentPageInbound)}
+            </div>
         `;
         
         console.log('>>> Calling generateShipmentTable for Re-export');
+        const hasReexportDateFilter = transportReexportDateFrom || transportReexportDateTo;
         // RE-EXPORT SECTION
         html += `
-            <h3 style="margin-top: 2rem; margin-bottom: 1rem; color: var(--secondary);">🌍 Re-export Shipments (${filteredReexport.length})</h3>
-            ${generateShipmentTable(filteredReexport, 'Re-export', currentPageReexport)}
+            <div style="margin-top: 2rem;">
+                <h3 style="margin-bottom: 1rem; color: var(--secondary);">🌍 Re-export Shipments (${filteredReexport.length})</h3>
+                <div style="margin-bottom: 1rem; display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap;">
+                    <label style="display: flex; align-items: center; gap: 0.5rem;">
+                        <span>Date From:</span>
+                        <input type="date" id="transportReexportDateFrom" value="${transportReexportDateFrom}" onchange="updateTransportReexportDateFilter()" style="padding: 0.5rem; border: 1px solid #D1D5DB; border-radius: 4px;">
+                    </label>
+                    <label style="display: flex; align-items: center; gap: 0.5rem;">
+                        <span>Date To:</span>
+                        <input type="date" id="transportReexportDateTo" value="${transportReexportDateTo}" onchange="updateTransportReexportDateFilter()" style="padding: 0.5rem; border: 1px solid #D1D5DB; border-radius: 4px;">
+                    </label>
+                    ${hasReexportDateFilter ? `
+                        <button class="btn btn-secondary" onclick="resetTransportReexportDateFilter()" style="padding: 0.5rem 1rem;">🔄 Reset Filters</button>
+                    ` : ''}
+                </div>
+                ${generateShipmentTable(filteredReexport, 'Re-export', currentPageReexport)}
+            </div>
         `;
         
         console.log('>>> Calling generateShipmentTable for Export');
+        const hasExportDateFilter = transportExportDateFrom || transportExportDateTo;
         // EXPORT SECTION
         html += `
-            <h3 style="margin-top: 2rem; margin-bottom: 1rem; color: var(--secondary);">📤 Export Shipments (${filteredExport.length})</h3>
-            ${generateShipmentTable(filteredExport, 'Export', currentPageExport)}
+            <div style="margin-top: 2rem;">
+                <h3 style="margin-bottom: 1rem; color: var(--secondary);">📤 Export Shipments (${filteredExport.length})</h3>
+                <div style="margin-bottom: 1rem; display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap;">
+                    <label style="display: flex; align-items: center; gap: 0.5rem;">
+                        <span>Date From:</span>
+                        <input type="date" id="transportExportDateFrom" value="${transportExportDateFrom}" onchange="updateTransportExportDateFilter()" style="padding: 0.5rem; border: 1px solid #D1D5DB; border-radius: 4px;">
+                    </label>
+                    <label style="display: flex; align-items: center; gap: 0.5rem;">
+                        <span>Date To:</span>
+                        <input type="date" id="transportExportDateTo" value="${transportExportDateTo}" onchange="updateTransportExportDateFilter()" style="padding: 0.5rem; border: 1px solid #D1D5DB; border-radius: 4px;">
+                    </label>
+                    ${hasExportDateFilter ? `
+                        <button class="btn btn-secondary" onclick="resetTransportExportDateFilter()" style="padding: 0.5rem 1rem;">🔄 Reset Filters</button>
+                    ` : ''}
+                </div>
+                ${generateShipmentTable(filteredExport, 'Export', currentPageExport)}
+            </div>
         `;
         
         console.log('>>> Setting container.innerHTML');
@@ -8178,31 +8263,57 @@ async function bulkCancelShipments(shipmentType) {
 
         function filterTransportInbound(filter) {
             transportInboundFilter = filter;
-            // Reset pagination when filter changes
+            // Reset pagination for all sections when status filter changes
             currentPageInbound = 1;
             currentPageReexport = 1;
             currentPageExport = 1;
             loadTransportInbound();
         }
         
-        function updateTransportDateFilter() {
-            transportDateFrom = document.getElementById('transportDateFrom').value;
-            transportDateTo = document.getElementById('transportDateTo').value;
-            // Reset pagination when filter changes
+        function updateTransportInboundDateFilter() {
+            transportInboundDateFrom = document.getElementById('transportInboundDateFrom').value;
+            transportInboundDateTo = document.getElementById('transportInboundDateTo').value;
             currentPageInbound = 1;
+            loadTransportInbound();
+        }
+        
+        function resetTransportInboundDateFilter() {
+            transportInboundDateFrom = '';
+            transportInboundDateTo = '';
+            document.getElementById('transportInboundDateFrom').value = '';
+            document.getElementById('transportInboundDateTo').value = '';
+            currentPageInbound = 1;
+            loadTransportInbound();
+        }
+        
+        function updateTransportReexportDateFilter() {
+            transportReexportDateFrom = document.getElementById('transportReexportDateFrom').value;
+            transportReexportDateTo = document.getElementById('transportReexportDateTo').value;
             currentPageReexport = 1;
+            loadTransportInbound();
+        }
+        
+        function resetTransportReexportDateFilter() {
+            transportReexportDateFrom = '';
+            transportReexportDateTo = '';
+            document.getElementById('transportReexportDateFrom').value = '';
+            document.getElementById('transportReexportDateTo').value = '';
+            currentPageReexport = 1;
+            loadTransportInbound();
+        }
+        
+        function updateTransportExportDateFilter() {
+            transportExportDateFrom = document.getElementById('transportExportDateFrom').value;
+            transportExportDateTo = document.getElementById('transportExportDateTo').value;
             currentPageExport = 1;
             loadTransportInbound();
         }
         
-        function resetTransportDateFilter() {
-            transportDateFrom = '';
-            transportDateTo = '';
-            document.getElementById('transportDateFrom').value = '';
-            document.getElementById('transportDateTo').value = '';
-            // Reset pagination
-            currentPageInbound = 1;
-            currentPageReexport = 1;
+        function resetTransportExportDateFilter() {
+            transportExportDateFrom = '';
+            transportExportDateTo = '';
+            document.getElementById('transportExportDateFrom').value = '';
+            document.getElementById('transportExportDateTo').value = '';
             currentPageExport = 1;
             loadTransportInbound();
         }
