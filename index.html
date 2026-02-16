@@ -5446,6 +5446,9 @@ window.onclick = function(event) {
         }
         
         function switchDashboardTab(tabName) {
+            // Guard against null currentUser before login
+            if (!currentUser) return;
+            
             document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
             const activeBtn = document.querySelector(`[data-tab="${tabName}"]`);
             if (activeBtn) activeBtn.classList.add('active');
@@ -5930,6 +5933,12 @@ function generateManagementShipmentTable(shipments, shipmentType, currentPage) {
                 return;
             }
             
+            // Pagination calculations
+            const totalPages = Math.ceil(activeShipments.length / itemsPerPage);
+            const startIndex = (currentPageManagementInbound - 1) * itemsPerPage;
+            const endIndex = startIndex + itemsPerPage;
+            const paginatedShipments = activeShipments.slice(startIndex, endIndex);
+            
             let html = `
                 <table class="orders-table">
                     <thead>
@@ -5945,7 +5954,7 @@ function generateManagementShipmentTable(shipments, shipmentType, currentPage) {
                     <tbody>
             `;
             
-            activeShipments.forEach(shipment => {
+            paginatedShipments.forEach(shipment => {
                 const statusColors = {
                     'Planned': { bg: '#F3F4F6', text: '#6B7280' },
                     'Confirmed': { bg: '#D1FAE5', text: '#059669' },
@@ -5978,7 +5987,35 @@ function generateManagementShipmentTable(shipments, shipmentType, currentPage) {
                 </table>
             `;
             
+            // Pagination controls
+            if (totalPages > 1) {
+                html += `
+                    <div style="margin-top: 1rem; display: flex; justify-content: center; align-items: center; gap: 0.5rem;">
+                        <button class="btn btn-secondary" onclick="changeManagementInboundPage(${currentPageManagementInbound - 1})" ${currentPageManagementInbound === 1 ? 'disabled' : ''} style="padding: 0.5rem 0.75rem;">‹ Prev</button>
+                `;
+                
+                for (let i = 1; i <= totalPages; i++) {
+                    if (i === currentPageManagementInbound) {
+                        html += `<button class="btn btn-primary" style="padding: 0.5rem 0.75rem;">${i}</button>`;
+                    } else if (i === 1 || i === totalPages || (i >= currentPageManagementInbound - 2 && i <= currentPageManagementInbound + 2)) {
+                        html += `<button class="btn btn-secondary" onclick="changeManagementInboundPage(${i})" style="padding: 0.5rem 0.75rem;">${i}</button>`;
+                    } else if (i === currentPageManagementInbound - 3 || i === currentPageManagementInbound + 3) {
+                        html += `<span style="padding: 0.5rem;">...</span>`;
+                    }
+                }
+                
+                html += `
+                        <button class="btn btn-secondary" onclick="changeManagementInboundPage(${currentPageManagementInbound + 1})" ${currentPageManagementInbound === totalPages ? 'disabled' : ''} style="padding: 0.5rem 0.75rem;">Next ›</button>
+                    </div>
+                `;
+            }
+            
             container.innerHTML = html;
+        }
+        
+        function changeManagementInboundPage(newPage) {
+            currentPageManagementInbound = newPage;
+            loadInboundShipmentsTable();
         }
         
         // Load Reservoir Comparison Table (Management View)
@@ -6984,6 +7021,7 @@ function generateWarehouseShipmentTable(shipments, shipmentType, currentPage) {
         let currentPageExport = 1;
         let currentPageWarehouseInbound = 1;
         let currentPageWarehouseExport = 1;
+        let currentPageManagementInbound = 1;
         let currentPageManagementReexport = 1;
         let currentPageManagementExport = 1;
         const itemsPerPage = 10;
