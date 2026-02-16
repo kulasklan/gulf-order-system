@@ -5671,12 +5671,12 @@ async function loadManagementAllShipments() {
         let html = `
             <div data-management-section style="margin-top: 2rem;">
                 <h3 style="margin-bottom: 1rem; color: var(--secondary);">🌍 Re-export Shipments (${reexport.length})</h3>
-                ${generateManagementShipmentTable(reexport)}
+                ${generateManagementShipmentTable(reexport, 'Re-export', currentPageManagementReexport)}
             </div>
             
             <div data-management-section style="margin-top: 2rem;">
                 <h3 style="margin-bottom: 1rem; color: var(--secondary);">📤 Export Shipments (${exportShipments.length})</h3>
-                ${generateManagementShipmentTable(exportShipments)}
+                ${generateManagementShipmentTable(exportShipments, 'Export', currentPageManagementExport)}
             </div>
         `;
         
@@ -5688,16 +5688,22 @@ async function loadManagementAllShipments() {
     }
 }
 
-function generateManagementShipmentTable(shipments) {
+function generateManagementShipmentTable(shipments, shipmentType, currentPage) {
     if (shipments.length === 0) {
         return '<p style="color: #6B7280; padding: 1rem;">No shipments</p>';
     }
+    
+    // Pagination calculations
+    const totalPages = Math.ceil(shipments.length / itemsPerPage);
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    const endIndex = startIndex + itemsPerPage;
+    const paginatedShipments = shipments.slice(startIndex, endIndex);
     
     let html = '<table class="orders-table"><thead><tr>';
     html += '<th>Shipment ID</th><th>Supplier</th><th>Client</th><th>Product</th><th>Quantity</th><th>ETA</th><th>Status</th>';
     html += '</tr></thead><tbody>';
     
-    shipments.forEach(row => {
+    paginatedShipments.forEach(row => {
         const notes = row[15] || '';
         let client = '';
         if (notes.includes('Client:')) {
@@ -5726,8 +5732,41 @@ function generateManagementShipmentTable(shipments) {
     });
     
     html += '</tbody></table>';
+    
+    // Pagination controls
+    if (totalPages > 1) {
+        html += `
+            <div style="margin-top: 1rem; display: flex; justify-content: center; align-items: center; gap: 0.5rem;">
+                <button class="btn btn-secondary" onclick="changeManagementShipmentPage('${shipmentType}', ${currentPage - 1})" ${currentPage === 1 ? 'disabled' : ''} style="padding: 0.5rem 0.75rem;">‹ Prev</button>
+        `;
+        
+        for (let i = 1; i <= totalPages; i++) {
+            if (i === currentPage) {
+                html += `<button class="btn btn-primary" style="padding: 0.5rem 0.75rem;">${i}</button>`;
+            } else if (i === 1 || i === totalPages || (i >= currentPage - 2 && i <= currentPage + 2)) {
+                html += `<button class="btn btn-secondary" onclick="changeManagementShipmentPage('${shipmentType}', ${i})" style="padding: 0.5rem 0.75rem;">${i}</button>`;
+            } else if (i === currentPage - 3 || i === currentPage + 3) {
+                html += `<span style="padding: 0.5rem;">...</span>`;
+            }
+        }
+        
+        html += `
+                <button class="btn btn-secondary" onclick="changeManagementShipmentPage('${shipmentType}', ${currentPage + 1})" ${currentPage === totalPages ? 'disabled' : ''} style="padding: 0.5rem 0.75rem;">Next ›</button>
+            </div>
+        `;
+    }
+    
     return html;
 }
+
+        function changeManagementShipmentPage(shipmentType, newPage) {
+            if (shipmentType === 'Re-export') {
+                currentPageManagementReexport = newPage;
+            } else if (shipmentType === 'Export') {
+                currentPageManagementExport = newPage;
+            }
+            loadManagementAllShipments();
+        }
 		
         async function loadInventoryCards() {
             const container = document.getElementById('inventoryCards');
@@ -6546,10 +6585,10 @@ async function loadWarehouseInbound() {
         
         let html = `
             <h3 style="margin-bottom: 1rem; color: var(--secondary);">📦 Inbound Shipments (In Transit) - ${inboundInTransit.length}</h3>
-            ${generateWarehouseShipmentTable(inboundInTransit, 'Inbound')}
+            ${generateWarehouseShipmentTable(inboundInTransit, 'Inbound', currentPageWarehouseInbound)}
             
             <h3 style="margin-top: 2rem; margin-bottom: 1rem; color: var(--secondary);">📤 Export Shipments - ${exportShipments.length}</h3>
-            ${generateWarehouseShipmentTable(exportShipments, 'Export')}
+            ${generateWarehouseShipmentTable(exportShipments, 'Export', currentPageWarehouseExport)}
         `;
         
         container.innerHTML = html;
@@ -6559,10 +6598,16 @@ async function loadWarehouseInbound() {
     }
 }
 
-function generateWarehouseShipmentTable(shipments, shipmentType) {
+function generateWarehouseShipmentTable(shipments, shipmentType, currentPage) {
     if (shipments.length === 0) {
         return '<p style="text-align: center; color: #6B7280; padding: 1rem;">No shipments</p>';
     }
+    
+    // Pagination calculations
+    const totalPages = Math.ceil(shipments.length / itemsPerPage);
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    const endIndex = startIndex + itemsPerPage;
+    const paginatedShipments = shipments.slice(startIndex, endIndex);
     
     const showBulkActions = true;
     const showIndividualActions = true;
@@ -6591,7 +6636,7 @@ function generateWarehouseShipmentTable(shipments, shipmentType) {
     if (showIndividualActions) html += '<th>Actions</th>';
     html += '</tr></thead><tbody>';
     
-    shipments.forEach(row => {
+    paginatedShipments.forEach(row => {
         const shipmentID = row[0];
         const supplier = row[1];
         const product = row[2];
@@ -6667,8 +6712,41 @@ function generateWarehouseShipmentTable(shipments, shipmentType) {
     });
     
     html += '</tbody></table>';
+    
+    // Pagination controls
+    if (totalPages > 1) {
+        html += `
+            <div style="margin-top: 1rem; display: flex; justify-content: center; align-items: center; gap: 0.5rem;">
+                <button class="btn btn-secondary" onclick="changeWarehouseShipmentPage('${shipmentType}', ${currentPage - 1})" ${currentPage === 1 ? 'disabled' : ''} style="padding: 0.5rem 0.75rem;">‹ Prev</button>
+        `;
+        
+        for (let i = 1; i <= totalPages; i++) {
+            if (i === currentPage) {
+                html += `<button class="btn btn-primary" style="padding: 0.5rem 0.75rem;">${i}</button>`;
+            } else if (i === 1 || i === totalPages || (i >= currentPage - 2 && i <= currentPage + 2)) {
+                html += `<button class="btn btn-secondary" onclick="changeWarehouseShipmentPage('${shipmentType}', ${i})" style="padding: 0.5rem 0.75rem;">${i}</button>`;
+            } else if (i === currentPage - 3 || i === currentPage + 3) {
+                html += `<span style="padding: 0.5rem;">...</span>`;
+            }
+        }
+        
+        html += `
+                <button class="btn btn-secondary" onclick="changeWarehouseShipmentPage('${shipmentType}', ${currentPage + 1})" ${currentPage === totalPages ? 'disabled' : ''} style="padding: 0.5rem 0.75rem;">Next ›</button>
+            </div>
+        `;
+    }
+    
     return html;
 }
+        
+        function changeWarehouseShipmentPage(shipmentType, newPage) {
+            if (shipmentType === 'Inbound') {
+                currentPageWarehouseInbound = newPage;
+            } else if (shipmentType === 'Export') {
+                currentPageWarehouseExport = newPage;
+            }
+            loadWarehouseInbound();
+        }
         
         async function updateWarehouseInboundStatus(shipmentID, newStatus) {
             if (!confirm(`Update shipment ${shipmentID} to "${newStatus}"?`)) {
@@ -6899,6 +6977,16 @@ function generateWarehouseShipmentTable(shipments, shipmentType) {
         // =============================================
         
         let transportInboundFilter = 'all';
+        
+        // Pagination state
+        let currentPageInbound = 1;
+        let currentPageReexport = 1;
+        let currentPageExport = 1;
+        let currentPageWarehouseInbound = 1;
+        let currentPageWarehouseExport = 1;
+        let currentPageManagementReexport = 1;
+        let currentPageManagementExport = 1;
+        const itemsPerPage = 10;
         
         async function loadTransportInventory() {
             console.log('Loading transport inventory...');
@@ -7252,21 +7340,21 @@ async function loadTransportInbound() {
         // INBOUND SECTION
         html += `
             <h3 style="margin-top: 2rem; margin-bottom: 1rem; color: var(--secondary);">📦 Inbound Shipments (${filteredInbound.length})</h3>
-            ${generateShipmentTable(filteredInbound, 'Inbound')}
+            ${generateShipmentTable(filteredInbound, 'Inbound', currentPageInbound)}
         `;
         
         console.log('>>> Calling generateShipmentTable for Re-export');
         // RE-EXPORT SECTION
         html += `
             <h3 style="margin-top: 2rem; margin-bottom: 1rem; color: var(--secondary);">🌍 Re-export Shipments (${filteredReexport.length})</h3>
-            ${generateShipmentTable(filteredReexport, 'Re-export')}
+            ${generateShipmentTable(filteredReexport, 'Re-export', currentPageReexport)}
         `;
         
         console.log('>>> Calling generateShipmentTable for Export');
         // EXPORT SECTION
         html += `
             <h3 style="margin-top: 2rem; margin-bottom: 1rem; color: var(--secondary);">📤 Export Shipments (${filteredExport.length})</h3>
-            ${generateShipmentTable(filteredExport, 'Export')}
+            ${generateShipmentTable(filteredExport, 'Export', currentPageExport)}
         `;
         
         console.log('>>> Setting container.innerHTML');
@@ -7278,7 +7366,7 @@ async function loadTransportInbound() {
     }
 }
 
-function generateShipmentTable(shipments, shipmentType) {
+function generateShipmentTable(shipments, shipmentType, currentPage) {
     console.log('=== generateShipmentTable called ===');
     console.log('shipmentType parameter: "' + shipmentType + '"');
     console.log('Number of shipments: ' + shipments.length);
@@ -7286,6 +7374,12 @@ function generateShipmentTable(shipments, shipmentType) {
     if (shipments.length === 0) {
         return '<p style="text-align: center; color: #6B7280; padding: 1rem;">No shipments</p>';
     }
+    
+    // Pagination calculations
+    const totalPages = Math.ceil(shipments.length / itemsPerPage);
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    const endIndex = startIndex + itemsPerPage;
+    const paginatedShipments = shipments.slice(startIndex, endIndex);
     
     const showBulkActions = true;
     const showIndividualActions = true;
@@ -7326,7 +7420,7 @@ function generateShipmentTable(shipments, shipmentType) {
             <tbody>
     `;
     
-    shipments.forEach(row => {
+    paginatedShipments.forEach(row => {
         const shipmentID = row[0];
         const supplier = row[1];
         const product = row[2];
@@ -7411,7 +7505,43 @@ function generateShipmentTable(shipments, shipmentType) {
     });
     
     html += '</tbody></table>';
+    
+    // Pagination controls
+    if (totalPages > 1) {
+        html += `
+            <div style="margin-top: 1rem; display: flex; justify-content: center; align-items: center; gap: 0.5rem;">
+                <button class="btn btn-secondary" onclick="changeShipmentPage('${shipmentType}', ${currentPage - 1})" ${currentPage === 1 ? 'disabled' : ''} style="padding: 0.5rem 0.75rem;">‹ Prev</button>
+        `;
+        
+        for (let i = 1; i <= totalPages; i++) {
+            if (i === currentPage) {
+                html += `<button class="btn btn-primary" style="padding: 0.5rem 0.75rem;">${i}</button>`;
+            } else if (i === 1 || i === totalPages || (i >= currentPage - 2 && i <= currentPage + 2)) {
+                html += `<button class="btn btn-secondary" onclick="changeShipmentPage('${shipmentType}', ${i})" style="padding: 0.5rem 0.75rem;">${i}</button>`;
+            } else if (i === currentPage - 3 || i === currentPage + 3) {
+                html += `<span style="padding: 0.5rem;">...</span>`;
+            }
+        }
+        
+        html += `
+                <button class="btn btn-secondary" onclick="changeShipmentPage('${shipmentType}', ${currentPage + 1})" ${currentPage === totalPages ? 'disabled' : ''} style="padding: 0.5rem 0.75rem;">Next ›</button>
+            </div>
+        `;
+    }
+    
     return html;
+}
+
+// Pagination helper function
+function changeShipmentPage(shipmentType, newPage) {
+    if (shipmentType === 'Inbound') {
+        currentPageInbound = newPage;
+    } else if (shipmentType === 'Re-export') {
+        currentPageReexport = newPage;
+    } else if (shipmentType === 'Export') {
+        currentPageExport = newPage;
+    }
+    loadTransportInbound();
 }
 
 // Bulk action helper functions
@@ -7692,6 +7822,10 @@ async function bulkCancelShipments(shipmentType) {
 
         function filterTransportInbound(filter) {
             transportInboundFilter = filter;
+            // Reset pagination when filter changes
+            currentPageInbound = 1;
+            currentPageReexport = 1;
+            currentPageExport = 1;
             loadTransportInbound();
         }
         
